@@ -6,6 +6,7 @@ type Props = {
   backendConfigured: boolean;
   loading?: boolean;
   onLogout?: () => void;
+  onOpenDocuments?: () => void;
   onPause?: () => Promise<void>;
   onRefresh?: () => Promise<void>;
   onRestart?: () => Promise<void>;
@@ -19,6 +20,7 @@ export function CommandHud({
   backendConfigured,
   loading = false,
   onLogout,
+  onOpenDocuments,
   onPause,
   onRefresh,
   onRestart,
@@ -47,6 +49,9 @@ export function CommandHud({
           <>
             <button className="hud-button" disabled={loading} onClick={() => void onRefresh?.()} type="button">
               刷新
+            </button>
+            <button className="hud-button" disabled={loading} onClick={onOpenDocuments} type="button">
+              文书
             </button>
             <button className="hud-button" disabled={loading || !simulation?.canPause} onClick={() => void onPause?.()} type="button">
               暂停

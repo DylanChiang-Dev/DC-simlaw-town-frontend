@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useState } from 'react';
 import { AuthGate, type AuthGateState } from './components/AuthGate';
 import { CasePicker } from './components/CasePicker';
+import { CaseDocumentsPanel } from './components/CaseDocumentsPanel';
 import { CaseTimeline } from './components/CaseTimeline';
 import { CommandHud } from './components/CommandHud';
 import { DialogueBox } from './components/DialogueBox';
@@ -22,6 +23,7 @@ type AppShellProps = {
 
 function AppShell({ auth }: AppShellProps) {
   const [documentOpen, setDocumentOpen] = useState(false);
+  const [documentsOpen, setDocumentsOpen] = useState(false);
   const [playerDialogOpen, setPlayerDialogOpen] = useState(false);
   const [sceneIndex, setSceneIndex] = useState(0);
   const runtime = useSimulationRuntime(auth.backendConfigured && Boolean(auth.user));
@@ -82,6 +84,7 @@ function AppShell({ auth }: AppShellProps) {
         backendConfigured={auth.backendConfigured}
         loading={runtime.loading}
         onLogout={auth.user ? auth.onLogout : undefined}
+        onOpenDocuments={() => setDocumentsOpen(true)}
         onPause={runtime.pause}
         onRefresh={runtime.refresh}
         onRestart={runtime.restart}
@@ -130,7 +133,19 @@ function AppShell({ auth }: AppShellProps) {
         request={playerDialogOpen ? playerLawyer.activeRequest : null}
       />
       <CaseTimeline activeCode={scene.stageCode} />
-      <DocumentWorkbench open={documentOpen} onClose={() => setDocumentOpen(false)} />
+      <DocumentWorkbench
+        onClose={() => setDocumentOpen(false)}
+        onConfirmed={async () => {
+          await playerLawyer.refresh();
+        }}
+        open={documentOpen}
+        request={playerLawyer.activeRequest}
+      />
+      <CaseDocumentsPanel
+        caseId={runtime.selectedCaseId || playerLawyer.activeRequest?.caseId || ''}
+        onClose={() => setDocumentsOpen(false)}
+        open={documentsOpen}
+      />
     </main>
   );
 }
