@@ -12,6 +12,7 @@ type Props = {
   scene: DialogueScene;
   simulation?: SimulationStatus | null;
   user: AuthUser | null;
+  wsConnected?: boolean;
 };
 
 export function CommandHud({
@@ -24,6 +25,7 @@ export function CommandHud({
   scene,
   simulation,
   user,
+  wsConnected = false,
 }: Props) {
   const runtime = getRuntimeMode();
   return (
@@ -38,6 +40,7 @@ export function CommandHud({
         <span className="pill accent">{scene.playerSeat}</span>
         <span className="pill live">{backendConfigured ? '后端模式' : '演示模式'}</span>
         <span className="pill">{runtime.configured ? '后端已配置' : '内置数据'}</span>
+        {backendConfigured && <span className="pill">{wsConnected ? '实时已连接' : '实时未连接'}</span>}
         {simulation && <span className="pill">沙盒：{simulation.status}</span>}
         {user && <span className="pill">{user.email}</span>}
         {backendConfigured && user && (

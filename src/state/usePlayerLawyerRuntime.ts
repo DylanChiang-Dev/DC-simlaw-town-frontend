@@ -1,0 +1,153 @@
+import { useCallback, useEffect, useState } from 'react';
+import {
+  fetchPendingPlayerLawyerRequests,
+  fetchPlayerLawyerStatus,
+  submitPlayerLawyerResponse,
+} from '../services/playerLawyerApi';
+import { getEventBus } from '../services/eventBus';
+import type { PlayerLawyerRequest, PlayerLawyerStatus } from '../services/types';
+
+const POLL_INTERVAL_MS = 10000;
+
+type PlayerLawyerPayload = {
+  data?: Record<string, unknown>;
+} & Record<string, unknown>;
+
+export type PlayerLawyerRuntimeState = {
+  activeRequest: PlayerLawyerRequest | null;
+  error: string;
+  loading: boolean;
+  status: PlayerLawyerStatus | null;
+  refresh: () => Promise<void>;
+  submitTextReply: (message: string) => Promise<void>;
+};
+
+export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): PlayerLawyerRuntimeState {
+  const [activeRequest, setActiveRequest] = useState<PlayerLawyerRequest | null>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<PlayerLawyerStatus | null>(null);
+
+  const refresh = useCallback(async () => {
+    if (!enabled) return;
+    setLoading(true);
+    setError('');
+    try {
+      const [nextStatus, pending] = await Promise.all([
+        fetchPlayerLawyerStatus(),
+        fetchPendingPlayerLawyerRequests(caseId),
+      ]);
+      setStatus(nextStatus);
+      setActiveRequest(pending[pending.length - 1] || null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '读取玩家律师任务失败');
+    } finally {
+      setLoading(false);
+    }
+  }, [caseId, enabled]);
+
+  useEffect(() => {
+    if (!enabled) {
+      setActiveRequest(null);
+      setError('');
+      setStatus(null);
+      return;
+    }
+
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), POLL_INTERVAL_MS);
+    return () => window.clearInterval(timer);
+  }, [enabled, refresh]);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    const eventBus = getEventBus();
+    const handleRequired = (payload?: Record<string, unknown>) => {
+      const request = mapPlayerLawyerRequestPayload(payload || {});
+      if (request.requestId) {
+        setActiveRequest(request);
+      } else {
+        void refresh();
+      }
+    };
+    const handleCleared = () => {
+      setActiveRequest(null);
+      void refresh();
+    };
+    const handleError = (payload?: Record<string, unknown>) => {
+      setError(readPayloadMessage(payload) || '玩家律师请求处理失败');
+    };
+    const handleConnected = () => {
+      void refresh();
+    };
+
+    eventBus.on('ws:player-lawyer-input-required', handleRequired);
+    eventBus.on('ws:player-lawyer-input-submitted', handleCleared);
+    eventBus.on('ws:player-lawyer-document-confirmed', handleCleared);
+    eventBus.on('ws:player-lawyer-error', handleError);
+    eventBus.on('ws:connected', handleConnected);
+
+    return () => {
+      eventBus.off('ws:player-lawyer-input-required', handleRequired);
+      eventBus.off('ws:player-lawyer-input-submitted', handleCleared);
+      eventBus.off('ws:player-lawyer-document-confirmed', handleCleared);
+      eventBus.off('ws:player-lawyer-error', handleError);
+      eventBus.off('ws:connected', handleConnected);
+    };
+  }, [enabled, refresh]);
+
+  async function submitTextReply(message: string): Promise<void> {
+    if (!activeRequest) return;
+    setLoading(true);
+    setError('');
+    try {
+      await submitPlayerLawyerResponse(activeRequest.requestId, message);
+      setActiveRequest(null);
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '提交玩家律师回复失败');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return {
+    activeRequest,
+    error,
+    loading,
+    status,
+    refresh,
+    submitTextReply,
+  };
+}
+
+function unwrapPayload(payload: PlayerLawyerPayload): Record<string, unknown> {
+  return payload.data && typeof payload.data === 'object' ? payload.data : payload;
+}
+
+function mapPlayerLawyerRequestPayload(payload: PlayerLawyerPayload): PlayerLawyerRequest {
+  const data = unwrapPayload(payload);
+  return {
+    requestId: String(data.request_id || '').trim(),
+    sandboxId: Number(data.sandbox_id || 0),
+    caseId: String(data.case_id || '').trim(),
+    stage: String(data.stage || '').trim(),
+    role: String(data.role || '').trim(),
+    speakerLabel: String(data.speaker_label || '').trim(),
+    prompt: String(data.prompt || ''),
+    contextSummary: String(data.context_summary || ''),
+    status: String(data.status || '').trim(),
+    message: String(data.message || ''),
+    createdAt: String(data.created_at || ''),
+    submittedAt: (data.submitted_at as string | null | undefined) ?? null,
+  };
+}
+
+function readPayloadMessage(payload?: Record<string, unknown>): string {
+  if (!payload) return '';
+  const data = payload.data && typeof payload.data === 'object'
+    ? payload.data as Record<string, unknown>
+    : payload;
+  return String(data.message || '').trim();
+}

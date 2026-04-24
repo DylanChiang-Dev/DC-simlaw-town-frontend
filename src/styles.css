@@ -653,6 +653,154 @@ h1 {
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
 }
 
+.player-lawyer-task-panel {
+  position: fixed;
+  z-index: 12;
+  left: 18px;
+  top: 180px;
+  width: min(280px, calc(100vw - 36px));
+  padding: 14px;
+  border: 1px solid rgba(255, 222, 176, 0.3);
+  background: linear-gradient(180deg, rgba(54, 34, 24, 0.92), rgba(31, 20, 15, 0.9));
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.32);
+}
+
+.player-lawyer-task-panel h2 {
+  margin-top: 6px;
+  color: #fff4df;
+  font-size: 17px;
+}
+
+.player-lawyer-task-panel p,
+.player-lawyer-task-panel span,
+.player-lawyer-task-panel strong {
+  display: block;
+  margin-top: 8px;
+}
+
+.player-lawyer-task-panel p {
+  color: #f4d6a4;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.player-lawyer-task-panel strong {
+  color: #fff1dc;
+  font-size: 14px;
+}
+
+.player-lawyer-task-panel span {
+  color: #d9c1a4;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.player-lawyer-task-panel .primary-action {
+  margin-top: 14px;
+}
+
+.player-lawyer-error {
+  margin-top: 12px;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 147, 120, 0.36);
+  background: rgba(142, 63, 53, 0.24);
+  color: #ffd9cd;
+  font-size: 12px;
+}
+
+.player-lawyer-dialog-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 24;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(25, 15, 10, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.player-lawyer-input-dialog {
+  position: relative;
+  width: min(760px, 100%);
+  padding: 28px;
+  border: 1px solid rgba(255, 222, 176, 0.36);
+  background: var(--panel-solid);
+  box-shadow: 0 34px 100px rgba(0, 0, 0, 0.52);
+}
+
+.player-lawyer-input-dialog h2 {
+  margin-top: 8px;
+  color: #fff4df;
+  font-size: 24px;
+}
+
+.player-lawyer-request-meta {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.player-lawyer-request-meta span {
+  border: 1px solid rgba(255, 222, 176, 0.22);
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: rgba(255, 241, 220, 0.08);
+  color: #f4d6a4;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.player-lawyer-context,
+.player-lawyer-prompt,
+.player-lawyer-document-callout p {
+  margin-top: 14px;
+  color: #dcc3a7;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.player-lawyer-prompt {
+  color: #fff3e1;
+}
+
+.player-lawyer-input-dialog textarea {
+  width: 100%;
+  min-height: 170px;
+  margin-top: 16px;
+  resize: vertical;
+  border: 1px solid rgba(255, 222, 176, 0.28);
+  border-radius: 8px;
+  padding: 13px 14px;
+  background: rgba(255, 241, 220, 0.09);
+  color: #fff8ed;
+  font: inherit;
+  line-height: 1.65;
+}
+
+.player-lawyer-input-dialog textarea:focus {
+  outline: 2px solid rgba(233, 188, 114, 0.45);
+  outline-offset: 1px;
+}
+
+.player-lawyer-dialog-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.player-lawyer-document-callout {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid rgba(233, 188, 114, 0.28);
+  background: rgba(233, 188, 114, 0.1);
+}
+
+.player-lawyer-document-callout .primary-action {
+  margin-top: 14px;
+}
+
 @media (max-width: 1100px) {
   body {
     overflow: auto;
@@ -755,5 +903,22 @@ h1 {
   .auth-loading {
     margin: 18px;
     padding: 22px;
+  }
+
+  .player-lawyer-task-panel {
+    left: 10px;
+    right: 10px;
+    top: auto;
+    bottom: 10px;
+    width: auto;
+  }
+
+  .player-lawyer-input-dialog {
+    padding: 22px;
+  }
+
+  .player-lawyer-dialog-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 }
