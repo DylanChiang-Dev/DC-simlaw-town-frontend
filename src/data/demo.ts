@@ -1,61 +1,139 @@
+export type CharacterKey =
+  | 'playerLawyer'
+  | 'client'
+  | 'judge'
+  | 'opponentLawyer';
+
+export type Character = {
+  key: CharacterKey;
+  name: string;
+  role: string;
+  portrait: string;
+  position: 'left' | 'center' | 'right';
+};
+
+export type DialogueScene = {
+  id: string;
+  caseTitle: string;
+  playerSeat: string;
+  stageCode: string;
+  stageName: string;
+  background: string;
+  speaker: CharacterKey;
+  text: string;
+  characters: CharacterKey[];
+  actions: string[];
+  tech: {
+    agent: string;
+    tools: string[];
+    skills: string[];
+    memory: string;
+    pipeline: string;
+  };
+};
+
 export type LifecycleStage = {
   code: string;
   title: string;
-  description: string;
   status: 'done' | 'active' | 'upcoming';
 };
 
-export type AgentDemo = {
-  name: string;
-  role: string;
-  status: string;
-  tools: string[];
-  skills: string[];
-};
-
-export const lifecycleStages: LifecycleStage[] = [
-  { code: 'LC', title: '法律咨询', description: '当事人陈述事实，律师追问关键证据。', status: 'done' },
-  { code: 'CD', title: '起诉状', description: '玩家律师基于模板起草诉请与事实。', status: 'active' },
-  { code: 'DD', title: '答辩状', description: '被告律师形成抗辩思路与文书。', status: 'upcoming' },
-  { code: 'CI', title: '一审庭审', description: '法官组织举证、质证和法庭调查。', status: 'upcoming' },
-  { code: 'AD', title: '上诉状', description: '一审后进入二审诉讼策略。', status: 'upcoming' },
-  { code: 'CIA', title: '二审庭审', description: '终审阶段完成争议收束。', status: 'upcoming' },
-];
-
-export const agents: AgentDemo[] = [
-  {
-    name: '李婷',
-    role: '玩家原告律师',
-    status: '等待玩家确认起诉状模板字段',
-    tools: ['search_laws', 'draft_complaint_document'],
-    skills: ['lawyer-complaint-drafting', 'lawyer-memory-writing'],
+export const characters: Record<CharacterKey, Character> = {
+  playerLawyer: {
+    key: 'playerLawyer',
+    name: '玩家律师',
+    role: '玩家在本案中扮演的原告代理律师',
+    portrait: '/art/vn/char-player-lawyer-neutral.png',
+    position: 'left',
   },
-  {
+  client: {
+    key: 'client',
     name: '刘玉田',
     role: '原告当事人',
-    status: '提供借款事实与证据线索',
-    tools: ['save_client_memory'],
-    skills: ['client-memory-writing'],
+    portrait: '/art/vn/char-client-worried.png',
+    position: 'right',
+  },
+  judge: {
+    key: 'judge',
+    name: '海瑞',
+    role: '一审法官 Agent',
+    portrait: '/art/vn/char-judge-serious.png',
+    position: 'center',
+  },
+  opponentLawyer: {
+    key: 'opponentLawyer',
+    name: '程律师',
+    role: '被告律师 Agent',
+    portrait: '/art/vn/char-opponent-lawyer-confident.png',
+    position: 'right',
+  },
+};
+
+export const scenes: DialogueScene[] = [
+  {
+    id: 'consultation',
+    caseTitle: '民间借贷纠纷教学案',
+    playerSeat: '玩家身份：刘玉田案原告代理律师',
+    stageCode: 'LC',
+    stageName: '法律咨询',
+    background: '/art/vn/bg-law-office.png',
+    speaker: 'client',
+    text: '律师，我现在最担心的是证据不够。借款记录、转账截图和聊天记录我都有，但不知道哪些能真正支持起诉。',
+    characters: ['playerLawyer', 'client'],
+    actions: ['追问借款事实', '整理证据目录', '进入起诉状起草'],
+    tech: {
+      agent: 'PlayerPlaintiffLawyerAgent',
+      tools: ['save_client_memory', 'search_laws'],
+      skills: ['client-memory-writing'],
+      memory: '记录当事人核心诉求与证据线索',
+      pipeline: 'LC 法律咨询 -> CD 起诉状起草',
+    },
   },
   {
-    name: '海瑞',
-    role: '审判长 Agent',
-    status: '待一审庭审阶段激活',
-    tools: ['search_laws', 'draft_first_instance_judgment_document'],
-    skills: ['courtroom-reasoning'],
+    id: 'drafting',
+    caseTitle: '民间借贷纠纷教学案',
+    playerSeat: '玩家身份：刘玉田案原告代理律师',
+    stageCode: 'CD',
+    stageName: '起诉状起草',
+    background: '/art/vn/bg-case-analysis-room.png',
+    speaker: 'playerLawyer',
+    text: '我们先不要直接写长文。系统会把诉讼请求、事实与理由、证据目录拆成模板字段，由玩家律师确认后再生成正式起诉状。',
+    characters: ['playerLawyer', 'client'],
+    actions: ['打开文书工作台', '调用起诉状 Skill', '确认提交'],
+    tech: {
+      agent: 'PlayerPlaintiffLawyerAgent',
+      tools: ['draft_complaint_document', 'search_laws'],
+      skills: ['lawyer-complaint-drafting', 'lawyer-memory-writing'],
+      memory: '沉淀争议焦点、事实链和最低证据清单',
+      pipeline: 'CD 文书辅助 -> PDF 导出 -> 法院立案',
+    },
+  },
+  {
+    id: 'trial',
+    caseTitle: '民间借贷纠纷教学案',
+    playerSeat: '玩家身份：刘玉田案原告代理律师',
+    stageCode: 'CI',
+    stageName: '一审庭审',
+    background: '/art/vn/bg-courtroom.png',
+    speaker: 'judge',
+    text: '现在进入法庭调查。原告律师先围绕借贷合意、款项交付和还款期限陈述主张，被告律师随后回应。',
+    characters: ['playerLawyer', 'judge', 'opponentLawyer'],
+    actions: ['陈述诉讼请求', '出示证据', '请求法庭归纳争点'],
+    tech: {
+      agent: 'JudgeAgent',
+      tools: ['search_laws', 'draft_first_instance_judgment_document'],
+      skills: ['courtroom-reasoning'],
+      memory: '读取前序咨询、文书与证据状态',
+      pipeline: 'CI 一审庭审 -> 判决生成 -> AD 上诉决策',
+    },
   },
 ];
 
-export const playerTask = {
-  title: '完善起诉状关键字段',
-  stage: 'CD 起诉状起草',
-  body: '系统已根据咨询记录生成文书骨架。请确认诉讼请求、事实与理由、证据目录是否完整。',
-  actions: ['查看模板', '生成草稿', '确认提交'],
-};
-
-export const metrics = [
-  { label: '生命周期阶段', value: '6' },
-  { label: '可展示 Agent', value: '21' },
-  { label: '法律工具', value: '12+' },
-  { label: '项目 Skill', value: '6' },
+export const lifecycleStages: LifecycleStage[] = [
+  { code: 'LC', title: '咨询', status: 'done' },
+  { code: 'CD', title: '起诉状', status: 'active' },
+  { code: 'DD', title: '答辩状', status: 'upcoming' },
+  { code: 'CI', title: '一审', status: 'upcoming' },
+  { code: 'AD', title: '上诉', status: 'upcoming' },
+  { code: 'CIA', title: '二审', status: 'upcoming' },
 ];
