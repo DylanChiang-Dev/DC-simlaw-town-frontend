@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { characters, type DialogueScene } from '../data/demo';
 import { MarkdownText } from './MarkdownText';
 import type { PlayerLawyerRequest } from '../services/types';
@@ -31,10 +32,13 @@ export function DialogueBox({
   scene,
   wsConnected = true,
 }: Props) {
+  const [recordsOpen, setRecordsOpen] = useState(false);
   const speaker = characters[scene.speaker];
   const transcript = backendMode ? history : [];
-  const showTranscript = backendMode && transcript.length > 0;
-  const showActions = !backendMode || Boolean(pendingRequest || dialogueGate);
+  const currentEntry = transcript[transcript.length - 1] || null;
+  const showTranscript = backendMode && Boolean(currentEntry);
+  const canOpenTranscript = backendMode && transcript.length > 1;
+  const showActions = !backendMode || Boolean(pendingRequest || dialogueGate || canOpenTranscript);
 
   return (
     <section className="dialogue-box" aria-label="角色对话">
@@ -44,17 +48,10 @@ export function DialogueBox({
       </div>
       <div className="player-seat-chip">{scene.playerSeat}</div>
       {showTranscript ? (
-        <div className="dialogue-history" aria-label="案件对话记录">
-          {transcript.map((entry, index) => (
-            <article
-              className={`dialogue-history-entry ${entry.kind} ${index === transcript.length - 1 ? 'current' : ''}`}
-              key={entry.id}
-            >
-              <span>{entry.speakerName}</span>
-              <MarkdownText text={entry.text} />
-            </article>
-          ))}
-        </div>
+        <article className={`dialogue-current-entry ${currentEntry?.kind || 'dialogue'}`} aria-label="当前对话">
+          <span>{currentEntry?.speakerName}</span>
+          <MarkdownText text={currentEntry?.text || ''} />
+        </article>
       ) : (
         <MarkdownText className="dialogue-current-text" text={scene.text} />
       )}
@@ -70,15 +67,22 @@ export function DialogueBox({
       )}
       {showActions && <div className="dialogue-actions">
         {backendMode ? (
-          pendingRequest ? (
-            <button type="button" onClick={onOpenPlayerInput}>
-              输入律师回复
-            </button>
-          ) : dialogueGate ? (
-            <button disabled={dialogueGate.pending || !wsConnected} type="button" onClick={onContinueDialogue}>
-              {!wsConnected ? '实时未连接，正在重连' : dialogueGate.pending ? '等待后端响应' : '继续下一句'}
-            </button>
-          ) : null
+          <>
+            {canOpenTranscript && (
+              <button className="secondary-action" type="button" onClick={() => setRecordsOpen(true)}>
+                查看全部记录
+              </button>
+            )}
+            {pendingRequest ? (
+              <button type="button" onClick={onOpenPlayerInput}>
+                输入律师回复
+              </button>
+            ) : dialogueGate ? (
+              <button disabled={dialogueGate.pending || !wsConnected} type="button" onClick={onContinueDialogue}>
+                {!wsConnected ? '实时未连接，正在重连' : dialogueGate.pending ? '等待后端响应' : '继续'}
+              </button>
+            ) : null}
+          </>
         ) : (
           scene.actions.map((action) => (
             <button key={action} type="button" onClick={() => onAction(action)}>
@@ -87,6 +91,27 @@ export function DialogueBox({
           ))
         )}
       </div>}
+      {recordsOpen && (
+        <div className="modal-layer" role="dialog" aria-modal="true" aria-label="全部对话记录">
+          <section className="dialogue-records-dialog">
+            <div className="panel-kicker">Case Transcript</div>
+            <h2>全部对话记录</h2>
+            <div className="dialogue-records-list">
+              {transcript.map((entry) => (
+                <article className={`dialogue-history-entry ${entry.kind}`} key={entry.id}>
+                  <span>{entry.speakerName}</span>
+                  <MarkdownText text={entry.text} />
+                </article>
+              ))}
+            </div>
+            <div className="dialogue-records-actions">
+              <button className="secondary-action" type="button" onClick={() => setRecordsOpen(false)}>
+                关闭
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </section>
   );
 }
