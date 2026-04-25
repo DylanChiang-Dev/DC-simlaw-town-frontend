@@ -579,6 +579,31 @@ h1 {
   line-height: 1.58;
 }
 
+.background-consultation-list {
+  display: grid;
+  gap: 12px;
+}
+
+.background-consultation-list article {
+  display: grid;
+  gap: 7px;
+  padding: 10px;
+  border: 1px solid rgba(233, 188, 114, 0.18);
+  background: rgba(255, 241, 220, 0.06);
+}
+
+.background-consultation-list b {
+  color: #ffe3a7;
+  font-size: 12px;
+}
+
+.background-consultation-list .markdown-text,
+.background-consultation-list p {
+  color: #d9c1a4;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
 .case-timeline {
   min-width: 0;
   display: grid;

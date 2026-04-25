@@ -1,6 +1,7 @@
 import { characters, scenes, type CharacterKey, type DialogueScene } from '../data/demo';
 
 const STAGE_LABELS: Record<string, string> = {
+  RECEPTION: '前台导引',
   LC: '法律咨询',
   CD: '起诉状起草',
   DD: '答辩状起草',
@@ -14,6 +15,7 @@ const STAGE_LABELS: Record<string, string> = {
 };
 
 const BACKGROUND_BY_STAGE: Record<string, string> = {
+  RECEPTION: '/art/vn/bg-law-office.png',
   LC: '/art/vn/bg-law-office.png',
   CD: '/art/vn/bg-case-analysis-room.png',
   DD: '/art/vn/bg-case-analysis-room.png',
@@ -48,6 +50,7 @@ const CASE_EVENT_MESSAGES: Record<string, string> = {
 };
 
 export type VnRuntimeState = {
+  background: DialogueHistoryEntry[];
   diagnostics: string[];
   history: DialogueHistoryEntry[];
   scene: DialogueScene;
@@ -86,6 +89,7 @@ export type VnRuntimeEvent =
 
 export function createInitialVnRuntimeState(): VnRuntimeState {
   return {
+    background: [],
     diagnostics: [],
     history: [],
     scene: scenes[0],
@@ -152,6 +156,9 @@ function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unkn
     stageCode,
     text: String(payload.content || '收到新的案件对话。'),
   });
+  if (isBackgroundDialogue(stageCode, scene.text)) {
+    return appendBackground(state, scene);
+  }
   return appendHistory({ ...state, scene }, scene, 'dialogue');
 }
 
@@ -233,6 +240,35 @@ function appendHistory(
     ...state,
     history: [...state.history, entry].slice(-40),
   };
+}
+
+function appendBackground(state: VnRuntimeState, scene: DialogueScene): VnRuntimeState {
+  const text = scene.text.trim();
+  if (!text) return state;
+  const last = state.background[state.background.length - 1];
+  if (last?.text === text && last.stageCode === scene.stageCode) {
+    return state;
+  }
+
+  const entry: DialogueHistoryEntry = {
+    id: `background-${scene.stageCode}-${Date.now()}-${state.background.length}`,
+    kind: 'system',
+    speaker: scene.speaker,
+    speakerName: '背景咨询',
+    stageCode: scene.stageCode,
+    stageName: scene.stageName,
+    text,
+    timestamp: new Date().toISOString(),
+  };
+  return {
+    ...state,
+    background: [...state.background, entry].slice(-12),
+  };
+}
+
+function isBackgroundDialogue(stageCode: string, text: string): boolean {
+  if (stageCode !== 'RECEPTION') return false;
+  return /【推荐律师[：:]/.test(text) || /推荐律师/.test(text);
 }
 
 function getCaseStateMessage(payload: Record<string, unknown>): string {

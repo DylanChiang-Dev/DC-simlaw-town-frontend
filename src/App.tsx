@@ -169,7 +169,7 @@ function AppShell({ auth }: AppShellProps) {
             onOpenRequest={() => setPlayerDialogOpen(true)}
             status={playerLawyer.status}
           />
-          <TechLedger scene={scene} />
+          <TechLedger background={vnRuntime.background} scene={scene} />
         </div>
         <div className="story-surface">
           <VisualNovelStage scene={scene} />
