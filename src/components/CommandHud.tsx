@@ -9,7 +9,7 @@ type Props = {
   onOpenDocuments?: () => void;
   onPause?: () => Promise<void>;
   onRefresh?: () => Promise<void>;
-  onRestart?: () => Promise<void>;
+  onRestart?: () => Promise<void> | void;
   scene: DialogueScene;
   simulation?: SimulationStatus | null;
   user: AuthUser | null;
@@ -34,7 +34,7 @@ export function CommandHud({
     <header className="command-hud">
       <div>
         <div className="eyebrow">SimAilaw Town v2</div>
-        <h1>法律互动视觉小说演示台</h1>
+        <h1>法律全流程仿真工作台</h1>
       </div>
       <div className="hud-pills" aria-label="系统状态">
         <span className="pill">{scene.caseTitle}</span>
@@ -43,7 +43,7 @@ export function CommandHud({
         <span className="pill live">{backendConfigured ? '后端模式' : '演示模式'}</span>
         <span className="pill">{runtime.configured ? '后端已配置' : '内置数据'}</span>
         {backendConfigured && <span className="pill">{wsConnected ? '实时已连接' : '实时未连接'}</span>}
-        {simulation && <span className="pill">沙盒：{simulation.status}</span>}
+        {simulation && <span className="pill">运行状态：{simulation.status}</span>}
         {user && <span className="pill">{user.email}</span>}
         {backendConfigured && user && (
           <>

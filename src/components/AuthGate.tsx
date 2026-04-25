@@ -87,8 +87,8 @@ export function AuthGate({ children }: Props) {
       <main className="auth-shell">
         <section className="auth-loading">
           <div className="panel-kicker">SimAilaw Town</div>
-          <h1>正在恢复案件沙盒</h1>
-          <p>正在校验登录状态并连接你的专属后端沙盒。</p>
+          <h1>正在恢复案件工作区</h1>
+          <p>正在校验登录状态并连接后端案件运行区。</p>
         </section>
       </main>
     );

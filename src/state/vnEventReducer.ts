@@ -36,10 +36,33 @@ const CHARACTERS_BY_STAGE: Record<string, CharacterKey[]> = {
   CIA: ['playerLawyer', 'judge', 'opponentLawyer'],
 };
 
+const CASE_EVENT_MESSAGES: Record<string, string> = {
+  CASE_STARTED: '案件已启动，系统正在安排第一轮咨询。',
+  PLAINTIFF_ARRIVED: '当事人已进入咨询，正在准备案情说明。',
+  CLIENT_ARRIVED: '当事人已进入咨询，正在准备案情说明。',
+  CONSULTATION_STARTED: '法律咨询开始，等待当事人说明情况。',
+  STAGE_STARTED: '新阶段已开始，等待下一轮案件对话。',
+  STAGE_COMPLETED: '当前阶段已完成，案件流程正在推进。',
+  DOCUMENT_DRAFT_STARTED: '文书起草阶段开始，等待玩家律师处理。',
+  TRIAL_STARTED: '庭审阶段开始，等待法庭发言。',
+};
+
 export type VnRuntimeState = {
   diagnostics: string[];
+  history: DialogueHistoryEntry[];
   scene: DialogueScene;
   wsConnected: boolean;
+};
+
+export type DialogueHistoryEntry = {
+  id: string;
+  kind: 'dialogue' | 'system' | 'error';
+  speaker: CharacterKey;
+  speakerName: string;
+  stageCode: string;
+  stageName: string;
+  text: string;
+  timestamp: string;
 };
 
 export type VnRuntimeEvent =
@@ -61,6 +84,7 @@ export type VnRuntimeEvent =
 export function createInitialVnRuntimeState(): VnRuntimeState {
   return {
     diagnostics: [],
+    history: [],
     scene: scenes[0],
     wsConnected: false,
   };
@@ -75,7 +99,7 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
     case 'dialogue-update':
       return applyDialogueUpdate(state, event.payload || {});
     case 'case-state-change':
-      return appendSystemLine(state, `流程推进：${String(event.payload?.event || '案件状态更新')}`);
+      return appendSystemLine(state, getCaseStateMessage(event.payload || {}));
     case 'scenario-start':
       return applyScenarioStart(state, event.payload || {});
     case 'scenario-end':
@@ -110,7 +134,7 @@ function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unkn
     stageCode,
     text: String(payload.content || '收到新的案件对话。'),
   });
-  return { ...state, scene };
+  return appendHistory({ ...state, scene }, scene, 'dialogue');
 }
 
 function applyScenarioStart(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
@@ -138,13 +162,11 @@ function applyRuntimeIssue(state: VnRuntimeState, payload: Record<string, unknow
 }
 
 function appendSystemLine(state: VnRuntimeState, text: string): VnRuntimeState {
-  return {
-    ...state,
-    scene: createSceneFromState(state.scene, {
-      speaker: state.scene.speaker,
-      text,
-    }),
-  };
+  const scene = createSceneFromState(state.scene, {
+    speaker: state.scene.speaker,
+    text,
+  });
+  return appendHistory({ ...state, scene }, scene, 'system');
 }
 
 function appendDiagnostic(state: VnRuntimeState, message: string): VnRuntimeState {
@@ -152,6 +174,40 @@ function appendDiagnostic(state: VnRuntimeState, message: string): VnRuntimeStat
     ...state,
     diagnostics: [...state.diagnostics.slice(-5), message],
   };
+}
+
+function appendHistory(
+  state: VnRuntimeState,
+  scene: DialogueScene,
+  kind: DialogueHistoryEntry['kind'],
+): VnRuntimeState {
+  const text = scene.text.trim();
+  if (!text) return state;
+  const last = state.history[state.history.length - 1];
+  if (last?.text === text && last.stageCode === scene.stageCode && last.speaker === scene.speaker) {
+    return state;
+  }
+
+  const speaker = characters[scene.speaker];
+  const entry: DialogueHistoryEntry = {
+    id: `${scene.stageCode}-${Date.now()}-${state.history.length}`,
+    kind,
+    speaker: scene.speaker,
+    speakerName: kind === 'system' ? '系统' : speaker.name,
+    stageCode: scene.stageCode,
+    stageName: scene.stageName,
+    text,
+    timestamp: new Date().toISOString(),
+  };
+  return {
+    ...state,
+    history: [...state.history, entry].slice(-40),
+  };
+}
+
+function getCaseStateMessage(payload: Record<string, unknown>): string {
+  const eventName = String(payload.event || payload.type || '').trim().toUpperCase();
+  return CASE_EVENT_MESSAGES[eventName] || '案件流程正在推进，等待下一轮案件对话。';
 }
 
 function createSceneFromState(

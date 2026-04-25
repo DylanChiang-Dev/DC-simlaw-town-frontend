@@ -25,6 +25,7 @@ function AppShell({ auth }: AppShellProps) {
   const [documentOpen, setDocumentOpen] = useState(false);
   const [documentsOpen, setDocumentsOpen] = useState(false);
   const [playerDialogOpen, setPlayerDialogOpen] = useState(false);
+  const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const [sceneIndex, setSceneIndex] = useState(0);
   const runtime = useSimulationRuntime(auth.backendConfigured && Boolean(auth.user));
   const playerLawyer = usePlayerLawyerRuntime(
@@ -33,6 +34,12 @@ function AppShell({ auth }: AppShellProps) {
   );
   const [vnRuntime, dispatchVnEvent] = useReducer(vnEventReducer, undefined, createInitialVnRuntimeState);
   const scene = auth.backendConfigured && auth.user ? vnRuntime.scene : scenes[sceneIndex];
+  const casePickerOpen = Boolean(
+    auth.backendConfigured
+    && auth.user
+    && runtime.simulation?.canStart
+    && !runtime.loading,
+  );
 
   useEffect(() => {
     if (!auth.backendConfigured || !auth.user) {
@@ -59,13 +66,10 @@ function AppShell({ auth }: AppShellProps) {
     ];
 
     handlers.forEach(([event, handler]) => eventBus.on(event, handler));
-    const openPlayerDialog = () => setPlayerDialogOpen(true);
-    eventBus.on('ws:player-lawyer-input-required', openPlayerDialog);
     void getWebSocketService().connect();
 
     return () => {
       handlers.forEach(([event, handler]) => eventBus.off(event, handler));
-      eventBus.off('ws:player-lawyer-input-required', openPlayerDialog);
       getWebSocketService().disconnect();
     };
   }, [auth.backendConfigured, auth.user]);
@@ -87,13 +91,13 @@ function AppShell({ auth }: AppShellProps) {
         onOpenDocuments={() => setDocumentsOpen(true)}
         onPause={runtime.pause}
         onRefresh={runtime.refresh}
-        onRestart={runtime.restart}
+        onRestart={() => setRestartConfirmOpen(true)}
         scene={scene}
         simulation={runtime.simulation}
         user={auth.user}
         wsConnected={vnRuntime.wsConnected}
       />
-      {auth.backendConfigured && auth.user && (
+      {casePickerOpen && (
         <CasePicker
           cases={runtime.cases}
           disabled={!auth.user}
@@ -106,19 +110,28 @@ function AppShell({ auth }: AppShellProps) {
         />
       )}
       <div className="vn-layout">
-        <TechLedger scene={scene} />
+        <div className="side-rail">
+          <PlayerLawyerTaskPanel
+            activeRequest={playerLawyer.activeRequest}
+            error={playerLawyer.error}
+            loading={playerLawyer.loading}
+            onOpenRequest={() => setPlayerDialogOpen(true)}
+            status={playerLawyer.status}
+          />
+          <TechLedger scene={scene} />
+        </div>
         <div className="story-surface">
           <VisualNovelStage scene={scene} />
-          <DialogueBox scene={scene} onAction={handleAction} />
+          <DialogueBox
+            backendMode={auth.backendConfigured && Boolean(auth.user)}
+            history={vnRuntime.history}
+            onAction={handleAction}
+            onOpenPlayerInput={() => setPlayerDialogOpen(true)}
+            pendingRequest={playerLawyer.activeRequest}
+            scene={scene}
+          />
         </div>
       </div>
-      <PlayerLawyerTaskPanel
-        activeRequest={playerLawyer.activeRequest}
-        error={playerLawyer.error}
-        loading={playerLawyer.loading}
-        onOpenRequest={() => setPlayerDialogOpen(true)}
-        status={playerLawyer.status}
-      />
       <PlayerLawyerInputDialog
         loading={playerLawyer.loading}
         onClose={() => setPlayerDialogOpen(false)}
@@ -146,6 +159,36 @@ function AppShell({ auth }: AppShellProps) {
         onClose={() => setDocumentsOpen(false)}
         open={documentsOpen}
       />
+      {restartConfirmOpen && (
+        <div className="modal-layer" role="dialog" aria-modal="true" aria-label="确认重置模拟">
+          <section className="confirm-dialog">
+            <div className="panel-kicker">Reset Case Run</div>
+            <h2>确认重置模拟？</h2>
+            <p>重置会停止当前案件运行，并回到可重新选择案件的状态。已生成的后端状态会按当前重置接口处理。</p>
+            <div className="confirm-dialog-actions">
+              <button
+                className="secondary-action"
+                disabled={runtime.loading}
+                onClick={() => setRestartConfirmOpen(false)}
+                type="button"
+              >
+                取消
+              </button>
+              <button
+                className="primary-action"
+                disabled={runtime.loading}
+                onClick={async () => {
+                  await runtime.restart();
+                  setRestartConfirmOpen(false);
+                }}
+                type="button"
+              >
+                {runtime.loading ? '重置中' : '确认重置'}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }

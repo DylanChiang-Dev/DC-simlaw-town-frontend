@@ -22,6 +22,7 @@ export function PlayerLawyerTaskPanel({ activeRequest, error, loading, onOpenReq
   if (!enabled) return null;
 
   const stageLabel = activeRequest ? getStageLabel(activeRequest.stage) : '等待案件推进';
+  const actionLabel = isDocumentStage(activeRequest?.stage) ? '处理文书任务' : '输入律师回复';
   return (
     <aside className="player-lawyer-task-panel" aria-label="玩家律师任务">
       <div className="panel-kicker">Player Lawyer</div>
@@ -32,7 +33,7 @@ export function PlayerLawyerTaskPanel({ activeRequest, error, loading, onOpenReq
           <strong>{activeRequest.speakerLabel || '轮到玩家律师'}</strong>
           <span>{activeRequest.caseId || '当前案件'} / {activeRequest.role || 'plaintiff_lawyer'}</span>
           <button className="primary-action wide" disabled={loading} onClick={onOpenRequest} type="button">
-            {loading ? '处理中' : '处理当前任务'}
+            {loading ? '处理中' : actionLabel}
           </button>
         </>
       ) : (
@@ -45,4 +46,8 @@ export function PlayerLawyerTaskPanel({ activeRequest, error, loading, onOpenReq
 
 function getStageLabel(stage: string): string {
   return STAGE_LABELS[String(stage || '').toUpperCase()] || stage || '玩家律师回合';
+}
+
+function isDocumentStage(stage?: string): boolean {
+  return ['CD', 'AD', 'AR'].includes(String(stage || '').toUpperCase());
 }

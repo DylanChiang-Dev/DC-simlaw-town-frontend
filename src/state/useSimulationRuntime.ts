@@ -41,7 +41,7 @@ export function useSimulationRuntime(enabled: boolean): SimulationRuntimeState {
       setCases(nextCases);
       setSelectedCaseId((current) => current || nextCases[0]?.caseId || '');
     } catch (err) {
-      setError(err instanceof Error ? err.message : '读取沙盒状态失败');
+      setError(err instanceof Error ? err.message : '读取案件运行状态失败');
     } finally {
       setLoading(false);
     }
@@ -60,7 +60,7 @@ export function useSimulationRuntime(enabled: boolean): SimulationRuntimeState {
       const nextCases = await fetchSandboxCases();
       setCases(nextCases);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '沙盒操作失败');
+      setError(err instanceof Error ? err.message : '案件操作失败');
     } finally {
       setLoading(false);
     }
@@ -91,7 +91,7 @@ export function useSimulationRuntime(enabled: boolean): SimulationRuntimeState {
         setCases(nextCases);
         setSelectedCaseId(nextCases[0]?.caseId || '');
       } catch (err) {
-        setError(err instanceof Error ? err.message : '重置沙盒失败');
+        setError(err instanceof Error ? err.message : '重置案件运行区失败');
       } finally {
         setLoading(false);
       }
