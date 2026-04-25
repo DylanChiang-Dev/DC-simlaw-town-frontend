@@ -4,6 +4,7 @@ import {
   createPlayerLawyerDocumentDraft,
   fetchPlayerLawyerDocumentSkills,
 } from '../services/playerLawyerApi';
+import { MarkdownText } from './MarkdownText';
 import type { PlayerLawyerDocumentDraft, PlayerLawyerRequest, PlayerLawyerSkill } from '../services/types';
 
 const STAGE_DOCUMENT_TYPES: Record<string, string> = {
@@ -129,7 +130,10 @@ export function DocumentWorkbench({ open, onClose, onConfirmed, request }: Props
             </>
           ) : (
             <>
-              <p>{request?.contextSummary || '系统会读取当前案件上下文，并用选中的文书 Skill 生成可编辑草稿。'}</p>
+              <MarkdownText
+                fallback="系统会读取当前案件上下文，并用选中的文书 Skill 生成可编辑草稿。"
+                text={request?.contextSummary}
+              />
               <div className="document-live-grid">
                 <label>
                   <span>文书 Skill</span>

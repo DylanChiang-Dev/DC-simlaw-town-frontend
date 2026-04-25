@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
+import { MarkdownText } from './MarkdownText';
 import type { PlayerLawyerRequest } from '../services/types';
 
 const DOCUMENT_STAGES = new Set(['CD', 'AD', 'AR']);
@@ -46,8 +47,12 @@ export function PlayerLawyerInputDialog({
           <span>{request.stage}</span>
           <span>{request.speakerLabel || request.role}</span>
         </div>
-        {request.contextSummary && <p className="player-lawyer-context">{request.contextSummary}</p>}
-        <p className="player-lawyer-prompt">{request.prompt || '请根据当前案件进展输入玩家律师回复。'}</p>
+        <MarkdownText className="player-lawyer-context" text={request.contextSummary} />
+        <MarkdownText
+          className="player-lawyer-prompt"
+          fallback="请根据当前案件进展输入玩家律师回复。"
+          text={request.prompt}
+        />
 
         {documentStage ? (
           <div className="player-lawyer-document-callout">

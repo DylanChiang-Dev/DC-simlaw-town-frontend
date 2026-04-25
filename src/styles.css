@@ -413,7 +413,8 @@ h1 {
   font-size: 12px;
 }
 
-.dialogue-box p {
+.dialogue-box p,
+.dialogue-current-text {
   width: 100%;
   max-width: 100%;
   color: #fff3e1;
@@ -424,21 +425,26 @@ h1 {
 }
 
 .dialogue-history {
-  max-height: 132px;
+  max-height: clamp(150px, 24vh, 280px);
   margin-bottom: 12px;
-  padding-right: 4px;
+  padding-right: 6px;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   overflow: auto;
 }
 
 .dialogue-history-entry {
   display: grid;
-  grid-template-columns: 74px minmax(0, 1fr);
+  grid-template-columns: 92px minmax(0, 1fr);
   gap: 10px;
   align-items: start;
   color: #d9c1a4;
-  font-size: 12px;
+  font-size: 13px;
+}
+
+.dialogue-history-entry.current {
+  border-left: 3px solid rgba(233, 188, 114, 0.58);
+  padding-left: 10px;
 }
 
 .dialogue-history-entry span {
@@ -449,12 +455,23 @@ h1 {
   white-space: nowrap;
 }
 
-.dialogue-history-entry p {
+.dialogue-history-entry .markdown-text {
   color: #d9c1a4;
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.62;
 }
 
+.dialogue-history-entry.current .markdown-text {
+  color: #fff3e1;
+}
+
+.dialogue-history-entry p {
+  color: #d9c1a4;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.dialogue-history-entry.system .markdown-text,
 .dialogue-history-entry.system p,
 .dialogue-history-entry.system span {
   color: #c9b28e;
@@ -474,6 +491,13 @@ h1 {
 }
 
 .player-turn-preview p {
+  margin-top: 7px;
+  color: #f4d6a4;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.player-turn-preview .markdown-text {
   margin-top: 7px;
   color: #f4d6a4;
   font-size: 13px;
@@ -638,6 +662,12 @@ h1 {
 }
 
 .document-copy p {
+  color: #dcc3a7;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.document-copy .markdown-text {
   color: #dcc3a7;
   font-size: 14px;
   line-height: 1.7;
@@ -1018,6 +1048,62 @@ h1 {
 
 .player-lawyer-prompt {
   color: #fff3e1;
+}
+
+.markdown-text {
+  display: grid;
+  gap: 10px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.markdown-text h3,
+.markdown-text h4,
+.markdown-text h5,
+.markdown-text h6 {
+  margin: 0;
+  color: #ffe3a7;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.markdown-text p,
+.markdown-text blockquote,
+.markdown-text ul,
+.markdown-text ol {
+  margin: 0;
+}
+
+.markdown-text p,
+.markdown-text li,
+.markdown-text blockquote {
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.markdown-text ul,
+.markdown-text ol {
+  display: grid;
+  gap: 7px;
+  padding-left: 22px;
+}
+
+.markdown-text blockquote {
+  border-left: 3px solid rgba(233, 188, 114, 0.46);
+  padding-left: 12px;
+  color: #f4d6a4;
+}
+
+.markdown-text code {
+  border: 1px solid rgba(255, 222, 176, 0.18);
+  border-radius: 5px;
+  padding: 1px 5px;
+  background: rgba(255, 241, 220, 0.09);
+  color: #ffe3a7;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.92em;
 }
 
 .player-lawyer-input-dialog textarea {

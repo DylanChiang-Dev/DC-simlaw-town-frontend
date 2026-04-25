@@ -21,9 +21,17 @@ type AppShellProps = {
   auth: AuthGateState;
 };
 
+type DialogueGateState = {
+  gateId: string;
+  pending: boolean;
+  speakerName: string;
+  turn: number;
+} | null;
+
 function AppShell({ auth }: AppShellProps) {
   const [documentOpen, setDocumentOpen] = useState(false);
   const [documentsOpen, setDocumentsOpen] = useState(false);
+  const [dialogueGate, setDialogueGate] = useState<DialogueGateState>(null);
   const [playerDialogOpen, setPlayerDialogOpen] = useState(false);
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const [sceneIndex, setSceneIndex] = useState(0);
@@ -38,6 +46,7 @@ function AppShell({ auth }: AppShellProps) {
     auth.backendConfigured
     && auth.user
     && runtime.simulation?.canStart
+    && !runtime.activeCaseId
     && !runtime.loading,
   );
 
@@ -50,13 +59,36 @@ function AppShell({ auth }: AppShellProps) {
     const eventBus = getEventBus();
     const handlers: Array<[string, (payload?: Record<string, unknown>) => void]> = [
       ['ws:connected', () => dispatchVnEvent({ type: 'ws-connected' })],
-      ['ws:disconnected', () => dispatchVnEvent({ type: 'ws-disconnected' })],
+      ['ws:disconnected', () => {
+        dispatchVnEvent({ type: 'ws-disconnected' });
+      }],
       ['ws:dialogue-update', (payload) => dispatchVnEvent({ type: 'dialogue-update', payload })],
+      ['ws:dialogue-gate-waiting', (payload) => {
+        const gateId = String(payload?.gate_id || '');
+        if (!gateId) return;
+        setDialogueGate({
+          gateId,
+          pending: false,
+          speakerName: String(payload?.speaker_name || ''),
+          turn: Number(payload?.turn || 0),
+        });
+      }],
+      ['ws:dialogue-gate-accepted', (payload) => {
+        const gateId = String(payload?.gate_id || '');
+        setDialogueGate((current) => (current?.gateId === gateId ? null : current));
+        dispatchVnEvent({ type: 'dialogue-gate-accepted', payload });
+      }],
+      ['ws:dialogue-gate-error', (payload) => {
+        dispatchVnEvent({ type: 'dialogue-gate-error', payload });
+      }],
       ['ws:case-state-change', (payload) => dispatchVnEvent({ type: 'case-state-change', payload })],
       ['ws:scenario-start', (payload) => dispatchVnEvent({ type: 'scenario-start', payload })],
       ['ws:scenario-end', (payload) => dispatchVnEvent({ type: 'scenario-end', payload })],
       ['ws:case-runtime-issue', (payload) => dispatchVnEvent({ type: 'case-runtime-issue', payload })],
-      ['ws:player-lawyer-input-required', (payload) => dispatchVnEvent({ type: 'player-lawyer-input-required', payload })],
+      ['ws:player-lawyer-input-required', (payload) => {
+        setDialogueGate(null);
+        dispatchVnEvent({ type: 'player-lawyer-input-required', payload });
+      }],
       ['ws:player-lawyer-input-submitted', (payload) => dispatchVnEvent({ type: 'player-lawyer-input-submitted', payload })],
       ['ws:player-lawyer-document-draft-ready', (payload) => dispatchVnEvent({ type: 'player-lawyer-document-draft-ready', payload })],
       ['ws:player-lawyer-document-confirmed', (payload) => dispatchVnEvent({ type: 'player-lawyer-document-confirmed', payload })],
@@ -82,6 +114,24 @@ function AppShell({ auth }: AppShellProps) {
     setSceneIndex((current) => (current + 1) % scenes.length);
   }
 
+  async function handleDialogueContinue(): Promise<void> {
+    if (!dialogueGate?.gateId) return;
+    setDialogueGate((current) => (
+      current?.gateId === dialogueGate.gateId ? { ...current, pending: true } : current
+    ));
+    const sent = await getWebSocketService().sendDialogueContinue(dialogueGate.gateId);
+    if (sent) {
+      dispatchVnEvent({
+        type: 'dialogue-continue-sent',
+        payload: { gate_id: dialogueGate.gateId },
+      });
+    } else {
+      setDialogueGate((current) => (
+        current?.gateId === dialogueGate.gateId ? { ...current, pending: false } : current
+      ));
+    }
+  }
+
   return (
     <main className="app-shell">
       <CommandHud
@@ -92,6 +142,7 @@ function AppShell({ auth }: AppShellProps) {
         onPause={runtime.pause}
         onRefresh={runtime.refresh}
         onRestart={() => setRestartConfirmOpen(true)}
+        onResumeCurrentCase={runtime.activeCaseId ? runtime.startSelectedCase : undefined}
         scene={scene}
         simulation={runtime.simulation}
         user={auth.user}
@@ -124,11 +175,14 @@ function AppShell({ auth }: AppShellProps) {
           <VisualNovelStage scene={scene} />
           <DialogueBox
             backendMode={auth.backendConfigured && Boolean(auth.user)}
+            dialogueGate={dialogueGate}
             history={vnRuntime.history}
             onAction={handleAction}
+            onContinueDialogue={handleDialogueContinue}
             onOpenPlayerInput={() => setPlayerDialogOpen(true)}
             pendingRequest={playerLawyer.activeRequest}
             scene={scene}
+            wsConnected={vnRuntime.wsConnected}
           />
         </div>
       </div>

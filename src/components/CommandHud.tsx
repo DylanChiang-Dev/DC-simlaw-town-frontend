@@ -10,6 +10,7 @@ type Props = {
   onPause?: () => Promise<void>;
   onRefresh?: () => Promise<void>;
   onRestart?: () => Promise<void> | void;
+  onResumeCurrentCase?: () => Promise<void>;
   scene: DialogueScene;
   simulation?: SimulationStatus | null;
   user: AuthUser | null;
@@ -24,6 +25,7 @@ export function CommandHud({
   onPause,
   onRefresh,
   onRestart,
+  onResumeCurrentCase,
   scene,
   simulation,
   user,
@@ -53,6 +55,11 @@ export function CommandHud({
             <button className="hud-button" disabled={loading} onClick={onOpenDocuments} type="button">
               文书
             </button>
+            {simulation?.canStart && onResumeCurrentCase && simulation.status !== 'idle' && (
+              <button className="hud-button" disabled={loading} onClick={() => void onResumeCurrentCase()} type="button">
+                继续当前案件
+              </button>
+            )}
             <button className="hud-button" disabled={loading || !simulation?.canPause} onClick={() => void onPause?.()} type="button">
               暂停
             </button>

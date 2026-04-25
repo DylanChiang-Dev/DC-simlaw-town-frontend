@@ -1,26 +1,40 @@
 import { characters, type DialogueScene } from '../data/demo';
+import { MarkdownText } from './MarkdownText';
 import type { PlayerLawyerRequest } from '../services/types';
 import type { DialogueHistoryEntry } from '../state/vnEventReducer';
 
 type Props = {
   backendMode?: boolean;
+  dialogueGate?: {
+    gateId: string;
+    pending?: boolean;
+    speakerName: string;
+    turn: number;
+  } | null;
   history?: DialogueHistoryEntry[];
+  onContinueDialogue?: () => void;
   onOpenPlayerInput?: () => void;
   scene: DialogueScene;
   onAction: (action: string) => void;
   pendingRequest?: PlayerLawyerRequest | null;
+  wsConnected?: boolean;
 };
 
 export function DialogueBox({
   backendMode = false,
+  dialogueGate = null,
   history = [],
   onAction,
+  onContinueDialogue,
   onOpenPlayerInput,
   pendingRequest,
   scene,
+  wsConnected = true,
 }: Props) {
   const speaker = characters[scene.speaker];
-  const recentHistory = history.slice(-6);
+  const transcript = backendMode ? history : [];
+  const showTranscript = backendMode && transcript.length > 0;
+  const showActions = !backendMode || Boolean(pendingRequest || dialogueGate);
 
   return (
     <section className="dialogue-box" aria-label="角色对话">
@@ -29,35 +43,42 @@ export function DialogueBox({
         <span>{speaker.role}</span>
       </div>
       <div className="player-seat-chip">{scene.playerSeat}</div>
-      {backendMode && recentHistory.length > 1 && (
+      {showTranscript ? (
         <div className="dialogue-history" aria-label="案件对话记录">
-          {recentHistory.slice(0, -1).map((entry) => (
-            <article className={`dialogue-history-entry ${entry.kind}`} key={entry.id}>
+          {transcript.map((entry, index) => (
+            <article
+              className={`dialogue-history-entry ${entry.kind} ${index === transcript.length - 1 ? 'current' : ''}`}
+              key={entry.id}
+            >
               <span>{entry.speakerName}</span>
-              <p>{entry.text}</p>
+              <MarkdownText text={entry.text} />
             </article>
           ))}
         </div>
+      ) : (
+        <MarkdownText className="dialogue-current-text" text={scene.text} />
       )}
-      <p>{scene.text}</p>
       {backendMode && pendingRequest && (
         <div className="player-turn-preview" aria-label="玩家律师回合要求">
           <strong>轮到玩家律师输入</strong>
-          {pendingRequest.contextSummary && <p>{pendingRequest.contextSummary}</p>}
-          <p>{pendingRequest.prompt || pendingRequest.message || '请根据当前案件进展输入玩家律师回复。'}</p>
+          <MarkdownText text={pendingRequest.contextSummary} />
+          <MarkdownText
+            fallback="请根据当前案件进展输入玩家律师回复。"
+            text={pendingRequest.prompt || pendingRequest.message}
+          />
         </div>
       )}
-      <div className="dialogue-actions">
+      {showActions && <div className="dialogue-actions">
         {backendMode ? (
           pendingRequest ? (
             <button type="button" onClick={onOpenPlayerInput}>
               输入律师回复
             </button>
-          ) : (
-            <button className="secondary-action" disabled type="button">
-              等待后端下一轮对话
+          ) : dialogueGate ? (
+            <button disabled={dialogueGate.pending || !wsConnected} type="button" onClick={onContinueDialogue}>
+              {!wsConnected ? '实时未连接，正在重连' : dialogueGate.pending ? '等待后端响应' : '继续下一句'}
             </button>
-          )
+          ) : null
         ) : (
           scene.actions.map((action) => (
             <button key={action} type="button" onClick={() => onAction(action)}>
@@ -65,7 +86,7 @@ export function DialogueBox({
             </button>
           ))
         )}
-      </div>
+      </div>}
     </section>
   );
 }

@@ -3,10 +3,27 @@ import { getWebSocketUrl } from './runtime';
 import { getEventBus } from './eventBus';
 
 const RECONNECT_INTERVAL_MS = 3000;
+const SEND_WAIT_TIMEOUT_MS = 3500;
+
+const MAP_EVENT_TYPES = new Set([
+  'agent_spawn',
+  'agent_move',
+  'agent_sit',
+  'agent_stand',
+  'agent_bubble',
+  'agent_despawn',
+  'agent_goto_front_desk',
+  'agent_update_dialogue',
+  'agent_end_interaction',
+  'agent_animate',
+]);
 
 const EVENT_NAME_BY_TYPE: Record<string, string> = {
   dialogue_update: 'ws:dialogue-update',
   case_state_change: 'ws:case-state-change',
+  dialogue_gate_accepted: 'ws:dialogue-gate-accepted',
+  dialogue_gate_error: 'ws:dialogue-gate-error',
+  dialogue_gate_waiting: 'ws:dialogue-gate-waiting',
   scenario_start: 'ws:scenario-start',
   scenario_end: 'ws:scenario-end',
   case_runtime_issue: 'ws:case-runtime-issue',
@@ -34,17 +51,27 @@ export class WebSocketService {
     return this.ws?.readyState === WebSocket.OPEN;
   }
 
-  async connect(url: string = getWebSocketUrl()): Promise<void> {
+  async connect(url?: string): Promise<void> {
     if (this.ws && (this.ws.readyState === WebSocket.CONNECTING || this.ws.readyState === WebSocket.OPEN)) {
       return;
     }
 
     this.shouldReconnect = true;
-    const authenticatedUrl = await buildAuthenticatedWebSocketUrl(url);
+    let authenticatedUrl = '';
+    try {
+      authenticatedUrl = await buildAuthenticatedWebSocketUrl(url || getWebSocketUrl());
+    } catch (err) {
+      getEventBus().emit('ws:error', {
+        message: err instanceof Error ? err.message : '无法建立实时连接',
+      });
+      this.scheduleReconnect();
+      return;
+    }
+
     this.ws = new WebSocket(authenticatedUrl);
 
     this.ws.onopen = () => {
-      this.send({ type: 'client_ready' });
+      this.send({ type: 'client_ready', capabilities: ['dialogue_turn_gate'] });
       getEventBus().emit('ws:connected');
     };
 
@@ -80,10 +107,33 @@ export class WebSocketService {
     }
   }
 
-  send(data: Record<string, unknown>): void {
+  send(data: Record<string, unknown>): boolean {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(data));
+      return true;
     }
+    if (!this.ws || this.ws.readyState === WebSocket.CLOSED) {
+      void this.connect();
+    }
+    getEventBus().emit('ws:error', { message: '实时连接未建立，消息没有发送到后端；系统正在尝试重连。' });
+    return false;
+  }
+
+  async sendWhenReady(data: Record<string, unknown>, timeoutMs = SEND_WAIT_TIMEOUT_MS): Promise<boolean> {
+    if (this.sendIfOpen(data)) return true;
+
+    void this.connect();
+    const startedAt = Date.now();
+    while (Date.now() - startedAt < timeoutMs) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      if (this.sendIfOpen(data)) return true;
+      if (!this.ws || this.ws.readyState === WebSocket.CLOSED) {
+        void this.connect();
+      }
+    }
+
+    getEventBus().emit('ws:error', { message: '实时连接未建立，消息没有发送到后端；系统正在尝试重连。' });
+    return false;
   }
 
   sendPlayerLawyerResponse(requestId: string, message: string): void {
@@ -94,9 +144,26 @@ export class WebSocketService {
     });
   }
 
+  async sendDialogueContinue(gateId: string): Promise<boolean> {
+    return await this.sendWhenReady({
+      type: 'dialogue_continue',
+      gate_id: gateId,
+    });
+  }
+
+  private sendIfOpen(data: Record<string, unknown>): boolean {
+    if (this.ws?.readyState !== WebSocket.OPEN) return false;
+    this.ws.send(JSON.stringify(data));
+    return true;
+  }
+
   private handleMessage(payload: Record<string, unknown>): void {
     const type = String(payload.type || '');
     const eventName = EVENT_NAME_BY_TYPE[type];
+    if (!eventName && MAP_EVENT_TYPES.has(type)) {
+      getEventBus().emit('ws:map-event', payload);
+      return;
+    }
     if (!eventName) {
       getEventBus().emit('ws:unknown', payload);
       return;

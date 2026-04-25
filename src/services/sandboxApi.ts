@@ -24,6 +24,7 @@ type AgentCapabilityResponse = {
 type SandboxStatusResponse = {
   status: string;
   session_id?: string | null;
+  selected_case_id?: string | null;
   active_cases: number;
   clients_connected: number;
   can_start: boolean;
@@ -83,6 +84,7 @@ function mapSandboxStatus(payload: SandboxStatusResponse): SimulationStatus {
     status: payload.status,
     sessionStatus: payload.status,
     sessionId: payload.session_id ?? null,
+    selectedCaseId: payload.selected_case_id || '',
     paused: payload.status === 'paused',
     simulationRunning: payload.status === 'running',
     clientsConnected: payload.clients_connected,

@@ -67,6 +67,7 @@ export type SimulationStatus = {
   status: string;
   sessionStatus: string;
   sessionId: string | null;
+  selectedCaseId: string;
   paused: boolean;
   simulationRunning: boolean;
   clientsConnected: number;

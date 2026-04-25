@@ -9,6 +9,7 @@ import {
 import type { SandboxCaseSummary, SimulationStatus } from '../services/types';
 
 export type SimulationRuntimeState = {
+  activeCaseId: string;
   cases: SandboxCaseSummary[];
   error: string;
   loading: boolean;
@@ -20,6 +21,21 @@ export type SimulationRuntimeState = {
   pause: () => Promise<void>;
   restart: () => Promise<void>;
 };
+
+function resolveActiveCaseId(simulation: SimulationStatus | null, cases: SandboxCaseSummary[]): string {
+  return simulation?.selectedCaseId || cases.find((item) => item.status === 'running')?.caseId || '';
+}
+
+function resolveSelectedCaseId(
+  current: string,
+  simulation: SimulationStatus | null,
+  cases: SandboxCaseSummary[],
+): string {
+  const activeCaseId = resolveActiveCaseId(simulation, cases);
+  if (activeCaseId) return activeCaseId;
+  if (current && cases.some((item) => item.caseId === current)) return current;
+  return cases[0]?.caseId || '';
+}
 
 export function useSimulationRuntime(enabled: boolean): SimulationRuntimeState {
   const [cases, setCases] = useState<SandboxCaseSummary[]>([]);
@@ -39,7 +55,7 @@ export function useSimulationRuntime(enabled: boolean): SimulationRuntimeState {
       ]);
       setSimulation(nextSimulation);
       setCases(nextCases);
-      setSelectedCaseId((current) => current || nextCases[0]?.caseId || '');
+      setSelectedCaseId((current) => resolveSelectedCaseId(current, nextSimulation, nextCases));
     } catch (err) {
       setError(err instanceof Error ? err.message : '读取案件运行状态失败');
     } finally {
@@ -59,14 +75,29 @@ export function useSimulationRuntime(enabled: boolean): SimulationRuntimeState {
       setSimulation(nextSimulation);
       const nextCases = await fetchSandboxCases();
       setCases(nextCases);
+      setSelectedCaseId((current) => resolveSelectedCaseId(current, nextSimulation, nextCases));
     } catch (err) {
       setError(err instanceof Error ? err.message : '案件操作失败');
+      try {
+        const [nextSimulation, nextCases] = await Promise.all([
+          fetchSimulationStatus(),
+          fetchSandboxCases(),
+        ]);
+        setSimulation(nextSimulation);
+        setCases(nextCases);
+        setSelectedCaseId((current) => resolveSelectedCaseId(current, nextSimulation, nextCases));
+      } catch {
+        // Keep the original control error visible.
+      }
     } finally {
       setLoading(false);
     }
   }
 
+  const activeCaseId = resolveActiveCaseId(simulation, cases);
+
   return {
+    activeCaseId,
     cases,
     error,
     loading,
@@ -75,7 +106,12 @@ export function useSimulationRuntime(enabled: boolean): SimulationRuntimeState {
     refresh,
     selectCase: setSelectedCaseId,
     startSelectedCase: async (caseId?: string) => {
-      const nextCaseId = caseId || selectedCaseId;
+      const nextCaseId = caseId || activeCaseId || selectedCaseId;
+      if (activeCaseId && nextCaseId && activeCaseId !== nextCaseId) {
+        await refresh();
+        setError('当前已有其他案件在运行，请先继续当前案件或重置后再选择新案件');
+        return;
+      }
       await runControl(() => startSimulation(nextCaseId || undefined));
     },
     pause: async () => {

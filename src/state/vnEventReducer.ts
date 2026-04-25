@@ -69,6 +69,9 @@ export type VnRuntimeEvent =
   | { type: 'ws-connected' }
   | { type: 'ws-disconnected' }
   | { type: 'dialogue-update'; payload?: Record<string, unknown> }
+  | { type: 'dialogue-continue-sent'; payload?: Record<string, unknown> }
+  | { type: 'dialogue-gate-accepted'; payload?: Record<string, unknown> }
+  | { type: 'dialogue-gate-error'; payload?: Record<string, unknown> }
   | { type: 'case-state-change'; payload?: Record<string, unknown> }
   | { type: 'scenario-start'; payload?: Record<string, unknown> }
   | { type: 'scenario-end'; payload?: Record<string, unknown> }
@@ -95,9 +98,18 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
     case 'ws-connected':
       return appendDiagnostic({ ...state, wsConnected: true }, '实时连接已建立');
     case 'ws-disconnected':
-      return appendDiagnostic({ ...state, wsConnected: false }, '实时连接已断开');
+      return appendErrorLine(
+        appendDiagnostic({ ...state, wsConnected: false }, '实时连接已断开'),
+        '实时连接已断开，系统正在自动重连。',
+      );
     case 'dialogue-update':
       return applyDialogueUpdate(state, event.payload || {});
+    case 'dialogue-continue-sent':
+      return appendSystemLine(state, '已请求后端继续生成下一句，等待后端返回。');
+    case 'dialogue-gate-accepted':
+      return appendSystemLine(state, '后端已收到继续请求，正在推进下一句对话。');
+    case 'dialogue-gate-error':
+      return appendErrorLine(state, `继续失败：${String(event.payload?.message || '后端没有接受继续请求')}`);
     case 'case-state-change':
       return appendSystemLine(state, getCaseStateMessage(event.payload || {}));
     case 'scenario-start':
@@ -115,11 +127,17 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
     case 'player-lawyer-document-confirmed':
       return appendSystemLine(state, '玩家律师已确认文书，系统正在保存并导出 PDF。');
     case 'player-lawyer-error':
-      return appendSystemLine(state, `玩家律师请求失败：${String(event.payload?.message || '请稍后重试')}`);
+      return appendErrorLine(state, `玩家律师请求失败：${String(event.payload?.message || event.payload?.error || '请稍后重试')}`);
     case 'ws-error':
-      return appendDiagnostic(state, `实时连接异常：${String(event.payload?.message || '未知错误')}`);
+      return appendErrorLine(
+        appendDiagnostic(state, `实时连接异常：${String(event.payload?.message || '未知错误')}`),
+        `实时连接异常：${String(event.payload?.message || '未知错误')}`,
+      );
     case 'ws-unknown':
-      return appendDiagnostic(state, `未知后端事件：${String(event.payload?.type || 'unknown')}`);
+      return appendErrorLine(
+        appendDiagnostic(state, `未知后端事件：${String(event.payload?.type || 'unknown')}`),
+        `未知后端事件：${String(event.payload?.type || 'unknown')}`,
+      );
     default:
       return state;
   }
@@ -158,7 +176,11 @@ function applyRuntimeIssue(state: VnRuntimeState, payload: Record<string, unknow
     stageCode,
     text: String(payload.message || '后端运行异常，当前案件流程已暂停。'),
   });
-  return appendDiagnostic({ ...state, scene }, `运行异常：${String(payload.code || 'UNKNOWN')}`);
+  return appendHistory(
+    appendDiagnostic({ ...state, scene }, `运行异常：${String(payload.code || 'UNKNOWN')}`),
+    scene,
+    'error',
+  );
 }
 
 function appendSystemLine(state: VnRuntimeState, text: string): VnRuntimeState {
@@ -167,6 +189,14 @@ function appendSystemLine(state: VnRuntimeState, text: string): VnRuntimeState {
     text,
   });
   return appendHistory({ ...state, scene }, scene, 'system');
+}
+
+function appendErrorLine(state: VnRuntimeState, text: string): VnRuntimeState {
+  const scene = createSceneFromState(state.scene, {
+    speaker: state.scene.speaker,
+    text,
+  });
+  return appendHistory({ ...state, scene }, scene, 'error');
 }
 
 function appendDiagnostic(state: VnRuntimeState, message: string): VnRuntimeState {
