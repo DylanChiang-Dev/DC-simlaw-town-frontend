@@ -44,6 +44,15 @@ export function DialogueBox({
   const speaker = characters[scene.speaker];
   const transcript = backendMode ? history : [];
   const currentEntry = transcript[transcript.length - 1] || null;
+  const speakerPlate = currentEntry
+    ? {
+      name: currentEntry.speakerName,
+      role: getEntryRole(currentEntry),
+    }
+    : {
+      name: scene.speakerLabel || speaker.name,
+      role: speaker.role,
+    };
   const showTranscript = backendMode && Boolean(currentEntry);
   const canOpenTranscript = backendMode && transcript.length > 1;
   const fallbackNotice = backendMode && !showTranscript && !pendingRequest && !dialogueGate
@@ -61,8 +70,8 @@ export function DialogueBox({
   return (
     <section className="dialogue-box" aria-label="角色对话">
       <div className="speaker-plate">
-        <strong>{speaker.name}</strong>
-        <span>{speaker.role}</span>
+        <strong>{speakerPlate.name}</strong>
+        <span>{speakerPlate.role}</span>
       </div>
       {showTranscript ? (
         <article className={`dialogue-current-entry ${currentEntry?.kind || 'dialogue'}`} aria-label="当前对话">
@@ -138,6 +147,13 @@ export function DialogueBox({
 
 function isDocumentStage(stage?: string): boolean {
   return ['CD', 'AD', 'AR'].includes(String(stage || '').toUpperCase());
+}
+
+function getEntryRole(entry: DialogueHistoryEntry): string {
+  if (entry.stageCode === 'RECEPTION' || entry.speaker === 'receptionist') {
+    return '前台接待与律师推荐';
+  }
+  return characters[entry.speaker].role;
 }
 
 type BackendFallbackInput = {

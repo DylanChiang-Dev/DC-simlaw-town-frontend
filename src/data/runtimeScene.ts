@@ -1,6 +1,7 @@
 export type CharacterKey =
   | 'playerLawyer'
   | 'client'
+  | 'receptionist'
   | 'judge'
   | 'opponentLawyer';
 
@@ -20,6 +21,7 @@ export type DialogueScene = {
   stageName: string;
   background: string;
   speaker: CharacterKey;
+  speakerLabel?: string;
   text: string;
   characters: CharacterKey[];
   actions: string[];
@@ -50,6 +52,13 @@ export const characters: Record<CharacterKey, Character> = {
     key: 'client',
     name: '刘玉田',
     role: '原告当事人',
+    portrait: '/art/vn/char-client-worried.png',
+    position: 'right',
+  },
+  receptionist: {
+    key: 'receptionist',
+    name: '律所前台',
+    role: '前台接待与律师推荐',
     portrait: '/art/vn/char-client-worried.png',
     position: 'right',
   },

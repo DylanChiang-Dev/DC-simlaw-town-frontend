@@ -30,7 +30,7 @@ export function TechLedger({ background = [], scene }: Props) {
           <div className="background-consultation-list">
             {background.slice(-3).map((entry) => (
               <article key={entry.id}>
-                <b>{entry.stageName}</b>
+                <b>{entry.stageName} · {entry.speakerName}</b>
                 <MarkdownText text={entry.text} />
               </article>
             ))}

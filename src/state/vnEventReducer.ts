@@ -29,6 +29,7 @@ const BACKGROUND_BY_STAGE: Record<string, string> = {
 };
 
 const CHARACTERS_BY_STAGE: Record<string, CharacterKey[]> = {
+  RECEPTION: ['receptionist', 'client'],
   LC: ['playerLawyer', 'client'],
   CD: ['playerLawyer', 'client'],
   DD: ['playerLawyer', 'opponentLawyer'],
@@ -286,13 +287,17 @@ function updateRuntimeStatus(state: VnRuntimeState, patch: Partial<RuntimeStatus
 }
 
 function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
-  const speaker = inferSpeaker(payload);
-  const stageCode = normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
+  const text = String(payload.content || '收到新的案件对话。');
+  const stageCode = isReceptionDialogueText(text)
+    ? 'RECEPTION'
+    : normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
+  const speaker = inferSpeaker(payload, stageCode, text);
   const scene = createSceneFromState(state.scene, {
     characters: inferCharacters(stageCode, speaker),
     speaker,
+    speakerLabel: getDialogueSpeakerLabel(payload, stageCode, speaker, text),
     stageCode,
-    text: String(payload.content || '收到新的案件对话。'),
+    text,
   });
   if (isBackgroundDialogue(stageCode, scene.text)) {
     return appendBackground(state, scene);
@@ -363,12 +368,11 @@ function appendHistory(
     return state;
   }
 
-  const speaker = characters[scene.speaker];
   const entry: DialogueHistoryEntry = {
     id: `${scene.stageCode}-${Date.now()}-${state.history.length}`,
     kind,
     speaker: scene.speaker,
-    speakerName: kind === 'system' ? '系统' : speaker.name,
+    speakerName: kind === 'system' ? '系统' : getSceneSpeakerName(scene),
     stageCode: scene.stageCode,
     stageName: scene.stageName,
     text,
@@ -392,7 +396,7 @@ function appendBackground(state: VnRuntimeState, scene: DialogueScene): VnRuntim
     id: `background-${scene.stageCode}-${Date.now()}-${state.background.length}`,
     kind: 'system',
     speaker: scene.speaker,
-    speakerName: '背景咨询',
+    speakerName: getSceneSpeakerName(scene),
     stageCode: scene.stageCode,
     stageName: scene.stageName,
     text,
@@ -405,7 +409,10 @@ function appendBackground(state: VnRuntimeState, scene: DialogueScene): VnRuntim
 }
 
 function isBackgroundDialogue(stageCode: string, text: string): boolean {
-  if (stageCode !== 'RECEPTION') return false;
+  return stageCode === 'RECEPTION' || isReceptionDialogueText(text);
+}
+
+function isReceptionDialogueText(text: string): boolean {
   return /【推荐律师[：:]/.test(text) || /推荐律师/.test(text);
 }
 
@@ -416,16 +423,21 @@ function getCaseStateMessage(payload: Record<string, unknown>): string {
 
 function createSceneFromState(
   scene: DialogueScene,
-  overrides: Partial<Pick<DialogueScene, 'characters' | 'speaker' | 'stageCode' | 'text'>>,
+  overrides: Partial<Pick<DialogueScene, 'characters' | 'speaker' | 'speakerLabel' | 'stageCode' | 'text'>>,
 ): DialogueScene {
   const stageCode = overrides.stageCode || scene.stageCode;
   const stageName = getStageName(stageCode);
+  const speaker = overrides.speaker || scene.speaker;
+  const speakerLabel = overrides.speakerLabel ?? (
+    overrides.speaker && overrides.speaker !== scene.speaker ? undefined : scene.speakerLabel
+  );
   return {
     ...scene,
     background: BACKGROUND_BY_STAGE[stageCode] || scene.background,
     characters: overrides.characters || scene.characters,
     id: `live-${stageCode.toLowerCase()}`,
-    speaker: overrides.speaker || scene.speaker,
+    speaker,
+    speakerLabel,
     stageCode,
     stageName,
     text: overrides.text || scene.text,
@@ -436,13 +448,32 @@ function createSceneFromState(
   };
 }
 
-function inferSpeaker(payload: Record<string, unknown>): CharacterKey {
+function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text: string): CharacterKey {
   const value = `${payload.speaker_name || payload.speaker_id || ''}`.toLowerCase();
+  if (stageCode === 'RECEPTION' || value.includes('reception') || value.includes('前台') || /推荐律师/.test(text)) {
+    return 'receptionist';
+  }
   if (value.includes('judge') || value.includes('法官') || value.includes('审判')) return 'judge';
   if (value.includes('defendant') || value.includes('被告') || value.includes('程')) return 'opponentLawyer';
   if (value.includes('client') || value.includes('当事人') || value.includes('刘玉田')) return 'client';
   if (value.includes('lawyer') || value.includes('律师')) return 'playerLawyer';
   return 'playerLawyer';
+}
+
+function getDialogueSpeakerLabel(
+  payload: Record<string, unknown>,
+  stageCode: string,
+  speaker: CharacterKey,
+  text: string,
+): string {
+  if (stageCode === 'RECEPTION' || speaker === 'receptionist' || /推荐律师/.test(text)) {
+    return '律所前台';
+  }
+  return String(payload.speaker_name || payload.speaker_id || characters[speaker].name).trim() || characters[speaker].name;
+}
+
+function getSceneSpeakerName(scene: DialogueScene): string {
+  return String(scene.speakerLabel || characters[scene.speaker].name).trim();
 }
 
 function inferCharacters(stageCode: string, speaker: CharacterKey): CharacterKey[] {
