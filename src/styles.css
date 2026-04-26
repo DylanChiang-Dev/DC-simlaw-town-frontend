@@ -444,6 +444,15 @@ h1 {
   overflow: hidden;
 }
 
+.dialogue-box.clickable {
+  cursor: pointer;
+}
+
+.dialogue-box.clickable:focus-visible {
+  outline: 2px solid rgba(255, 227, 167, 0.9);
+  outline-offset: 3px;
+}
+
 .speaker-plate {
   position: absolute;
   top: -20px;
@@ -504,19 +513,7 @@ h1 {
 }
 
 .dialogue-current-entry {
-  display: grid;
-  grid-template-columns: 104px minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
-}
-
-.dialogue-current-entry > span {
-  color: #f4d6a4;
-  font-size: 14px;
-  font-weight: 900;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
 }
 
 .dialogue-current-entry .markdown-text {
@@ -528,12 +525,12 @@ h1 {
 }
 
 .dialogue-current-entry.system .markdown-text,
-.dialogue-current-entry.system > span {
+.dialogue-current-entry.system {
   color: #c9b28e;
 }
 
 .dialogue-current-entry.error .markdown-text,
-.dialogue-current-entry.error > span {
+.dialogue-current-entry.error {
   color: #ffb6a8;
 }
 

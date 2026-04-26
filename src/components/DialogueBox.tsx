@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { characters, type DialogueScene } from '../data/runtimeScene';
 import { MarkdownText } from './MarkdownText';
 import type { PlayerLawyerRequest, SimulationStatus } from '../services/types';
@@ -66,9 +66,32 @@ export function DialogueBox({
     })
     : null;
   const showActions = Boolean(pendingRequest || dialogueGate || canOpenTranscript || fallbackNotice?.action);
+  const canClickToContinue = Boolean(dialogueGate && !dialogueGate.pending && wsConnected && onContinueDialogue);
+
+  function handleDialogueBoxClick(event: MouseEvent<HTMLElement>): void {
+    if (!canClickToContinue) return;
+    const target = event.target as HTMLElement;
+    if (target.closest('button, a, textarea, input, select, [role="button"]')) return;
+    onContinueDialogue?.();
+  }
+
+  function handleDialogueBoxKeyDown(event: KeyboardEvent<HTMLElement>): void {
+    if (!canClickToContinue) return;
+    const target = event.target as HTMLElement;
+    if (target.closest('button, a, textarea, input, select, [role="button"]')) return;
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    onContinueDialogue?.();
+  }
 
   return (
-    <section className="dialogue-box" aria-label="角色对话">
+    <section
+      aria-label="角色对话"
+      className={`dialogue-box ${canClickToContinue ? 'clickable' : ''}`}
+      onClick={handleDialogueBoxClick}
+      onKeyDown={handleDialogueBoxKeyDown}
+      tabIndex={canClickToContinue ? 0 : undefined}
+    >
       <div className="speaker-plate">
         <strong>{speakerPlate.name}</strong>
         <span>{speakerPlate.role}</span>
@@ -76,7 +99,6 @@ export function DialogueBox({
       <div className="dialogue-scroll-region">
         {showTranscript ? (
           <article className={`dialogue-current-entry ${currentEntry?.kind || 'dialogue'}`} aria-label="当前对话">
-            <span>{currentEntry?.speakerName}</span>
             <MarkdownText text={currentEntry?.text || ''} />
           </article>
         ) : fallbackNotice ? (
@@ -112,7 +134,7 @@ export function DialogueBox({
               </button>
             ) : dialogueGate ? (
               <button disabled={dialogueGate.pending || !wsConnected} type="button" onClick={onContinueDialogue}>
-                {!wsConnected ? '实时未连接，正在重连' : dialogueGate.pending ? '等待后端响应' : '继续查看下一句'}
+                {!wsConnected ? '实时未连接，正在重连' : dialogueGate.pending ? '等待后端响应' : '继续'}
               </button>
             ) : fallbackNotice?.action ? (
               <button className={fallbackNotice.action.kind === 'secondary' ? 'secondary-action' : undefined} type="button" onClick={() => void fallbackNotice.action?.run()}>
