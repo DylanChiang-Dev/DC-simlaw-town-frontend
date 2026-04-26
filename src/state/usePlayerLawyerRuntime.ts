@@ -21,6 +21,7 @@ type PlayerLawyerPayload = {
 } & Record<string, unknown>;
 
 export type PlayerLawyerRuntimeState = {
+  actionLoading: boolean;
   activeRequest: PlayerLawyerRequest | null;
   error: string;
   loading: boolean;
@@ -33,12 +34,13 @@ export type PlayerLawyerRuntimeState = {
 export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): PlayerLawyerRuntimeState {
   const [activeRequest, setActiveRequest] = useState<PlayerLawyerRequest | null>(null);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [refreshLoading, setRefreshLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const [status, setStatus] = useState<PlayerLawyerStatus | null>(null);
 
   const refresh = useCallback(async () => {
     if (!enabled) return;
-    setLoading(true);
+    setRefreshLoading(true);
     setError('');
     try {
       const [nextStatus, pending] = await Promise.all([
@@ -50,7 +52,7 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
     } catch (err) {
       setError(err instanceof Error ? err.message : '读取用户任务失败');
     } finally {
-      setLoading(false);
+      setRefreshLoading(false);
     }
   }, [caseId, enabled]);
 
@@ -109,7 +111,7 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
     if (!activeRequest) {
       throw new Error('当前没有待处理的用户任务');
     }
-    setLoading(true);
+    setActionLoading(true);
     setError('');
     try {
       return await polishPlayerLawyerResponse({
@@ -122,13 +124,13 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
       setError(message);
       throw err;
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
   }
 
   async function submitTextReply(input: Omit<PlayerLawyerTextSubmitInput, 'requestId'>): Promise<void> {
     if (!activeRequest) return;
-    setLoading(true);
+    setActionLoading(true);
     setError('');
     try {
       await submitPlayerLawyerResponse({
@@ -145,14 +147,15 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
     } catch (err) {
       setError(err instanceof Error ? err.message : '提交当前角色回复失败');
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
   }
 
   return {
+    actionLoading,
     activeRequest,
     error,
-    loading,
+    loading: refreshLoading || actionLoading,
     status,
     refresh,
     polishTextReply,

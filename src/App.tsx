@@ -151,7 +151,7 @@ function AppShell({ auth }: AppShellProps) {
               刷新或重新连接后，案件会停在这个节点，不是系统卡住，也不需要先重置。请继续处理当前角色任务。
             </span>
           </div>
-          <button className="primary-action" disabled={playerLawyer.loading} onClick={() => setPlayerDialogOpen(true)} type="button">
+          <button className="primary-action" disabled={playerLawyer.actionLoading} onClick={() => setPlayerDialogOpen(true)} type="button">
             {isDocumentStage(playerLawyer.activeRequest.stage) ? '继续文书' : '继续处理'}
           </button>
         </section>
@@ -174,7 +174,7 @@ function AppShell({ auth }: AppShellProps) {
             <PlayerLawyerTaskPanel
               activeRequest={playerLawyer.activeRequest}
               error={playerLawyer.error}
-              loading={playerLawyer.loading}
+              loading={playerLawyer.actionLoading}
               onOpenRequest={() => setPlayerDialogOpen(true)}
               simulation={runtime.simulation}
               status={playerLawyer.status}
@@ -202,7 +202,7 @@ function AppShell({ auth }: AppShellProps) {
         </div>
       </div>
       <PlayerLawyerInputDialog
-        loading={playerLawyer.loading}
+        loading={playerLawyer.actionLoading}
         onClose={() => setPlayerDialogOpen(false)}
         onOpenDocumentWorkbench={() => {
           setPlayerDialogOpen(false);
