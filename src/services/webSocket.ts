@@ -3,7 +3,7 @@ import { getWebSocketUrl } from './runtime';
 import { getEventBus } from './eventBus';
 
 const RECONNECT_INTERVAL_MS = 3000;
-const SEND_WAIT_TIMEOUT_MS = 3500;
+const SEND_WAIT_TIMEOUT_MS = 6000;
 
 const MAP_EVENT_TYPES = new Set([
   'agent_spawn',
@@ -69,13 +69,16 @@ export class WebSocketService {
     }
 
     this.ws = new WebSocket(authenticatedUrl);
+    const socket = this.ws;
 
-    this.ws.onopen = () => {
-      this.send({ type: 'client_ready', capabilities: ['dialogue_turn_gate'] });
+    socket.onopen = () => {
+      if (this.ws !== socket) return;
+      this.sendIfOpen({ type: 'client_ready', capabilities: ['dialogue_turn_gate'] });
       getEventBus().emit('ws:connected');
     };
 
-    this.ws.onmessage = (event) => {
+    socket.onmessage = (event) => {
+      if (this.ws !== socket) return;
       try {
         const payload = JSON.parse(event.data) as Record<string, unknown>;
         this.handleMessage(payload);
@@ -84,13 +87,16 @@ export class WebSocketService {
       }
     };
 
-    this.ws.onerror = () => {
+    socket.onerror = () => {
+      if (this.ws !== socket) return;
       getEventBus().emit('ws:error', { message: 'WebSocket 连接异常' });
     };
 
-    this.ws.onclose = () => {
-      getEventBus().emit('ws:disconnected');
+    socket.onclose = () => {
+      if (this.ws !== socket) return;
       this.ws = null;
+      if (!this.shouldReconnect) return;
+      getEventBus().emit('ws:disconnected');
       this.scheduleReconnect();
     };
   }
@@ -101,9 +107,10 @@ export class WebSocketService {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
-    if (this.ws) {
-      this.ws.close();
-      this.ws = null;
+    const socket = this.ws;
+    this.ws = null;
+    if (socket) {
+      socket.close();
     }
   }
 
@@ -136,8 +143,8 @@ export class WebSocketService {
     return false;
   }
 
-  sendPlayerLawyerResponse(requestId: string, message: string): void {
-    this.send({
+  async sendPlayerLawyerResponse(requestId: string, message: string): Promise<boolean> {
+    return await this.sendWhenReady({
       type: 'player_lawyer_response',
       request_id: requestId,
       message,
