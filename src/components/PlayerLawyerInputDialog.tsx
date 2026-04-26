@@ -131,7 +131,7 @@ export function PlayerLawyerInputDialog({
               autoFocus
               disabled={loading}
               onChange={(event) => setMessage(event.target.value)}
-              placeholder="先写你的原始想法，可以很短。"
+              placeholder="请写下你准备让当前角色表达的回复要点。"
               value={message}
             />
             <div className="response-assist-actions">
