@@ -36,7 +36,7 @@ export function CommandHud({
     <header className="command-hud">
       <div>
         <div className="eyebrow">SimAilaw Town v2</div>
-        <h1>法律全流程仿真工作台</h1>
+        <h1>法律全流程仿真</h1>
       </div>
       <div className="hud-pills" aria-label="系统状态">
         <span className="pill">{scene.caseTitle}</span>
