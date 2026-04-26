@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   fetchSandboxCases,
   fetchSimulationStatus,
-  pauseSimulation,
   restartSimulation,
   startSimulation,
 } from '../services/sandboxApi';
@@ -18,7 +17,6 @@ export type SimulationRuntimeState = {
   refresh: () => Promise<void>;
   selectCase: (caseId: string) => void;
   startSelectedCase: (caseId?: string) => Promise<void>;
-  pause: () => Promise<void>;
   restart: () => Promise<void>;
 };
 
@@ -113,9 +111,6 @@ export function useSimulationRuntime(enabled: boolean): SimulationRuntimeState {
         return;
       }
       await runControl(() => startSimulation(nextCaseId || undefined));
-    },
-    pause: async () => {
-      await runControl(pauseSimulation);
     },
     restart: async () => {
       setLoading(true);

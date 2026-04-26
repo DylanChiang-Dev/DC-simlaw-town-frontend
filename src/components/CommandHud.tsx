@@ -7,7 +7,6 @@ type Props = {
   loading?: boolean;
   onLogout?: () => void;
   onOpenDocuments?: () => void;
-  onPause?: () => Promise<void>;
   onRefresh?: () => Promise<void>;
   onRestart?: () => Promise<void> | void;
   onResumeCurrentCase?: () => Promise<void>;
@@ -22,7 +21,6 @@ export function CommandHud({
   loading = false,
   onLogout,
   onOpenDocuments,
-  onPause,
   onRefresh,
   onRestart,
   onResumeCurrentCase,
@@ -60,9 +58,6 @@ export function CommandHud({
                 继续当前案件
               </button>
             )}
-            <button className="hud-button" disabled={loading || !simulation?.canPause} onClick={() => void onPause?.()} type="button">
-              暂停
-            </button>
             <button className="hud-button" disabled={loading || !simulation?.canRestart} onClick={() => void onRestart?.()} type="button">
               重置
             </button>

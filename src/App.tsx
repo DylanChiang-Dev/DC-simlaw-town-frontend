@@ -144,7 +144,6 @@ function AppShell({ auth }: AppShellProps) {
         loading={runtime.loading}
         onLogout={auth.user ? auth.onLogout : undefined}
         onOpenDocuments={() => setDocumentsOpen(true)}
-        onPause={runtime.pause}
         onRefresh={runtime.refresh}
         onRestart={() => setRestartConfirmOpen(true)}
         onResumeCurrentCase={runtime.activeCaseId ? runtime.startSelectedCase : undefined}
