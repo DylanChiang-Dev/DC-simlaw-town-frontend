@@ -14,8 +14,7 @@ import { getEventBus } from './services/eventBus';
 import { getWebSocketService } from './services/webSocket';
 import { usePlayerLawyerRuntime } from './state/usePlayerLawyerRuntime';
 import { useSimulationRuntime } from './state/useSimulationRuntime';
-import { createInitialVnRuntimeState, type DialogueHistoryEntry, vnEventReducer } from './state/vnEventReducer';
-import type { DialogueScene } from './data/runtimeScene';
+import { createInitialVnRuntimeState, vnEventReducer } from './state/vnEventReducer';
 
 type AppShellProps = {
   auth: AuthGateState;
@@ -42,8 +41,6 @@ function AppShell({ auth }: AppShellProps) {
   const [vnRuntime, dispatchVnEvent] = useReducer(vnEventReducer, undefined, createInitialVnRuntimeState);
   const scene = vnRuntime.scene;
   const showUserTaskPanel = Boolean(playerLawyer.activeRequest || playerLawyer.error);
-  const showTechLedger = hasRuntimeLedger(vnRuntime.background, scene);
-  const showSideRail = showUserTaskPanel || showTechLedger;
   const casePickerOpen = Boolean(
     auth.backendConfigured
     && auth.user
@@ -174,22 +171,20 @@ function AppShell({ auth }: AppShellProps) {
           selectedCaseId={runtime.selectedCaseId}
         />
       )}
-      <div className={`vn-layout ${showSideRail ? '' : 'vn-layout-wide'}`}>
-        {showSideRail && (
-          <div className="side-rail">
-            {showUserTaskPanel && (
-              <PlayerLawyerTaskPanel
-                activeRequest={playerLawyer.activeRequest}
-                error={playerLawyer.error}
-                loading={playerLawyer.loading}
-                onOpenRequest={() => setPlayerDialogOpen(true)}
-                simulation={runtime.simulation}
-                status={playerLawyer.status}
-              />
-            )}
-            {showTechLedger && <TechLedger background={vnRuntime.background} scene={scene} />}
-          </div>
-        )}
+      <div className="vn-layout">
+        <div className="side-rail">
+          {showUserTaskPanel && (
+            <PlayerLawyerTaskPanel
+              activeRequest={playerLawyer.activeRequest}
+              error={playerLawyer.error}
+              loading={playerLawyer.loading}
+              onOpenRequest={() => setPlayerDialogOpen(true)}
+              simulation={runtime.simulation}
+              status={playerLawyer.status}
+            />
+          )}
+          <TechLedger background={vnRuntime.background} scene={scene} />
+        </div>
         <div className="story-surface">
           <VisualNovelStage scene={scene} />
           <DialogueBox
@@ -284,13 +279,4 @@ export function App() {
 
 function isDocumentStage(stage?: string): boolean {
   return ['CD', 'AD', 'AR'].includes(String(stage || '').toUpperCase());
-}
-
-function hasRuntimeLedger(background: DialogueHistoryEntry[], scene: DialogueScene): boolean {
-  if (background.length > 0) return true;
-  if (scene.tech.tools.length > 0 || scene.tech.skills.length > 0) return true;
-  if (scene.tech.agent && scene.tech.agent !== '等待后端同步') return true;
-  if (scene.tech.memory && scene.tech.memory !== '等待真实案件状态恢复') return true;
-  if (scene.tech.pipeline && scene.tech.pipeline !== '等待后端事件') return true;
-  return false;
 }

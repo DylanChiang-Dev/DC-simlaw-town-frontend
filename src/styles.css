@@ -184,19 +184,15 @@ h1 {
   min-height: 0;
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(250px, 330px) minmax(0, 1fr);
+  grid-template-columns: minmax(220px, 250px) minmax(0, 1fr);
   gap: 12px;
-}
-
-.vn-layout-wide {
-  grid-template-columns: minmax(0, 1fr);
 }
 
 .side-rail {
   min-height: 0;
   min-width: 0;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 12px;
 }
 
@@ -709,34 +705,43 @@ h1 {
   min-height: 0;
   min-width: 0;
   overflow: auto;
-  padding: 16px;
+  padding: 12px;
   border: 1px solid var(--line);
   background:
     linear-gradient(180deg, rgba(45, 31, 23, 0.9), rgba(28, 19, 15, 0.82));
-  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
 }
 
 .tech-ledger h2 {
-  margin-top: 8px;
+  margin-top: 5px;
   color: #fff4df;
-  font-size: 18px;
+  font-size: 15px;
   word-break: break-word;
 }
 
+.ledger-agent,
 .ledger-section,
 .ledger-note {
-  margin-top: 16px;
-  padding-top: 14px;
+  margin-top: 10px;
+  padding-top: 10px;
   border-top: 1px solid rgba(255, 222, 176, 0.14);
 }
 
+.ledger-agent span,
 .ledger-section > span,
 .ledger-note > span {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: #f1c984;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
+}
+
+.ledger-agent strong {
+  color: #fff1dc;
+  font-size: 12px;
+  line-height: 1.45;
+  word-break: break-word;
 }
 
 .ledger-tags b {
@@ -745,10 +750,16 @@ h1 {
   word-break: break-word;
 }
 
+.ledger-tags em {
+  color: #bfa88e;
+  font-size: 12px;
+  font-style: normal;
+}
+
 .ledger-note p {
   color: #d9c1a4;
-  font-size: 13px;
-  line-height: 1.58;
+  font-size: 12px;
+  line-height: 1.52;
 }
 
 .background-consultation-list {
