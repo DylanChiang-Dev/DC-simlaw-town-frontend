@@ -4,10 +4,10 @@ import type { PlayerLawyerRequest } from '../services/types';
 
 const DOCUMENT_STAGES = new Set(['CD', 'AD', 'AR']);
 const RESPONSE_HINTS = [
-  { id: 'liability_scope', label: '责任和赔偿范围' },
-  { id: 'evidence_support', label: '证据支持' },
-  { id: 'claim_items', label: '赔偿项目' },
-  { id: 'missing_info', label: '追问信息' },
+  { id: 'liability_scope', label: '责任和赔偿范围', description: '引导用户回应责任承担、合理损失范围和例外。' },
+  { id: 'evidence_support', label: '证据支持', description: '引导用户说明医疗、交警、鉴定等证据如何支撑主张。' },
+  { id: 'claim_items', label: '赔偿项目', description: '引导用户覆盖医疗费、误工费、护理费等可主张项目。' },
+  { id: 'missing_info', label: '追问信息', description: '引导用户向当事人继续追问金额、票据、收入等缺失细节。' },
 ];
 
 type Props = {
@@ -114,6 +114,16 @@ export function PlayerLawyerInputDialog({
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
+            <div className="response-assist-explain" aria-label="回复辅助机制说明">
+              <strong>回复辅助机制</strong>
+              <p>
+                下方四个按钮是前端写作提示，不是 Agent Skill 调用。选择后只记录提示方向
+                <code>hint_ids</code>，帮助用户组织原始回复；点击“AI 润色”时，系统才把用户原文、提示方向和案件上下文发送给后端润色接口。
+              </p>
+              <p>
+                提交时会保存用户原文、最终提交文本、是否使用 AI 润色和提示方向，便于论文实验分析用户输入与辅助机制的关系。
+              </p>
+            </div>
             <div className="response-hint-row" aria-label="回复提示">
               {RESPONSE_HINTS.map((hint) => (
                 <button
@@ -121,9 +131,11 @@ export function PlayerLawyerInputDialog({
                   disabled={loading}
                   key={hint.id}
                   onClick={() => toggleHint(hint.id)}
+                  title={hint.description}
                   type="button"
                 >
                   {hint.label}
+                  <span>{hint.description}</span>
                 </button>
               ))}
             </div>

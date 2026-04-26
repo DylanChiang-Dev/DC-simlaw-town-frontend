@@ -1259,6 +1259,8 @@ h1 {
 .player-lawyer-input-dialog {
   position: relative;
   width: min(760px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow: auto;
   padding: 28px;
   border: 1px solid rgba(255, 222, 176, 0.36);
   background: var(--panel-solid);
@@ -1376,27 +1378,84 @@ h1 {
   outline-offset: 1px;
 }
 
-.response-hint-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.player-lawyer-input-dialog::-webkit-scrollbar {
+  width: 8px;
+}
+
+.player-lawyer-input-dialog::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(233, 188, 114, 0.42);
+}
+
+.response-assist-explain {
   margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(233, 188, 114, 0.28);
+  background: rgba(233, 188, 114, 0.08);
+  color: #dcc3a7;
+}
+
+.response-assist-explain strong {
+  display: block;
+  color: #ffe3a7;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.response-assist-explain p {
+  margin-top: 7px;
+  color: #dcc3a7;
+  font-size: 12px;
+  line-height: 1.62;
+}
+
+.response-assist-explain code {
+  border: 1px solid rgba(255, 222, 176, 0.18);
+  border-radius: 5px;
+  padding: 1px 5px;
+  background: rgba(255, 241, 220, 0.09);
+  color: #ffe3a7;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.92em;
+}
+
+.response-hint-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .response-hint-chip {
+  display: grid;
+  gap: 5px;
+  min-height: 72px;
   border: 1px solid rgba(255, 222, 176, 0.22);
-  border-radius: 999px;
-  padding: 7px 10px;
+  border-radius: 8px;
+  padding: 9px 10px;
   background: rgba(255, 241, 220, 0.08);
   color: #f1d8b6;
+  cursor: pointer;
   font-size: 12px;
   font-weight: 800;
+  text-align: left;
+}
+
+.response-hint-chip span {
+  color: #c9b28e;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.45;
 }
 
 .response-hint-chip.selected {
   border-color: rgba(233, 188, 114, 0.72);
   background: rgba(233, 188, 114, 0.2);
   color: #fff6df;
+}
+
+.response-hint-chip.selected span {
+  color: #f4d6a4;
 }
 
 .response-assist-actions {
@@ -1553,6 +1612,10 @@ h1 {
   .document-live-grid {
     grid-template-columns: 1fr;
   }
+
+  .response-hint-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 720px) {
@@ -1688,6 +1751,10 @@ h1 {
 
   .player-lawyer-input-dialog {
     padding: 22px;
+  }
+
+  .response-hint-row {
+    grid-template-columns: 1fr;
   }
 
   .player-lawyer-dialog-actions {
