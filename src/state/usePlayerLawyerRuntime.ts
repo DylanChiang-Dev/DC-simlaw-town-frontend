@@ -2,10 +2,17 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   fetchPendingPlayerLawyerRequests,
   fetchPlayerLawyerStatus,
+  polishPlayerLawyerResponse,
   submitPlayerLawyerResponse,
 } from '../services/playerLawyerApi';
 import { getEventBus } from '../services/eventBus';
-import type { PlayerLawyerRequest, PlayerLawyerStatus } from '../services/types';
+import type {
+  PlayerLawyerPolishInput,
+  PlayerLawyerRequest,
+  PlayerLawyerResponseAssist,
+  PlayerLawyerStatus,
+  PlayerLawyerTextSubmitInput,
+} from '../services/types';
 
 const POLL_INTERVAL_MS = 10000;
 
@@ -19,7 +26,8 @@ export type PlayerLawyerRuntimeState = {
   loading: boolean;
   status: PlayerLawyerStatus | null;
   refresh: () => Promise<void>;
-  submitTextReply: (message: string) => Promise<void>;
+  polishTextReply: (input: Omit<PlayerLawyerPolishInput, 'requestId'>) => Promise<PlayerLawyerResponseAssist>;
+  submitTextReply: (input: Omit<PlayerLawyerTextSubmitInput, 'requestId'>) => Promise<void>;
 };
 
 export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): PlayerLawyerRuntimeState {
@@ -97,12 +105,41 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
     };
   }, [enabled, refresh]);
 
-  async function submitTextReply(message: string): Promise<void> {
+  async function polishTextReply(input: Omit<PlayerLawyerPolishInput, 'requestId'>): Promise<PlayerLawyerResponseAssist> {
+    if (!activeRequest) {
+      throw new Error('当前没有待处理的用户任务');
+    }
+    setLoading(true);
+    setError('');
+    try {
+      return await polishPlayerLawyerResponse({
+        requestId: activeRequest.requestId,
+        originalMessage: input.originalMessage,
+        hintIds: input.hintIds,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'AI 润色失败';
+      setError(message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function submitTextReply(input: Omit<PlayerLawyerTextSubmitInput, 'requestId'>): Promise<void> {
     if (!activeRequest) return;
     setLoading(true);
     setError('');
     try {
-      await submitPlayerLawyerResponse(activeRequest.requestId, message);
+      await submitPlayerLawyerResponse({
+        requestId: activeRequest.requestId,
+        message: input.message,
+        originalMessage: input.originalMessage,
+        polishedMessage: input.polishedMessage,
+        finalMessage: input.finalMessage || input.message,
+        hintIds: input.hintIds || [],
+        usedAiPolish: Boolean(input.usedAiPolish),
+      });
       setActiveRequest(null);
       await refresh();
     } catch (err) {
@@ -118,6 +155,7 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
     loading,
     status,
     refresh,
+    polishTextReply,
     submitTextReply,
   };
 }

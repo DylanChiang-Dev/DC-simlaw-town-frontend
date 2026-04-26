@@ -205,8 +205,12 @@ function AppShell({ auth }: AppShellProps) {
           setPlayerDialogOpen(false);
           setDocumentOpen(true);
         }}
-        onSubmitText={async (message) => {
-          await playerLawyer.submitTextReply(message);
+        onPolishText={async (input) => {
+          const assist = await playerLawyer.polishTextReply(input);
+          return assist.aiPolishedMessage;
+        }}
+        onSubmitText={async (input) => {
+          await playerLawyer.submitTextReply(input);
           setPlayerDialogOpen(false);
         }}
         request={playerDialogOpen ? playerLawyer.activeRequest : null}

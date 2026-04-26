@@ -3,12 +3,26 @@ import { MarkdownText } from './MarkdownText';
 import type { PlayerLawyerRequest } from '../services/types';
 
 const DOCUMENT_STAGES = new Set(['CD', 'AD', 'AR']);
+const RESPONSE_HINTS = [
+  { id: 'liability_scope', label: '责任和赔偿范围' },
+  { id: 'evidence_support', label: '证据支持' },
+  { id: 'claim_items', label: '赔偿项目' },
+  { id: 'missing_info', label: '追问信息' },
+];
 
 type Props = {
   loading: boolean;
   onClose: () => void;
   onOpenDocumentWorkbench: () => void;
-  onSubmitText: (message: string) => Promise<void>;
+  onPolishText: (input: { originalMessage: string; hintIds: string[] }) => Promise<string>;
+  onSubmitText: (input: {
+    message: string;
+    originalMessage: string;
+    polishedMessage: string;
+    finalMessage: string;
+    hintIds: string[];
+    usedAiPolish: boolean;
+  }) => Promise<void>;
   request: PlayerLawyerRequest | null;
 };
 
@@ -16,13 +30,20 @@ export function PlayerLawyerInputDialog({
   loading,
   onClose,
   onOpenDocumentWorkbench,
+  onPolishText,
   onSubmitText,
   request,
 }: Props) {
   const [message, setMessage] = useState('');
+  const [selectedHints, setSelectedHints] = useState<string[]>([]);
+  const [polishedMessage, setPolishedMessage] = useState('');
+  const [polishError, setPolishError] = useState('');
 
   useEffect(() => {
     setMessage('');
+    setSelectedHints([]);
+    setPolishedMessage('');
+    setPolishError('');
   }, [request?.requestId]);
 
   if (!request) return null;
@@ -33,7 +54,37 @@ export function PlayerLawyerInputDialog({
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     if (!message.trim()) return;
-    await onSubmitText(message.trim());
+    const finalMessage = (polishedMessage || message).trim();
+    await onSubmitText({
+      message: finalMessage,
+      originalMessage: message.trim(),
+      polishedMessage: polishedMessage.trim(),
+      finalMessage,
+      hintIds: selectedHints,
+      usedAiPolish: Boolean(polishedMessage.trim()),
+    });
+  }
+
+  function toggleHint(hintId: string): void {
+    setSelectedHints((current) => (
+      current.includes(hintId)
+        ? current.filter((item) => item !== hintId)
+        : [...current, hintId]
+    ));
+  }
+
+  async function handlePolish(): Promise<void> {
+    if (!message.trim()) return;
+    setPolishError('');
+    try {
+      const next = await onPolishText({
+        originalMessage: message.trim(),
+        hintIds: selectedHints,
+      });
+      setPolishedMessage(next);
+    } catch (err) {
+      setPolishError(err instanceof Error ? err.message : 'AI 润色失败');
+    }
   }
 
   return (
@@ -63,13 +114,42 @@ export function PlayerLawyerInputDialog({
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
+            <div className="response-hint-row" aria-label="回复提示">
+              {RESPONSE_HINTS.map((hint) => (
+                <button
+                  className={`response-hint-chip ${selectedHints.includes(hint.id) ? 'selected' : ''}`}
+                  disabled={loading}
+                  key={hint.id}
+                  onClick={() => toggleHint(hint.id)}
+                  type="button"
+                >
+                  {hint.label}
+                </button>
+              ))}
+            </div>
             <textarea
               autoFocus
               disabled={loading}
               onChange={(event) => setMessage(event.target.value)}
-              placeholder="输入当前角色回复..."
+              placeholder="先写你的原始想法，可以很短。"
               value={message}
             />
+            <div className="response-assist-actions">
+              <button className="secondary-action" disabled={loading || !message.trim()} onClick={handlePolish} type="button">
+                {loading ? '处理中' : 'AI 润色'}
+              </button>
+            </div>
+            {polishedMessage && (
+              <label className="polished-response-field">
+                <span>润色稿，可继续修改</span>
+                <textarea
+                  disabled={loading}
+                  onChange={(event) => setPolishedMessage(event.target.value)}
+                  value={polishedMessage}
+                />
+              </label>
+            )}
+            {polishError && <div className="document-error" role="alert">{polishError}</div>}
             <div className="player-lawyer-dialog-actions">
               <button className="secondary-action" disabled={loading} onClick={onClose} type="button">
                 稍后处理

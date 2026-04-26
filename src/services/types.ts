@@ -101,6 +101,40 @@ export type PlayerLawyerStatus = {
   enabled: boolean;
 };
 
+export type PlayerLawyerResponseAssist = {
+  requestId: string;
+  sandboxId: number;
+  caseId: string;
+  stage: string;
+  role: string;
+  speakerLabel: string;
+  prompt: string;
+  contextSummary: string;
+  hintIds: string[];
+  userOriginalMessage: string;
+  aiPolishedMessage: string;
+  finalSubmittedMessage: string;
+  usedAiPolish: boolean;
+  createdAt: string;
+  updatedAt?: string | null;
+};
+
+export type PlayerLawyerPolishInput = {
+  requestId: string;
+  originalMessage: string;
+  hintIds: string[];
+};
+
+export type PlayerLawyerTextSubmitInput = {
+  requestId: string;
+  message: string;
+  originalMessage?: string;
+  polishedMessage?: string;
+  finalMessage?: string;
+  hintIds?: string[];
+  usedAiPolish?: boolean;
+};
+
 export type PlayerLawyerSkill = {
   skillId: string;
   documentType: string;

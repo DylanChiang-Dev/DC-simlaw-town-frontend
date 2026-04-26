@@ -3,9 +3,12 @@ import type {
   PlayerLawyerDocumentAssistInput,
   PlayerLawyerDocumentConfirmInput,
   PlayerLawyerDocumentDraft,
+  PlayerLawyerPolishInput,
   PlayerLawyerRequest,
+  PlayerLawyerResponseAssist,
   PlayerLawyerSkill,
   PlayerLawyerStatus,
+  PlayerLawyerTextSubmitInput,
 } from './types';
 
 type PlayerLawyerRequestResponse = {
@@ -46,6 +49,24 @@ type PlayerLawyerDocumentDraftResponse = {
   pdf_path?: string;
   created_at?: string;
   confirmed_at?: string | null;
+};
+
+type PlayerLawyerResponseAssistResponse = {
+  request_id?: string;
+  sandbox_id?: number;
+  case_id?: string;
+  stage?: string;
+  role?: string;
+  speaker_label?: string;
+  prompt?: string;
+  context_summary?: string;
+  hint_ids?: string[];
+  user_original_message?: string;
+  ai_polished_message?: string;
+  final_submitted_message?: string;
+  used_ai_polish?: boolean;
+  created_at?: string;
+  updated_at?: string | null;
 };
 
 function mapRequest(payload: PlayerLawyerRequestResponse): PlayerLawyerRequest {
@@ -94,6 +115,26 @@ function mapDraft(payload: PlayerLawyerDocumentDraftResponse): PlayerLawyerDocum
   };
 }
 
+function mapResponseAssist(payload: PlayerLawyerResponseAssistResponse): PlayerLawyerResponseAssist {
+  return {
+    requestId: String(payload.request_id || '').trim(),
+    sandboxId: Number(payload.sandbox_id || 0),
+    caseId: String(payload.case_id || '').trim(),
+    stage: String(payload.stage || '').trim(),
+    role: String(payload.role || '').trim(),
+    speakerLabel: String(payload.speaker_label || '').trim(),
+    prompt: String(payload.prompt || ''),
+    contextSummary: String(payload.context_summary || ''),
+    hintIds: Array.isArray(payload.hint_ids) ? payload.hint_ids.map((item) => String(item || '').trim()).filter(Boolean) : [],
+    userOriginalMessage: String(payload.user_original_message || ''),
+    aiPolishedMessage: String(payload.ai_polished_message || ''),
+    finalSubmittedMessage: String(payload.final_submitted_message || ''),
+    usedAiPolish: Boolean(payload.used_ai_polish),
+    createdAt: String(payload.created_at || ''),
+    updatedAt: payload.updated_at ?? null,
+  };
+}
+
 export async function fetchPlayerLawyerStatus(): Promise<PlayerLawyerStatus> {
   const response = await authenticatedFetch('/api/sandbox/player-lawyer/status', { method: 'GET' });
   const payload = await readJsonResponse<{ player_mode?: string; enabled?: boolean }>(response);
@@ -110,14 +151,36 @@ export async function fetchPendingPlayerLawyerRequests(caseId?: string): Promise
   return Array.isArray(payload.pending) ? payload.pending.map(mapRequest) : [];
 }
 
-export async function submitPlayerLawyerResponse(requestId: string, message: string): Promise<PlayerLawyerRequest> {
+export async function submitPlayerLawyerResponse(input: PlayerLawyerTextSubmitInput): Promise<PlayerLawyerRequest> {
   const response = await authenticatedFetch('/api/sandbox/player-lawyer/respond', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ request_id: requestId, message }),
+    body: JSON.stringify({
+      request_id: input.requestId,
+      message: input.message,
+      original_message: input.originalMessage || '',
+      polished_message: input.polishedMessage || '',
+      final_message: input.finalMessage || input.message,
+      hint_ids: input.hintIds || [],
+      used_ai_polish: Boolean(input.usedAiPolish),
+    }),
   });
   const payload = await readJsonResponse<{ request?: PlayerLawyerRequestResponse }>(response);
   return mapRequest(payload.request || {});
+}
+
+export async function polishPlayerLawyerResponse(input: PlayerLawyerPolishInput): Promise<PlayerLawyerResponseAssist> {
+  const response = await authenticatedFetch('/api/sandbox/player-lawyer/polish-response', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      request_id: input.requestId,
+      original_message: input.originalMessage,
+      hint_ids: input.hintIds,
+    }),
+  });
+  const payload = await readJsonResponse<{ assist?: PlayerLawyerResponseAssistResponse }>(response);
+  return mapResponseAssist(payload.assist || {});
 }
 
 export async function fetchPlayerLawyerDocumentSkills(): Promise<PlayerLawyerSkill[]> {

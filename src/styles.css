@@ -1296,6 +1296,51 @@ h1 {
   outline-offset: 1px;
 }
 
+.response-hint-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.response-hint-chip {
+  border: 1px solid rgba(255, 222, 176, 0.22);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(255, 241, 220, 0.08);
+  color: #f1d8b6;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.response-hint-chip.selected {
+  border-color: rgba(233, 188, 114, 0.72);
+  background: rgba(233, 188, 114, 0.2);
+  color: #fff6df;
+}
+
+.response-assist-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.polished-response-field {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  color: #f4d6a4;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.polished-response-field textarea {
+  min-height: 140px;
+  margin-top: 0;
+  border-color: rgba(133, 193, 255, 0.34);
+  background: rgba(90, 130, 172, 0.12);
+}
+
 .player-lawyer-dialog-actions {
   margin-top: 14px;
   display: flex;
