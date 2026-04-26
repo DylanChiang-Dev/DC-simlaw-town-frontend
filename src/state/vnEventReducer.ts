@@ -45,7 +45,7 @@ const CASE_EVENT_MESSAGES: Record<string, string> = {
   CONSULTATION_STARTED: '法律咨询开始，等待当事人说明情况。',
   STAGE_STARTED: '新阶段已开始，等待下一轮案件对话。',
   STAGE_COMPLETED: '当前阶段已完成，案件流程正在推进。',
-  DOCUMENT_DRAFT_STARTED: '文书起草阶段开始，等待玩家律师处理。',
+  DOCUMENT_DRAFT_STARTED: '文书起草阶段开始，等待用户处理当前角色任务。',
   TRIAL_STARTED: '庭审阶段开始，等待法庭发言。',
 };
 
@@ -53,8 +53,18 @@ export type VnRuntimeState = {
   background: DialogueHistoryEntry[];
   diagnostics: string[];
   history: DialogueHistoryEntry[];
+  runtimeStatus: RuntimeStatus;
   scene: DialogueScene;
   wsConnected: boolean;
+};
+
+export type RuntimeStatus = {
+  phase: string;
+  message: string;
+  detail: string;
+  blocking: boolean;
+  lastEventAt: string;
+  lastError: string;
 };
 
 export type DialogueHistoryEntry = {
@@ -75,6 +85,10 @@ export type VnRuntimeEvent =
   | { type: 'dialogue-continue-sent'; payload?: Record<string, unknown> }
   | { type: 'dialogue-gate-accepted'; payload?: Record<string, unknown> }
   | { type: 'dialogue-gate-error'; payload?: Record<string, unknown> }
+  | { type: 'runtime-progress'; payload?: Record<string, unknown> }
+  | { type: 'step-gate-waiting'; payload?: Record<string, unknown> }
+  | { type: 'step-gate-accepted'; payload?: Record<string, unknown> }
+  | { type: 'step-gate-error'; payload?: Record<string, unknown> }
   | { type: 'case-state-change'; payload?: Record<string, unknown> }
   | { type: 'scenario-start'; payload?: Record<string, unknown> }
   | { type: 'scenario-end'; payload?: Record<string, unknown> }
@@ -92,6 +106,14 @@ export function createInitialVnRuntimeState(): VnRuntimeState {
     background: [],
     diagnostics: [],
     history: [],
+    runtimeStatus: {
+      phase: 'idle',
+      message: '等待案件运行',
+      detail: '',
+      blocking: false,
+      lastEventAt: '',
+      lastError: '',
+    },
     scene: scenes[0],
     wsConnected: false,
   };
@@ -100,10 +122,28 @@ export function createInitialVnRuntimeState(): VnRuntimeState {
 export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): VnRuntimeState {
   switch (event.type) {
     case 'ws-connected':
-      return appendDiagnostic({ ...state, wsConnected: true }, '实时连接已建立');
+      return appendDiagnostic(
+        updateRuntimeStatus({ ...state, wsConnected: true }, {
+          phase: 'connected',
+          message: '实时连接已建立',
+          detail: '',
+          blocking: false,
+          lastError: '',
+        }),
+        '实时连接已建立',
+      );
     case 'ws-disconnected':
       return appendErrorLine(
-        appendDiagnostic({ ...state, wsConnected: false }, '实时连接已断开'),
+        appendDiagnostic(
+          updateRuntimeStatus({ ...state, wsConnected: false }, {
+            phase: 'disconnected',
+            message: '实时连接已断开',
+            detail: '系统正在自动重连',
+            blocking: true,
+            lastError: '实时连接已断开',
+          }),
+          '实时连接已断开',
+        ),
         '实时连接已断开，系统正在自动重连。',
       );
     case 'dialogue-update':
@@ -114,6 +154,35 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
       return appendSystemLine(state, '后端已收到继续请求，正在推进下一句对话。');
     case 'dialogue-gate-error':
       return appendErrorLine(state, `继续失败：${String(event.payload?.message || '后端没有接受继续请求')}`);
+    case 'runtime-progress':
+      return applyRuntimeProgress(state, event.payload || {});
+    case 'step-gate-waiting':
+      return updateRuntimeStatus(state, {
+        phase: 'waiting_user',
+        message: String(event.payload?.message || '等待用户继续推进'),
+        detail: String(event.payload?.detail || event.payload?.gate_id || ''),
+        blocking: true,
+        lastError: '',
+      });
+    case 'step-gate-accepted':
+      return updateRuntimeStatus(state, {
+        phase: 'step_accepted',
+        message: String(event.payload?.message || '后端已收到继续请求'),
+        detail: String(event.payload?.detail || event.payload?.gate_id || ''),
+        blocking: false,
+        lastError: '',
+      });
+    case 'step-gate-error':
+      return appendErrorLine(
+        updateRuntimeStatus(state, {
+          phase: 'step_error',
+          message: '继续推进失败',
+          detail: String(event.payload?.detail || ''),
+          blocking: true,
+          lastError: String(event.payload?.message || event.payload?.error || '后端没有接受继续请求'),
+        }),
+        `继续推进失败：${String(event.payload?.message || event.payload?.error || '后端没有接受继续请求')}`,
+      );
     case 'case-state-change':
       return appendSystemLine(state, getCaseStateMessage(event.payload || {}));
     case 'scenario-start':
@@ -123,18 +192,27 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
     case 'case-runtime-issue':
       return applyRuntimeIssue(state, event.payload || {});
     case 'player-lawyer-input-required':
-      return appendSystemLine(state, '轮到玩家律师行动：请准备输入回复或处理文书任务。');
+      return appendSystemLine(state, '轮到用户处理当前角色任务：请准备输入回复或处理文书任务。');
     case 'player-lawyer-input-submitted':
-      return appendSystemLine(state, '玩家律师回复已提交，后端流程继续推进。');
+      return appendSystemLine(state, '当前角色回复已提交，后端流程继续推进。');
     case 'player-lawyer-document-draft-ready':
-      return appendSystemLine(state, '文书草稿已生成，等待玩家律师确认。');
+      return appendSystemLine(state, '文书草稿已生成，等待用户确认。');
     case 'player-lawyer-document-confirmed':
-      return appendSystemLine(state, '玩家律师已确认文书，系统正在保存并导出 PDF。');
+      return appendSystemLine(state, '用户已确认文书，系统正在保存并导出 PDF。');
     case 'player-lawyer-error':
-      return appendErrorLine(state, `玩家律师请求失败：${String(event.payload?.message || event.payload?.error || '请稍后重试')}`);
+      return appendErrorLine(state, `用户任务请求失败：${String(event.payload?.message || event.payload?.error || '请稍后重试')}`);
     case 'ws-error':
       return appendErrorLine(
-        appendDiagnostic(state, `实时连接异常：${String(event.payload?.message || '未知错误')}`),
+        appendDiagnostic(
+          updateRuntimeStatus(state, {
+            phase: 'ws_error',
+            message: '实时连接异常',
+            detail: '',
+            blocking: true,
+            lastError: String(event.payload?.message || '未知错误'),
+          }),
+          `实时连接异常：${String(event.payload?.message || '未知错误')}`,
+        ),
         `实时连接异常：${String(event.payload?.message || '未知错误')}`,
       );
     case 'ws-unknown':
@@ -145,6 +223,28 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
     default:
       return state;
   }
+}
+
+function applyRuntimeProgress(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
+  return updateRuntimeStatus(state, {
+    phase: String(payload.phase || 'runtime'),
+    message: String(payload.message || '后端正在处理当前步骤'),
+    detail: String(payload.detail || ''),
+    blocking: Boolean(payload.blocking),
+    lastEventAt: String(payload.occurred_at || ''),
+    lastError: '',
+  });
+}
+
+function updateRuntimeStatus(state: VnRuntimeState, patch: Partial<RuntimeStatus>): VnRuntimeState {
+  return {
+    ...state,
+    runtimeStatus: {
+      ...state.runtimeStatus,
+      ...patch,
+      lastEventAt: patch.lastEventAt ?? new Date().toISOString(),
+    },
+  };
 }
 
 function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {

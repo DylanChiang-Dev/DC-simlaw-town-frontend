@@ -40,7 +40,7 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
       setStatus(nextStatus);
       setActiveRequest(pending[pending.length - 1] || null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '读取玩家律师任务失败');
+      setError(err instanceof Error ? err.message : '读取用户任务失败');
     } finally {
       setLoading(false);
     }
@@ -76,7 +76,7 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
       void refresh();
     };
     const handleError = (payload?: Record<string, unknown>) => {
-      setError(readPayloadMessage(payload) || '玩家律师请求处理失败');
+      setError(readPayloadMessage(payload) || '用户任务处理失败');
     };
     const handleConnected = () => {
       void refresh();
@@ -106,7 +106,7 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
       setActiveRequest(null);
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : '提交玩家律师回复失败');
+      setError(err instanceof Error ? err.message : '提交当前角色回复失败');
     } finally {
       setLoading(false);
     }

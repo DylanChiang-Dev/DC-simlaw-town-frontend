@@ -37,11 +37,11 @@ export function PlayerLawyerInputDialog({
   }
 
   return (
-    <div className="player-lawyer-dialog-layer" role="dialog" aria-modal="true" aria-label="玩家律师输入">
+    <div className="player-lawyer-dialog-layer" role="dialog" aria-modal="true" aria-label="当前角色输入">
       <section className="player-lawyer-input-dialog">
         <button className="close-button" type="button" onClick={onClose} aria-label="关闭">×</button>
-        <div className="panel-kicker">Player Turn</div>
-        <h2>{documentStage ? '文书阶段任务' : '轮到玩家律师发言'}</h2>
+        <div className="panel-kicker">User Turn</div>
+        <h2>{documentStage ? '文书阶段任务' : '轮到用户处理当前角色发言'}</h2>
         <div className="player-lawyer-request-meta">
           <span>{request.caseId}</span>
           <span>{request.stage}</span>
@@ -50,7 +50,7 @@ export function PlayerLawyerInputDialog({
         <MarkdownText className="player-lawyer-context" text={request.contextSummary} />
         <MarkdownText
           className="player-lawyer-prompt"
-          fallback="请根据当前案件进展输入玩家律师回复。"
+          fallback="请根据当前案件进展输入当前角色回复。"
           text={request.prompt}
         />
 
@@ -67,7 +67,7 @@ export function PlayerLawyerInputDialog({
               autoFocus
               disabled={loading}
               onChange={(event) => setMessage(event.target.value)}
-              placeholder="输入玩家律师回复..."
+              placeholder="输入当前角色回复..."
               value={message}
             />
             <div className="player-lawyer-dialog-actions">

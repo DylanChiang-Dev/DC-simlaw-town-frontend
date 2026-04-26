@@ -41,8 +41,8 @@ export type LifecycleStage = {
 export const characters: Record<CharacterKey, Character> = {
   playerLawyer: {
     key: 'playerLawyer',
-    name: '玩家律师',
-    role: '玩家在本案中扮演的原告代理律师',
+    name: '原告代理人',
+    role: '用户在本案中临时扮演的代理人角色',
     portrait: '/art/vn/char-player-lawyer-neutral.png',
     position: 'left',
   },
@@ -73,7 +73,7 @@ export const scenes: DialogueScene[] = [
   {
     id: 'consultation',
     caseTitle: '民间借贷纠纷教学案',
-    playerSeat: '玩家身份：刘玉田案原告代理律师',
+    playerSeat: '当前角色：刘玉田案原告代理人',
     stageCode: 'LC',
     stageName: '法律咨询',
     background: '/art/vn/bg-law-office.png',
@@ -92,12 +92,12 @@ export const scenes: DialogueScene[] = [
   {
     id: 'drafting',
     caseTitle: '民间借贷纠纷教学案',
-    playerSeat: '玩家身份：刘玉田案原告代理律师',
+    playerSeat: '当前角色：刘玉田案原告代理人',
     stageCode: 'CD',
     stageName: '起诉状起草',
     background: '/art/vn/bg-case-analysis-room.png',
     speaker: 'playerLawyer',
-    text: '我们先不要直接写长文。系统会把诉讼请求、事实与理由、证据目录拆成模板字段，由玩家律师确认后再生成正式起诉状。',
+    text: '我们先不要直接写长文。系统会把诉讼请求、事实与理由、证据目录拆成模板字段，由用户确认后再生成正式起诉状。',
     characters: ['playerLawyer', 'client'],
     actions: ['打开文书工作台', '调用起诉状 Skill', '确认提交'],
     tech: {
@@ -111,7 +111,7 @@ export const scenes: DialogueScene[] = [
   {
     id: 'trial',
     caseTitle: '民间借贷纠纷教学案',
-    playerSeat: '玩家身份：刘玉田案原告代理律师',
+    playerSeat: '当前角色：刘玉田案原告代理人',
     stageCode: 'CI',
     stageName: '一审庭审',
     background: '/art/vn/bg-courtroom.png',

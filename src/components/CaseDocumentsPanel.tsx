@@ -40,7 +40,7 @@ export function CaseDocumentsPanel({ caseId, onClose, open }: Props) {
         <button className="close-button" type="button" onClick={onClose} aria-label="关闭">×</button>
         <div className="panel-kicker">Case Documents</div>
         <h2>案件 PDF 文书</h2>
-        <p>这里显示后端已经生成并可下载的案件文书。确认玩家文书后可以刷新列表查看导出结果。</p>
+        <p>这里显示后端已经生成并可下载的案件文书。确认当前文书后可以刷新列表查看导出结果。</p>
         <div className="case-documents-actions">
           <span>{caseId || '未选择案件'}</span>
           <button className="secondary-action" disabled={loading || !caseId} onClick={() => void refreshDocuments()} type="button">

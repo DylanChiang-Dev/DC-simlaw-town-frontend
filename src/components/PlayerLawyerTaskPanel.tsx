@@ -22,22 +22,22 @@ export function PlayerLawyerTaskPanel({ activeRequest, error, loading, onOpenReq
   if (!enabled) return null;
 
   const stageLabel = activeRequest ? getStageLabel(activeRequest.stage) : '等待案件推进';
-  const actionLabel = isDocumentStage(activeRequest?.stage) ? '处理文书任务' : '输入律师回复';
+  const actionLabel = isDocumentStage(activeRequest?.stage) ? '处理文书任务' : '输入当前角色回复';
   return (
-    <aside className="player-lawyer-task-panel" aria-label="玩家律师任务">
-      <div className="panel-kicker">Player Lawyer</div>
-      <h2>玩家律师任务</h2>
+    <aside className="player-lawyer-task-panel" aria-label="当前用户任务">
+      <div className="panel-kicker">User Task</div>
+      <h2>当前用户任务</h2>
       <p>{stageLabel}</p>
       {activeRequest ? (
         <>
-          <strong>{activeRequest.speakerLabel || '轮到玩家律师'}</strong>
+          <strong>{activeRequest.speakerLabel || '轮到用户处理当前角色任务'}</strong>
           <span>{activeRequest.caseId || '当前案件'} / {activeRequest.role || 'plaintiff_lawyer'}</span>
           <button className="primary-action wide" disabled={loading} onClick={onOpenRequest} type="button">
             {loading ? '处理中' : actionLabel}
           </button>
         </>
       ) : (
-        <span>{status?.playerMode ? `模式：${status.playerMode}` : '玩家模式已启用'}</span>
+        <span>{status?.playerMode ? `模式：${status.playerMode}` : '等待系统推进'}</span>
       )}
       {error && <div className="player-lawyer-error" role="alert">{error}</div>}
     </aside>
@@ -45,7 +45,7 @@ export function PlayerLawyerTaskPanel({ activeRequest, error, loading, onOpenReq
 }
 
 function getStageLabel(stage: string): string {
-  return STAGE_LABELS[String(stage || '').toUpperCase()] || stage || '玩家律师回合';
+  return STAGE_LABELS[String(stage || '').toUpperCase()] || stage || '暂无用户操作';
 }
 
 function isDocumentStage(stage?: string): boolean {

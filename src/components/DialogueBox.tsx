@@ -56,11 +56,11 @@ export function DialogueBox({
         <MarkdownText className="dialogue-current-text" text={scene.text} />
       )}
       {backendMode && pendingRequest && (
-        <div className="player-turn-preview" aria-label="玩家律师回合要求">
-          <strong>轮到玩家律师输入</strong>
+        <div className="player-turn-preview" aria-label="当前用户任务要求">
+          <strong>轮到用户处理当前角色任务</strong>
           <MarkdownText text={pendingRequest.contextSummary} />
           <MarkdownText
-            fallback="请根据当前案件进展输入玩家律师回复。"
+            fallback="请根据当前案件进展输入当前角色回复。"
             text={pendingRequest.prompt || pendingRequest.message}
           />
         </div>
@@ -75,11 +75,11 @@ export function DialogueBox({
             )}
             {pendingRequest ? (
               <button type="button" onClick={onOpenPlayerInput}>
-                输入律师回复
+                {isDocumentStage(pendingRequest.stage) ? '处理文书任务' : '输入当前角色回复'}
               </button>
             ) : dialogueGate ? (
               <button disabled={dialogueGate.pending || !wsConnected} type="button" onClick={onContinueDialogue}>
-                {!wsConnected ? '实时未连接，正在重连' : dialogueGate.pending ? '等待后端响应' : '继续'}
+                {!wsConnected ? '实时未连接，正在重连' : dialogueGate.pending ? '等待后端响应' : '继续查看下一句'}
               </button>
             ) : null}
           </>
@@ -114,4 +114,8 @@ export function DialogueBox({
       )}
     </section>
   );
+}
+
+function isDocumentStage(stage?: string): boolean {
+  return ['CD', 'AD', 'AR'].includes(String(stage || '').toUpperCase());
 }

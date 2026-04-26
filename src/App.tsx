@@ -8,6 +8,7 @@ import { DialogueBox } from './components/DialogueBox';
 import { DocumentWorkbench } from './components/DocumentWorkbench';
 import { PlayerLawyerInputDialog } from './components/PlayerLawyerInputDialog';
 import { PlayerLawyerTaskPanel } from './components/PlayerLawyerTaskPanel';
+import { RuntimeStatusPanel } from './components/RuntimeStatusPanel';
 import { TechLedger } from './components/TechLedger';
 import { VisualNovelStage } from './components/VisualNovelStage';
 import { scenes } from './data/demo';
@@ -81,6 +82,10 @@ function AppShell({ auth }: AppShellProps) {
       ['ws:dialogue-gate-error', (payload) => {
         dispatchVnEvent({ type: 'dialogue-gate-error', payload });
       }],
+      ['ws:runtime-progress', (payload) => dispatchVnEvent({ type: 'runtime-progress', payload })],
+      ['ws:step-gate-waiting', (payload) => dispatchVnEvent({ type: 'step-gate-waiting', payload })],
+      ['ws:step-gate-accepted', (payload) => dispatchVnEvent({ type: 'step-gate-accepted', payload })],
+      ['ws:step-gate-error', (payload) => dispatchVnEvent({ type: 'step-gate-error', payload })],
       ['ws:case-state-change', (payload) => dispatchVnEvent({ type: 'case-state-change', payload })],
       ['ws:scenario-start', (payload) => dispatchVnEvent({ type: 'scenario-start', payload })],
       ['ws:scenario-end', (payload) => dispatchVnEvent({ type: 'scenario-end', payload })],
@@ -162,6 +167,14 @@ function AppShell({ auth }: AppShellProps) {
       )}
       <div className="vn-layout">
         <div className="side-rail">
+          <RuntimeStatusPanel
+            backendConfigured={auth.backendConfigured && Boolean(auth.user)}
+            runtimeError={runtime.error}
+            runtimeStatus={vnRuntime.runtimeStatus}
+            scene={scene}
+            simulation={runtime.simulation}
+            wsConnected={vnRuntime.wsConnected}
+          />
           <PlayerLawyerTaskPanel
             activeRequest={playerLawyer.activeRequest}
             error={playerLawyer.error}

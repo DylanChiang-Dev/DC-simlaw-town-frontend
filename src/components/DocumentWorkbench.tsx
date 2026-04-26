@@ -116,10 +116,10 @@ export function DocumentWorkbench({ open, onClose, onConfirmed, request }: Props
         {!liveMode && <img src="/art/vn/bg-case-analysis-room.png" alt="文书起草与案件研判工作台" />}
         <div className="document-copy">
           <div className="panel-kicker">Document Assist</div>
-          <h2>{liveMode ? '玩家律师文书工作台' : '起诉状模板化输入'}</h2>
+          <h2>{liveMode ? '文书任务' : '起诉状模板化输入'}</h2>
           {!liveMode ? (
             <>
-              <p>玩家律师不需要从零写法律文书。系统把案件事实、争议焦点、证据目录和诉讼请求拆成可填写字段，再由 Skill 约束文书格式。</p>
+              <p>用户不需要从零写法律文书。系统把案件事实、争议焦点、证据目录和诉讼请求拆成可填写字段，再由 Skill 约束文书格式。</p>
               <div className="document-fields">
                 <span>诉讼请求</span>
                 <span>事实与理由</span>
@@ -150,7 +150,7 @@ export function DocumentWorkbench({ open, onClose, onConfirmed, request }: Props
                   </select>
                 </label>
                 <label>
-                  <span>玩家提示</span>
+                  <span>用户提示</span>
                   <textarea
                     disabled={loading}
                     onChange={(event) => setPlayerPrompt(event.target.value)}
@@ -159,7 +159,7 @@ export function DocumentWorkbench({ open, onClose, onConfirmed, request }: Props
                   />
                 </label>
                 <label>
-                  <span>玩家草稿（可选）</span>
+                  <span>用户草稿（可选）</span>
                   <textarea
                     disabled={loading}
                     onChange={(event) => setPlayerDraft(event.target.value)}
@@ -195,7 +195,7 @@ export function DocumentWorkbench({ open, onClose, onConfirmed, request }: Props
                   onClick={() => void handleConfirmDraft()}
                   type="button"
                 >
-                  {loading && draft ? '确认中' : '确认并提交文书'}
+                  {loading && draft ? '确认中' : '确认草稿并继续流程'}
                 </button>
               </div>
             </>
