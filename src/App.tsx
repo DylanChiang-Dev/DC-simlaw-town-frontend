@@ -11,6 +11,11 @@ import { PlayerLawyerTaskPanel } from './components/PlayerLawyerTaskPanel';
 import { TechLedger } from './components/TechLedger';
 import { VisualNovelStage } from './components/VisualNovelStage';
 import { getEventBus } from './services/eventBus';
+import {
+  confirmPlayerLawyerDocumentDraft,
+  createPlayerLawyerDocumentDraft,
+  fetchPlayerLawyerDocumentSkills,
+} from './services/playerLawyerApi';
 import { getWebSocketService } from './services/webSocket';
 import { usePlayerLawyerRuntime } from './state/usePlayerLawyerRuntime';
 import { useSimulationRuntime } from './state/useSimulationRuntime';
@@ -26,6 +31,18 @@ type DialogueGateState = {
   speakerName: string;
   turn: number;
 } | null;
+
+const STAGE_DOCUMENT_TYPES: Record<string, string> = {
+  CD: 'CD',
+  AD: 'AD',
+  AR: 'AR',
+};
+
+const STAGE_SKILL_IDS: Record<string, string> = {
+  CD: 'lawyer-complaint-drafting',
+  AD: 'lawyer-appeal-drafting',
+  AR: 'lawyer-appeal-response-drafting',
+};
 
 function AppShell({ auth }: AppShellProps) {
   const [documentOpen, setDocumentOpen] = useState(false);
@@ -127,6 +144,49 @@ function AppShell({ auth }: AppShellProps) {
     }
   }
 
+  async function handleAutoDocumentSubmit(): Promise<void> {
+    const request = playerLawyer.activeRequest;
+    if (!request) {
+      throw new Error('当前没有待处理的文书任务');
+    }
+    const stage = String(request.stage || '').toUpperCase();
+    const documentType = STAGE_DOCUMENT_TYPES[stage];
+    if (!documentType) {
+      throw new Error('当前任务不是可自动完成的文书阶段');
+    }
+    const skills = await fetchPlayerLawyerDocumentSkills();
+    const preferredSkillId = STAGE_SKILL_IDS[stage];
+    const selectedSkillId = (
+      skills.find((skill) => skill.skillId === preferredSkillId)?.skillId
+      || skills[0]?.skillId
+      || ''
+    );
+    if (!selectedSkillId) {
+      throw new Error('没有可用的文书 Skill');
+    }
+    const draft = await createPlayerLawyerDocumentDraft({
+      caseId: request.caseId,
+      documentType,
+      skillId: selectedSkillId,
+      playerPrompt: request.prompt,
+      playerDraft: '',
+      requestId: request.requestId,
+    });
+    if (!draft.documentText.trim()) {
+      throw new Error('AI 生成的文书为空');
+    }
+    await confirmPlayerLawyerDocumentDraft({
+      draftId: draft.draftId,
+      documentText: draft.documentText.trim(),
+    });
+    await playerLawyer.refresh();
+    dispatchVnEvent({
+      type: 'player-lawyer-document-confirmed',
+      payload: { message: `${documentType} 文书已由 AI 生成并确认。` },
+    });
+    setPlayerDialogOpen(false);
+  }
+
   return (
     <main className="app-shell">
       <CommandHud
@@ -203,10 +263,15 @@ function AppShell({ auth }: AppShellProps) {
       </div>
       <PlayerLawyerInputDialog
         loading={playerLawyer.actionLoading}
+        onAutoDocumentSubmit={handleAutoDocumentSubmit}
         onClose={() => setPlayerDialogOpen(false)}
         onOpenDocumentWorkbench={() => {
           setPlayerDialogOpen(false);
           setDocumentOpen(true);
+        }}
+        onDraftText={async (input) => {
+          const assist = await playerLawyer.draftTextReply(input);
+          return assist.aiPolishedMessage;
         }}
         onPolishText={async (input) => {
           const assist = await playerLawyer.polishTextReply(input);

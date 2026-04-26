@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 5174",
     "build": "tsc && vite build",
+    "test:auto-draft": "node tests/player-lawyer-auto-draft.test.mjs",
     "test:focus-regression": "node tests/player-lawyer-focus-regression.test.mjs",
     "preview": "vite preview --host 0.0.0.0 --port 4174"
   },

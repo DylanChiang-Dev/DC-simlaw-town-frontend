@@ -1,5 +1,6 @@
 import { authenticatedFetch, readJsonResponse } from './apiClient';
 import type {
+  PlayerLawyerDraftInput,
   PlayerLawyerDocumentAssistInput,
   PlayerLawyerDocumentConfirmInput,
   PlayerLawyerDocumentDraft,
@@ -176,6 +177,19 @@ export async function polishPlayerLawyerResponse(input: PlayerLawyerPolishInput)
     body: JSON.stringify({
       request_id: input.requestId,
       original_message: input.originalMessage,
+      hint_ids: input.hintIds,
+    }),
+  });
+  const payload = await readJsonResponse<{ assist?: PlayerLawyerResponseAssistResponse }>(response);
+  return mapResponseAssist(payload.assist || {});
+}
+
+export async function draftPlayerLawyerResponse(input: PlayerLawyerDraftInput): Promise<PlayerLawyerResponseAssist> {
+  const response = await authenticatedFetch('/api/sandbox/player-lawyer/draft-response', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      request_id: input.requestId,
       hint_ids: input.hintIds,
     }),
   });

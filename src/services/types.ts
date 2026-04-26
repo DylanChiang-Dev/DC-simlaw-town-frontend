@@ -125,6 +125,11 @@ export type PlayerLawyerPolishInput = {
   hintIds: string[];
 };
 
+export type PlayerLawyerDraftInput = {
+  requestId: string;
+  hintIds: string[];
+};
+
 export type PlayerLawyerTextSubmitInput = {
   requestId: string;
   message: string;

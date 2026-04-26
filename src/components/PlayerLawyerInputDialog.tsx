@@ -13,7 +13,9 @@ const RESPONSE_HINTS = [
 type Props = {
   loading: boolean;
   onClose: () => void;
+  onAutoDocumentSubmit: () => Promise<void>;
   onOpenDocumentWorkbench: () => void;
+  onDraftText: (input: { hintIds: string[] }) => Promise<string>;
   onPolishText: (input: { originalMessage: string; hintIds: string[] }) => Promise<string>;
   onSubmitText: (input: {
     message: string;
@@ -29,12 +31,15 @@ type Props = {
 export function PlayerLawyerInputDialog({
   loading,
   onClose,
+  onAutoDocumentSubmit,
   onOpenDocumentWorkbench,
+  onDraftText,
   onPolishText,
   onSubmitText,
   request,
 }: Props) {
   const [message, setMessage] = useState('');
+  const [autoDocumentLoading, setAutoDocumentLoading] = useState(false);
   const [selectedHints, setSelectedHints] = useState<string[]>([]);
   const [polishedMessage, setPolishedMessage] = useState('');
   const [polishError, setPolishError] = useState('');
@@ -87,6 +92,40 @@ export function PlayerLawyerInputDialog({
     }
   }
 
+  async function handleAutoDraftSubmit(): Promise<void> {
+    if (loading) return;
+    setPolishError('');
+    try {
+      const draft = (await onDraftText({ hintIds: selectedHints })).trim();
+      if (!draft) return;
+      setMessage(draft);
+      setPolishedMessage(draft);
+      await onSubmitText({
+        message: draft,
+        originalMessage: '',
+        polishedMessage: draft,
+        finalMessage: draft,
+        hintIds: selectedHints,
+        usedAiPolish: true,
+      });
+    } catch (err) {
+      setPolishError(err instanceof Error ? err.message : 'AI 代答失败');
+    }
+  }
+
+  async function handleAutoDocumentSubmit(): Promise<void> {
+    if (loading || autoDocumentLoading) return;
+    setPolishError('');
+    setAutoDocumentLoading(true);
+    try {
+      await onAutoDocumentSubmit();
+    } catch (err) {
+      setPolishError(err instanceof Error ? err.message : 'AI 生成文书失败');
+    } finally {
+      setAutoDocumentLoading(false);
+    }
+  }
+
   return (
     <div className="player-lawyer-dialog-layer" role="dialog" aria-modal="true" aria-label="当前角色输入">
       <section className="player-lawyer-input-dialog">
@@ -108,9 +147,25 @@ export function PlayerLawyerInputDialog({
         {documentStage ? (
           <div className="player-lawyer-document-callout">
             <p>这个阶段需要进入文书工作台完成模板化输入、Skill 约束草稿和最终确认。</p>
-            <button className="primary-action wide" disabled={loading} onClick={onOpenDocumentWorkbench} type="button">
-              打开文书工作台
-            </button>
+            <div className="document-callout-actions">
+              <button
+                className="primary-action wide"
+                disabled={loading || autoDocumentLoading}
+                onClick={handleAutoDocumentSubmit}
+                type="button"
+              >
+                {autoDocumentLoading ? '生成并确认中' : 'AI 生成文书并继续流程'}
+              </button>
+              <button
+                className="secondary-action wide"
+                disabled={loading || autoDocumentLoading}
+                onClick={onOpenDocumentWorkbench}
+                type="button"
+              >
+                打开文书工作台
+              </button>
+            </div>
+            {polishError && <div className="document-error" role="alert">{polishError}</div>}
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
@@ -147,6 +202,9 @@ export function PlayerLawyerInputDialog({
               value={message}
             />
             <div className="response-assist-actions">
+              <button className="secondary-action" disabled={loading} onClick={handleAutoDraftSubmit} type="button">
+                {loading ? '处理中' : 'AI 代答并提交'}
+              </button>
               <button className="secondary-action" disabled={loading || !message.trim()} onClick={handlePolish} type="button">
                 {loading ? '处理中' : 'AI 润色'}
               </button>
