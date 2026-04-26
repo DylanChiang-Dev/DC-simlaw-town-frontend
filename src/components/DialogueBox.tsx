@@ -64,7 +64,6 @@ export function DialogueBox({
         <strong>{speaker.name}</strong>
         <span>{speaker.role}</span>
       </div>
-      <div className="player-seat-chip">{scene.playerSeat}</div>
       {showTranscript ? (
         <article className={`dialogue-current-entry ${currentEntry?.kind || 'dialogue'}`} aria-label="当前对话">
           <span>{currentEntry?.speakerName}</span>

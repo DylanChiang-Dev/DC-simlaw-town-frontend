@@ -19,7 +19,7 @@ type Props = {
 };
 
 export function PlayerLawyerTaskPanel({ activeRequest, error, loading, onOpenRequest, simulation = null, status }: Props) {
-  const enabled = Boolean(status?.enabled || activeRequest);
+  const enabled = Boolean(activeRequest || error);
   if (!enabled) return null;
 
   const paused = Boolean(simulation?.paused || simulation?.status === 'paused');
