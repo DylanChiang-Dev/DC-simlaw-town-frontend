@@ -126,7 +126,7 @@ export function DocumentWorkbench({ open, onClose, onConfirmed, request }: Props
                 <span>证据目录</span>
                 <span>法院与案由</span>
               </div>
-              <button className="primary-action wide" type="button" onClick={onClose}>确认演示文书</button>
+              <button className="primary-action wide" type="button" onClick={onClose}>关闭文书预览</button>
             </>
           ) : (
             <>

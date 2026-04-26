@@ -185,6 +185,7 @@ function AppShell({ auth }: AppShellProps) {
             error={playerLawyer.error}
             loading={playerLawyer.loading}
             onOpenRequest={() => setPlayerDialogOpen(true)}
+            simulation={runtime.simulation}
             status={playerLawyer.status}
           />
           <TechLedger background={vnRuntime.background} scene={scene} />
@@ -197,8 +198,13 @@ function AppShell({ auth }: AppShellProps) {
             history={vnRuntime.history}
             onContinueDialogue={handleDialogueContinue}
             onOpenPlayerInput={() => setPlayerDialogOpen(true)}
+            onRefreshRuntime={runtime.refresh}
+            onResumeCurrentCase={runtime.activeCaseId ? runtime.startSelectedCase : undefined}
             pendingRequest={playerLawyer.activeRequest}
+            runtimeError={runtime.error}
             scene={scene}
+            selectedCaseId={runtime.selectedCaseId}
+            simulation={runtime.simulation}
             wsConnected={vnRuntime.wsConnected}
           />
         </div>

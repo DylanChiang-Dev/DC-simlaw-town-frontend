@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { characters, type DialogueScene } from '../data/runtimeScene';
 import { MarkdownText } from './MarkdownText';
-import type { PlayerLawyerRequest } from '../services/types';
+import type { PlayerLawyerRequest, SimulationStatus } from '../services/types';
 import type { DialogueHistoryEntry } from '../state/vnEventReducer';
 
 type Props = {
@@ -15,8 +15,13 @@ type Props = {
   history?: DialogueHistoryEntry[];
   onContinueDialogue?: () => void;
   onOpenPlayerInput?: () => void;
+  onRefreshRuntime?: () => Promise<void>;
+  onResumeCurrentCase?: () => Promise<void>;
   scene: DialogueScene;
   pendingRequest?: PlayerLawyerRequest | null;
+  runtimeError?: string;
+  selectedCaseId?: string;
+  simulation?: SimulationStatus | null;
   wsConnected?: boolean;
 };
 
@@ -26,8 +31,13 @@ export function DialogueBox({
   history = [],
   onContinueDialogue,
   onOpenPlayerInput,
+  onRefreshRuntime,
+  onResumeCurrentCase,
   pendingRequest,
+  runtimeError = '',
+  selectedCaseId = '',
   scene,
+  simulation = null,
   wsConnected = true,
 }: Props) {
   const [recordsOpen, setRecordsOpen] = useState(false);
@@ -36,7 +46,17 @@ export function DialogueBox({
   const currentEntry = transcript[transcript.length - 1] || null;
   const showTranscript = backendMode && Boolean(currentEntry);
   const canOpenTranscript = backendMode && transcript.length > 1;
-  const showActions = Boolean(pendingRequest || dialogueGate || canOpenTranscript);
+  const fallbackNotice = backendMode && !showTranscript && !pendingRequest && !dialogueGate
+    ? getBackendFallbackNotice({
+      onRefreshRuntime,
+      onResumeCurrentCase,
+      runtimeError,
+      selectedCaseId,
+      simulation,
+      wsConnected,
+    })
+    : null;
+  const showActions = Boolean(pendingRequest || dialogueGate || canOpenTranscript || fallbackNotice?.action);
 
   return (
     <section className="dialogue-box" aria-label="角色对话">
@@ -50,6 +70,11 @@ export function DialogueBox({
           <span>{currentEntry?.speakerName}</span>
           <MarkdownText text={currentEntry?.text || ''} />
         </article>
+      ) : fallbackNotice ? (
+        <div className={`dialogue-runtime-notice ${fallbackNotice.tone}`} role={fallbackNotice.tone === 'error' ? 'alert' : 'status'}>
+          <strong>{fallbackNotice.title}</strong>
+          <MarkdownText text={fallbackNotice.message} />
+        </div>
       ) : (
         <MarkdownText className="dialogue-current-text" text={scene.text} />
       )}
@@ -78,6 +103,10 @@ export function DialogueBox({
             ) : dialogueGate ? (
               <button disabled={dialogueGate.pending || !wsConnected} type="button" onClick={onContinueDialogue}>
                 {!wsConnected ? '实时未连接，正在重连' : dialogueGate.pending ? '等待后端响应' : '继续查看下一句'}
+              </button>
+            ) : fallbackNotice?.action ? (
+              <button className={fallbackNotice.action.kind === 'secondary' ? 'secondary-action' : undefined} type="button" onClick={() => void fallbackNotice.action?.run()}>
+                {fallbackNotice.action.label}
               </button>
             ) : null}
           </>
@@ -110,4 +139,104 @@ export function DialogueBox({
 
 function isDocumentStage(stage?: string): boolean {
   return ['CD', 'AD', 'AR'].includes(String(stage || '').toUpperCase());
+}
+
+type BackendFallbackInput = {
+  onRefreshRuntime?: () => Promise<void>;
+  onResumeCurrentCase?: () => Promise<void>;
+  runtimeError: string;
+  selectedCaseId: string;
+  simulation: SimulationStatus | null;
+  wsConnected: boolean;
+};
+
+type BackendFallbackNotice = {
+  action?: {
+    kind?: 'primary' | 'secondary';
+    label: string;
+    run: () => Promise<void>;
+  };
+  message: string;
+  title: string;
+  tone: 'idle' | 'warn' | 'error';
+};
+
+function getBackendFallbackNotice({
+  onRefreshRuntime,
+  onResumeCurrentCase,
+  runtimeError,
+  selectedCaseId,
+  simulation,
+  wsConnected,
+}: BackendFallbackInput): BackendFallbackNotice {
+  if (runtimeError) {
+    return {
+      action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
+      message: `前端已经打开，但读取沙盒案件状态失败：${runtimeError}\n\n请先刷新状态；如果仍然失败，说明当前页面没有从后端拿到可继续的案件状态。`,
+      title: '案件状态读取失败',
+      tone: 'error',
+    };
+  }
+
+  if (simulation?.lastError?.message) {
+    return {
+      action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
+      message: `后端返回了案件运行错误：${simulation.lastError.message}\n\n当前页面不会继续展示默认对话。请刷新状态；如果错误仍在，需要先处理后端运行问题。`,
+      title: '后端案件运行错误',
+      tone: 'error',
+    };
+  }
+
+  if (!wsConnected) {
+    return {
+      action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
+      message: '实时连接还没有建立，页面不会显示默认案件对话。系统会自动重连；如果长时间未恢复，请刷新状态。',
+      title: '实时连接未建立',
+      tone: 'warn',
+    };
+  }
+
+  if (simulation?.paused || simulation?.status === 'paused') {
+    const caseLabel = selectedCaseId || simulation.selectedCaseId || '当前案件';
+    return {
+      action: onResumeCurrentCase ? { label: '继续当前案件', run: onResumeCurrentCase } : undefined,
+      message: `${caseLabel} 已暂停，当前没有新的实时对话可展示。\n\n这不是新的默认案件，也不是让你从头判断。点击“继续当前案件”会请求后端从保存的案件状态恢复；如果你确认要重来，再使用右上角“重置”。`,
+      title: '当前案件已暂停',
+      tone: 'warn',
+    };
+  }
+
+  if (!simulation) {
+    return {
+      action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
+      message: '页面正在读取后端案件状态。读取完成前不会展示默认案件对话。',
+      title: '正在读取后端状态',
+      tone: 'idle',
+    };
+  }
+
+  if (simulation.canStart && !simulation.selectedCaseId) {
+    return {
+      action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
+      message: '当前没有运行中的案件。请在案件选择区选择案件并启动；如果案件选择区没有出现，请刷新状态。',
+      title: '当前没有运行中的案件',
+      tone: 'idle',
+    };
+  }
+
+  if (simulation.simulationRunning || simulation.status === 'running') {
+    return {
+      action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
+      message: '后端显示案件正在运行，但前端还没有收到下一条实时对话。请稍等；如果状态长时间不变，请刷新状态。',
+      title: '等待后端返回下一条事件',
+      tone: 'idle',
+    };
+  }
+
+  return {
+    action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
+    message: '当前页面没有可展示的实时对话，也没有可继续的用户任务。请刷新状态，或在确认需要重新开始时使用右上角“重置”。',
+    title: '没有可展示的案件事件',
+    tone: 'idle',
+  };
 }

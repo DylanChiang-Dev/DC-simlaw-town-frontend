@@ -1,4 +1,4 @@
-import type { PlayerLawyerRequest, PlayerLawyerStatus } from '../services/types';
+import type { PlayerLawyerRequest, PlayerLawyerStatus, SimulationStatus } from '../services/types';
 
 const STAGE_LABELS: Record<string, string> = {
   LC: '法律咨询',
@@ -14,14 +14,19 @@ type Props = {
   error: string;
   loading: boolean;
   onOpenRequest: () => void;
+  simulation?: SimulationStatus | null;
   status: PlayerLawyerStatus | null;
 };
 
-export function PlayerLawyerTaskPanel({ activeRequest, error, loading, onOpenRequest, status }: Props) {
+export function PlayerLawyerTaskPanel({ activeRequest, error, loading, onOpenRequest, simulation = null, status }: Props) {
   const enabled = Boolean(status?.enabled || activeRequest);
   if (!enabled) return null;
 
-  const stageLabel = activeRequest ? getStageLabel(activeRequest.stage) : '等待案件推进';
+  const paused = Boolean(simulation?.paused || simulation?.status === 'paused');
+  const stageLabel = activeRequest ? getStageLabel(activeRequest.stage) : paused ? '案件已暂停' : '等待案件推进';
+  const idleDescription = paused
+    ? '当前没有待填写任务。请点击“继续当前案件”恢复后端流程，或重置后重新选择案件。'
+    : status?.playerMode ? `模式：${status.playerMode}` : '等待系统推进';
   const actionLabel = isDocumentStage(activeRequest?.stage) ? '处理文书任务' : '输入当前角色回复';
   return (
     <aside className="player-lawyer-task-panel" aria-label="当前用户任务">
@@ -37,7 +42,7 @@ export function PlayerLawyerTaskPanel({ activeRequest, error, loading, onOpenReq
           </button>
         </>
       ) : (
-        <span>{status?.playerMode ? `模式：${status.playerMode}` : '等待系统推进'}</span>
+        <span>{idleDescription}</span>
       )}
       {error && <div className="player-lawyer-error" role="alert">{error}</div>}
     </aside>

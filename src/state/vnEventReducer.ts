@@ -103,13 +103,13 @@ export type VnRuntimeEvent =
 
 const BACKEND_IDLE_SCENE: DialogueScene = {
   id: 'backend-idle',
-  caseTitle: '后端案件状态同步中',
-  playerSeat: '当前角色：等待后端同步',
+  caseTitle: '等待后端案件事件',
+  playerSeat: '当前角色：等待恢复',
   stageCode: 'LC',
   stageName: '法律咨询',
   background: '/art/vn/bg-law-office.png',
   speaker: 'playerLawyer',
-  text: '当前没有可展示的实时对话。系统正在恢复后端案件状态；如果案件显示已暂停，请使用顶部“继续当前案件”恢复流程，或在确认需要重来时再重置。',
+  text: '当前没有可展示的实时对话。页面正在等待后端返回明确的案件状态。',
   characters: ['playerLawyer', 'client'],
   actions: [],
   tech: {

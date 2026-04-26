@@ -40,7 +40,7 @@ export function CommandHud({
         <span className="pill">{scene.caseTitle}</span>
         <span className="pill accent">{scene.stageCode} {scene.stageName}</span>
         <span className="pill accent">{scene.playerSeat}</span>
-        <span className="pill live">{backendConfigured ? '后端模式' : '演示模式'}</span>
+        <span className="pill live">{backendConfigured ? '后端模式' : '本地预览'}</span>
         <span className="pill">{runtime.configured ? '后端已配置' : '内置数据'}</span>
         {backendConfigured && <span className="pill">{wsConnected ? '实时已连接' : '实时未连接'}</span>}
         {simulation && <span className="pill">运行状态：{simulation.status}</span>}

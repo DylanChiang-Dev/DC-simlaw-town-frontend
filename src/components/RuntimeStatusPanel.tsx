@@ -27,7 +27,7 @@ export function RuntimeStatusPanel({
       <div className="panel-kicker">Runtime</div>
       <h2>运行状态</h2>
       <div className="runtime-status-grid">
-        <StatusItem label="模式" value={backendConfigured ? '后端模式' : '演示模式'} />
+        <StatusItem label="模式" value={backendConfigured ? '后端模式' : '本地预览'} />
         <StatusItem label="实时" value={wsConnected ? '实时已连接' : '实时未连接'} tone={wsConnected ? 'ok' : 'warn'} />
         <StatusItem label="案件" value={caseState} />
         <StatusItem label="阶段" value={`${scene.stageCode} ${scene.stageName}`} />

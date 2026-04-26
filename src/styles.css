@@ -489,6 +489,41 @@ h1 {
   color: #ffb6a8;
 }
 
+.dialogue-runtime-notice {
+  width: 100%;
+  max-width: 100%;
+  padding: 14px 16px;
+  border: 1px solid rgba(233, 188, 114, 0.32);
+  background: rgba(37, 25, 19, 0.74);
+  color: #fff3e1;
+}
+
+.dialogue-runtime-notice strong {
+  display: block;
+  color: #ffe3a7;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.dialogue-runtime-notice .markdown-text {
+  margin-top: 8px;
+  color: #f4d6a4;
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.72;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.dialogue-runtime-notice.warn {
+  border-color: rgba(255, 213, 128, 0.42);
+  background: rgba(86, 62, 34, 0.46);
+}
+
+.dialogue-runtime-notice.error {
+  border-color: rgba(255, 147, 120, 0.44);
+  background: rgba(96, 39, 30, 0.48);
+}
+
 .dialogue-history {
   max-height: clamp(150px, 24vh, 280px);
   margin-bottom: 12px;
