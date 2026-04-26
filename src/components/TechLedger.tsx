@@ -1,4 +1,4 @@
-import type { DialogueScene } from '../data/demo';
+import type { DialogueScene } from '../data/runtimeScene';
 import type { DialogueHistoryEntry } from '../state/vnEventReducer';
 import { MarkdownText } from './MarkdownText';
 

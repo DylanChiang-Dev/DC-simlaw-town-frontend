@@ -1,4 +1,4 @@
-import { lifecycleStages } from '../data/demo';
+import { lifecycleStages } from '../data/runtimeScene';
 
 type Props = {
   activeCode: string;

@@ -1,13 +1,13 @@
 # SimAilaw Town Frontend V2 VN Style Rules
 
-`frontend-v2` 是独立 Galgame / Visual Novel 演示前端，不继承旧 `frontend/` 的地图、寻路、HUD 和大 CSS 结构。
+`frontend-v2` 是法律全生命周期仿真的正式交互前端，不继承旧 `frontend/` 的地图、寻路、HUD 和大 CSS 结构。
 
 ## Product Rules
 
-- 第一目标是好看、可演示、能展示技术；美术方向必须偏暖色手绘 Galgame，不走真实照片或蓝色科技宣传片风格。
-- 核心体验是角色对话、玩家律师选择、文书工作台、庭审质证和 Tool/Skill 可视化。
+- 第一目标是服务真实后端案件流程；美术方向保持暖色手绘风格，不走真实照片或蓝色科技宣传片风格。
+- 核心体验是角色对话、用户处理当前角色任务、文书工作台、庭审质证和 Tool/Skill 可视化。
 - 不把地图寻路、角色移动和碰撞作为核心玩法。
-- 必须保留无后端 demo 模式，方便录屏、答辩和离线展示。
+- 不再保留无后端 demo 案件模式；正式运行态只能展示后端真实案件、任务和状态。
 - 后端接入通过 adapter 做，不让 UI 直接依赖原始 WebSocket payload。
 
 ## Art Rules

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { characters, type DialogueScene } from '../data/demo';
+import { characters, type DialogueScene } from '../data/runtimeScene';
 import { MarkdownText } from './MarkdownText';
 import type { PlayerLawyerRequest } from '../services/types';
 import type { DialogueHistoryEntry } from '../state/vnEventReducer';
@@ -16,7 +16,6 @@ type Props = {
   onContinueDialogue?: () => void;
   onOpenPlayerInput?: () => void;
   scene: DialogueScene;
-  onAction: (action: string) => void;
   pendingRequest?: PlayerLawyerRequest | null;
   wsConnected?: boolean;
 };
@@ -25,7 +24,6 @@ export function DialogueBox({
   backendMode = false,
   dialogueGate = null,
   history = [],
-  onAction,
   onContinueDialogue,
   onOpenPlayerInput,
   pendingRequest,
@@ -38,7 +36,7 @@ export function DialogueBox({
   const currentEntry = transcript[transcript.length - 1] || null;
   const showTranscript = backendMode && Boolean(currentEntry);
   const canOpenTranscript = backendMode && transcript.length > 1;
-  const showActions = !backendMode || Boolean(pendingRequest || dialogueGate || canOpenTranscript);
+  const showActions = Boolean(pendingRequest || dialogueGate || canOpenTranscript);
 
   return (
     <section className="dialogue-box" aria-label="角色对话">
@@ -83,13 +81,7 @@ export function DialogueBox({
               </button>
             ) : null}
           </>
-        ) : (
-          scene.actions.map((action) => (
-            <button key={action} type="button" onClick={() => onAction(action)}>
-              {action}
-            </button>
-          ))
-        )}
+        ) : null}
       </div>}
       {recordsOpen && (
         <div className="modal-layer" role="dialog" aria-modal="true" aria-label="全部对话记录">

@@ -1,4 +1,4 @@
-import type { DialogueScene } from '../data/demo';
+import type { DialogueScene } from '../data/runtimeScene';
 import type { RuntimeStatus } from '../state/vnEventReducer';
 import type { SimulationStatus } from '../services/types';
 

@@ -1,4 +1,4 @@
-import { characters, type DialogueScene } from '../data/demo';
+import { characters, type DialogueScene } from '../data/runtimeScene';
 
 type Props = {
   scene: DialogueScene;

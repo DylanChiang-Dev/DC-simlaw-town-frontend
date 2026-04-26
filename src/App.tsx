@@ -11,7 +11,6 @@ import { PlayerLawyerTaskPanel } from './components/PlayerLawyerTaskPanel';
 import { RuntimeStatusPanel } from './components/RuntimeStatusPanel';
 import { TechLedger } from './components/TechLedger';
 import { VisualNovelStage } from './components/VisualNovelStage';
-import { scenes } from './data/demo';
 import { getEventBus } from './services/eventBus';
 import { getWebSocketService } from './services/webSocket';
 import { usePlayerLawyerRuntime } from './state/usePlayerLawyerRuntime';
@@ -35,14 +34,13 @@ function AppShell({ auth }: AppShellProps) {
   const [dialogueGate, setDialogueGate] = useState<DialogueGateState>(null);
   const [playerDialogOpen, setPlayerDialogOpen] = useState(false);
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
-  const [sceneIndex, setSceneIndex] = useState(0);
   const runtime = useSimulationRuntime(auth.backendConfigured && Boolean(auth.user));
   const playerLawyer = usePlayerLawyerRuntime(
     auth.backendConfigured && Boolean(auth.user),
     runtime.selectedCaseId,
   );
   const [vnRuntime, dispatchVnEvent] = useReducer(vnEventReducer, undefined, createInitialVnRuntimeState);
-  const scene = auth.backendConfigured && auth.user ? vnRuntime.scene : scenes[sceneIndex];
+  const scene = vnRuntime.scene;
   const casePickerOpen = Boolean(
     auth.backendConfigured
     && auth.user
@@ -110,14 +108,6 @@ function AppShell({ auth }: AppShellProps) {
       getWebSocketService().disconnect();
     };
   }, [auth.backendConfigured, auth.user]);
-
-  function handleAction(action: string): void {
-    if (action.includes('文书') || action.includes('Skill')) {
-      setDocumentOpen(true);
-      return;
-    }
-    setSceneIndex((current) => (current + 1) % scenes.length);
-  }
 
   async function handleDialogueContinue(): Promise<void> {
     if (!dialogueGate?.gateId) return;
@@ -205,7 +195,6 @@ function AppShell({ auth }: AppShellProps) {
             backendMode={auth.backendConfigured && Boolean(auth.user)}
             dialogueGate={dialogueGate}
             history={vnRuntime.history}
-            onAction={handleAction}
             onContinueDialogue={handleDialogueContinue}
             onOpenPlayerInput={() => setPlayerDialogOpen(true)}
             pendingRequest={playerLawyer.activeRequest}
@@ -227,6 +216,10 @@ function AppShell({ auth }: AppShellProps) {
         }}
         onSubmitText={async (input) => {
           await playerLawyer.submitTextReply(input);
+          dispatchVnEvent({
+            type: 'player-lawyer-input-submitted',
+            payload: { message: input.finalMessage || input.message },
+          });
           setPlayerDialogOpen(false);
         }}
         request={playerDialogOpen ? playerLawyer.activeRequest : null}

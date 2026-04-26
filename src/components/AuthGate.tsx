@@ -16,18 +16,18 @@ type Props = {
   children: (state: AuthGateState) => ReactNode;
 };
 
-type BootstrapState = 'checking' | 'authenticated' | 'unauthenticated' | 'demo';
+type BootstrapState = 'checking' | 'authenticated' | 'unauthenticated' | 'offline';
 
 export function AuthGate({ children }: Props) {
   const runtime = useMemo(() => getRuntimeMode(), []);
   const authService = useMemo(() => getAuthService(), []);
-  const [state, setState] = useState<BootstrapState>(runtime.configured ? 'checking' : 'demo');
+  const [state, setState] = useState<BootstrapState>(runtime.configured ? 'checking' : 'offline');
   const [user, setUser] = useState<AuthUser | null>(authService.getCurrentUser());
   const [error, setError] = useState('');
 
   async function bootstrapAuthenticatedSession(): Promise<void> {
     if (!runtime.configured) {
-      setState('demo');
+      setState('offline');
       return;
     }
 
@@ -55,14 +55,14 @@ export function AuthGate({ children }: Props) {
   function handleLogout(): void {
     authService.logout();
     setUser(null);
-    setState(runtime.configured ? 'unauthenticated' : 'demo');
+    setState(runtime.configured ? 'unauthenticated' : 'offline');
   }
 
   useEffect(() => {
     void bootstrapAuthenticatedSession();
     const handleAuthLogout = () => {
       setUser(null);
-      setState(runtime.configured ? 'unauthenticated' : 'demo');
+      setState(runtime.configured ? 'unauthenticated' : 'offline');
     };
     window.addEventListener(AUTH_LOGOUT_EVENT, handleAuthLogout);
     return () => window.removeEventListener(AUTH_LOGOUT_EVENT, handleAuthLogout);
@@ -70,7 +70,7 @@ export function AuthGate({ children }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (state === 'demo' || state === 'authenticated') {
+  if (state === 'offline' || state === 'authenticated') {
     return (
       <>
         {children({

@@ -1,4 +1,4 @@
-import { characters, type CharacterKey, type DialogueScene } from '../data/demo';
+import { characters, type CharacterKey, type DialogueScene } from '../data/runtimeScene';
 
 const STAGE_LABELS: Record<string, string> = {
   RECEPTION: '前台导引',
@@ -232,7 +232,7 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
     case 'player-lawyer-input-required':
       return appendSystemLine(state, '轮到用户处理当前角色任务：请准备输入回复或处理文书任务。');
     case 'player-lawyer-input-submitted':
-      return appendSystemLine(state, '当前角色回复已提交，后端流程继续推进。');
+      return appendSystemLine(state, '当前角色回复已提交，后端正在继续推进案件流程。');
     case 'player-lawyer-document-draft-ready':
       return appendSystemLine(state, '文书草稿已生成，等待用户确认。');
     case 'player-lawyer-document-confirmed':

@@ -1,5 +1,5 @@
 import { getRuntimeMode } from '../services/runtime';
-import type { DialogueScene } from '../data/demo';
+import type { DialogueScene } from '../data/runtimeScene';
 import type { AuthUser, SimulationStatus } from '../services/types';
 
 type Props = {
