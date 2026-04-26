@@ -8,7 +8,6 @@ import { DialogueBox } from './components/DialogueBox';
 import { DocumentWorkbench } from './components/DocumentWorkbench';
 import { PlayerLawyerInputDialog } from './components/PlayerLawyerInputDialog';
 import { PlayerLawyerTaskPanel } from './components/PlayerLawyerTaskPanel';
-import { RuntimeStatusPanel } from './components/RuntimeStatusPanel';
 import { TechLedger } from './components/TechLedger';
 import { VisualNovelStage } from './components/VisualNovelStage';
 import { getEventBus } from './services/eventBus';
@@ -137,6 +136,8 @@ function AppShell({ auth }: AppShellProps) {
         onRefresh={runtime.refresh}
         onRestart={() => setRestartConfirmOpen(true)}
         onResumeCurrentCase={runtime.activeCaseId ? runtime.startSelectedCase : undefined}
+        runtimeError={runtime.error}
+        runtimeStatus={vnRuntime.runtimeStatus}
         scene={scene}
         simulation={runtime.simulation}
         user={auth.user}
@@ -172,14 +173,6 @@ function AppShell({ auth }: AppShellProps) {
       )}
       <div className="vn-layout">
         <div className="side-rail">
-          <RuntimeStatusPanel
-            backendConfigured={auth.backendConfigured && Boolean(auth.user)}
-            runtimeError={runtime.error}
-            runtimeStatus={vnRuntime.runtimeStatus}
-            scene={scene}
-            simulation={runtime.simulation}
-            wsConnected={vnRuntime.wsConnected}
-          />
           <PlayerLawyerTaskPanel
             activeRequest={playerLawyer.activeRequest}
             error={playerLawyer.error}

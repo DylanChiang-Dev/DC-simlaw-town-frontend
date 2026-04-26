@@ -1,6 +1,7 @@
 import { getRuntimeMode } from '../services/runtime';
 import type { DialogueScene } from '../data/runtimeScene';
 import type { AuthUser, SimulationStatus } from '../services/types';
+import type { RuntimeStatus } from '../state/vnEventReducer';
 
 type Props = {
   backendConfigured: boolean;
@@ -10,6 +11,8 @@ type Props = {
   onRefresh?: () => Promise<void>;
   onRestart?: () => Promise<void> | void;
   onResumeCurrentCase?: () => Promise<void>;
+  runtimeError?: string;
+  runtimeStatus: RuntimeStatus;
   scene: DialogueScene;
   simulation?: SimulationStatus | null;
   user: AuthUser | null;
@@ -24,26 +27,36 @@ export function CommandHud({
   onRefresh,
   onRestart,
   onResumeCurrentCase,
+  runtimeError = '',
+  runtimeStatus,
   scene,
   simulation,
   user,
   wsConnected = false,
 }: Props) {
   const runtime = getRuntimeMode();
+  const caseState = simulation ? getCaseStateLabel(simulation) : '未启动';
+  const lastError = runtimeError || runtimeStatus.lastError || simulation?.lastError?.message || '';
+
   return (
     <header className="command-hud">
       <div>
         <div className="eyebrow">SimAilaw Town v2</div>
         <h1>法律全流程仿真</h1>
       </div>
-      <div className="hud-pills" aria-label="系统状态">
-        <span className="pill">{scene.caseTitle}</span>
-        <span className="pill accent">{scene.stageCode} {scene.stageName}</span>
-        <span className="pill accent">{scene.playerSeat}</span>
-        <span className="pill live">{backendConfigured ? '后端模式' : '本地预览'}</span>
-        <span className="pill">{runtime.configured ? '后端已配置' : '内置数据'}</span>
-        {backendConfigured && <span className="pill">{wsConnected ? '实时已连接' : '实时未连接'}</span>}
-        {simulation && <span className="pill">运行状态：{simulation.status}</span>}
+      <div className="hud-runtime-grid" aria-label="运行状态">
+        <StatusItem label="案件" value={scene.caseTitle || caseState} />
+        <StatusItem label="阶段" value={`${scene.stageCode} ${scene.stageName}`} />
+        <StatusItem label="当前角色" value={scene.playerSeat} />
+        <StatusItem label="模式" value={backendConfigured ? '后端模式' : '本地预览'} />
+        <StatusItem label="配置" value={runtime.configured ? '后端已配置' : '内置数据'} />
+        <StatusItem label="实时" value={wsConnected ? '实时已连接' : '实时未连接'} tone={wsConnected ? 'ok' : 'warn'} />
+        {simulation && <StatusItem label="运行" value={caseState} tone={simulation.paused ? 'warn' : undefined} />}
+        <StatusItem label="当前状态" value={runtimeStatus.message || '等待案件运行'} wide />
+        {runtimeStatus.detail && <StatusItem label="详情" value={runtimeStatus.detail} wide />}
+        {lastError && <StatusItem label="最近错误" value={lastError} tone="error" wide />}
+      </div>
+      <div className="hud-actions" aria-label="操作">
         {user && <span className="pill">{user.email}</span>}
         {backendConfigured && user && (
           <>
@@ -71,4 +84,27 @@ export function CommandHud({
       </div>
     </header>
   );
+}
+
+type StatusItemProps = {
+  label: string;
+  value: string;
+  tone?: 'ok' | 'warn' | 'error';
+  wide?: boolean;
+};
+
+function StatusItem({ label, value, tone, wide = false }: StatusItemProps) {
+  return (
+    <div className={`hud-status-item ${tone || ''} ${wide ? 'wide' : ''}`}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function getCaseStateLabel(simulation: SimulationStatus): string {
+  if (simulation.paused) return '已暂停';
+  if (simulation.simulationRunning || simulation.status === 'running') return '案件运行中';
+  if (simulation.status === 'idle') return '未启动';
+  return simulation.status || '未启动';
 }
