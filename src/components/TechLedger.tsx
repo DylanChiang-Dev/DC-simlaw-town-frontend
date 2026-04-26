@@ -13,6 +13,9 @@ export function TechLedger({ background = [], scene }: Props) {
   const hasActiveAgent = Boolean(scene.tech.agent && scene.tech.agent !== '等待后端同步');
   const hasMemory = Boolean(scene.tech.memory && scene.tech.memory !== '等待真实案件状态恢复');
   const hasPipeline = Boolean(scene.tech.pipeline && scene.tech.pipeline !== '等待后端事件');
+  const visibleBackground = scene.stageCode === 'RECEPTION'
+    ? background.filter((entry) => entry.stageCode === 'RECEPTION').slice(-1)
+    : [];
 
   return (
     <aside className="tech-ledger" aria-label="技术账本">
@@ -24,11 +27,11 @@ export function TechLedger({ background = [], scene }: Props) {
           <strong>{scene.tech.agent}</strong>
         </div>
       )}
-      {background.length > 0 && (
+      {visibleBackground.length > 0 && (
         <div className="ledger-note background-consultation">
           <span>背景咨询</span>
           <div className="background-consultation-list">
-            {background.slice(-3).map((entry) => (
+            {visibleBackground.map((entry) => (
               <article key={entry.id}>
                 <b>{entry.stageName} · {entry.speakerName}</b>
                 <MarkdownText text={entry.text} />

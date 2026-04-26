@@ -73,29 +73,31 @@ export function DialogueBox({
         <strong>{speakerPlate.name}</strong>
         <span>{speakerPlate.role}</span>
       </div>
-      {showTranscript ? (
-        <article className={`dialogue-current-entry ${currentEntry?.kind || 'dialogue'}`} aria-label="当前对话">
-          <span>{currentEntry?.speakerName}</span>
-          <MarkdownText text={currentEntry?.text || ''} />
-        </article>
-      ) : fallbackNotice ? (
-        <div className={`dialogue-runtime-notice ${fallbackNotice.tone}`} role={fallbackNotice.tone === 'error' ? 'alert' : 'status'}>
-          <strong>{fallbackNotice.title}</strong>
-          <MarkdownText text={fallbackNotice.message} />
-        </div>
-      ) : (
-        <MarkdownText className="dialogue-current-text" text={scene.text} />
-      )}
-      {backendMode && pendingRequest && (
-        <div className="player-turn-preview" aria-label="当前用户任务要求">
-          <strong>轮到用户处理当前角色任务</strong>
-          <MarkdownText text={pendingRequest.contextSummary} />
-          <MarkdownText
-            fallback="请根据当前案件进展输入当前角色回复。"
-            text={pendingRequest.prompt || pendingRequest.message}
-          />
-        </div>
-      )}
+      <div className="dialogue-scroll-region">
+        {showTranscript ? (
+          <article className={`dialogue-current-entry ${currentEntry?.kind || 'dialogue'}`} aria-label="当前对话">
+            <span>{currentEntry?.speakerName}</span>
+            <MarkdownText text={currentEntry?.text || ''} />
+          </article>
+        ) : fallbackNotice ? (
+          <div className={`dialogue-runtime-notice ${fallbackNotice.tone}`} role={fallbackNotice.tone === 'error' ? 'alert' : 'status'}>
+            <strong>{fallbackNotice.title}</strong>
+            <MarkdownText text={fallbackNotice.message} />
+          </div>
+        ) : (
+          <MarkdownText className="dialogue-current-text" text={scene.text} />
+        )}
+        {backendMode && pendingRequest && (
+          <div className="player-turn-preview" aria-label="当前用户任务要求">
+            <strong>轮到用户处理当前角色任务</strong>
+            <MarkdownText text={pendingRequest.contextSummary} />
+            <MarkdownText
+              fallback="请根据当前案件进展输入当前角色回复。"
+              text={pendingRequest.prompt || pendingRequest.message}
+            />
+          </div>
+        )}
+      </div>
       {showActions && <div className="dialogue-actions">
         {backendMode ? (
           <>
