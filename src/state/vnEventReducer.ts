@@ -151,9 +151,27 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
     case 'dialogue-continue-sent':
       return appendSystemLine(state, '已请求后端继续生成下一句，等待后端返回。');
     case 'dialogue-gate-accepted':
-      return appendSystemLine(state, '后端已收到继续请求，正在推进下一句对话。');
+      return appendSystemLine(
+        updateRuntimeStatus(state, {
+          phase: 'dialogue_accepted',
+          message: '后端已收到继续请求',
+          detail: '正在推进下一句对话',
+          blocking: false,
+          lastError: '',
+        }),
+        '后端已收到继续请求，正在推进下一句对话。',
+      );
     case 'dialogue-gate-error':
-      return appendErrorLine(state, `继续失败：${String(event.payload?.message || '后端没有接受继续请求')}`);
+      return appendErrorLine(
+        updateRuntimeStatus(state, {
+          phase: 'dialogue_error',
+          message: '继续失败',
+          detail: '',
+          blocking: true,
+          lastError: String(event.payload?.message || '后端没有接受继续请求'),
+        }),
+        `继续失败：${String(event.payload?.message || '后端没有接受继续请求')}`,
+      );
     case 'runtime-progress':
       return applyRuntimeProgress(state, event.payload || {});
     case 'step-gate-waiting':
