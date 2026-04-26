@@ -152,6 +152,22 @@ function AppShell({ auth }: AppShellProps) {
         user={auth.user}
         wsConnected={vnRuntime.wsConnected}
       />
+      {playerLawyer.activeRequest && !playerDialogOpen && (
+        <section className="user-task-recovery-banner" aria-label="当前流程等待用户处理">
+          <div>
+            <strong>当前流程正在等待你处理用户任务</strong>
+            <span>
+              刷新或重新连接后，案件会停在这个节点，不是系统卡住，也不需要先重置。请继续处理当前角色任务。
+            </span>
+          </div>
+          <button className="primary-action" disabled={playerLawyer.loading} onClick={() => setPlayerDialogOpen(true)} type="button">
+            {isDocumentStage(playerLawyer.activeRequest.stage) ? '继续处理文书任务' : '继续输入当前角色回复'}
+          </button>
+          <button className="secondary-action" disabled={playerLawyer.loading} onClick={playerLawyer.refresh} type="button">
+            刷新任务状态
+          </button>
+        </section>
+      )}
       {casePickerOpen && (
         <CasePicker
           cases={runtime.cases}
@@ -265,4 +281,8 @@ function AppShell({ auth }: AppShellProps) {
 
 export function App() {
   return <AuthGate>{(auth) => <AppShell auth={auth} />}</AuthGate>;
+}
+
+function isDocumentStage(stage?: string): boolean {
+  return ['CD', 'AD', 'AR'].includes(String(stage || '').toUpperCase());
 }
