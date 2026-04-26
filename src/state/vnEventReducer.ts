@@ -1,4 +1,4 @@
-import { characters, scenes, type CharacterKey, type DialogueScene } from '../data/demo';
+import { characters, type CharacterKey, type DialogueScene } from '../data/demo';
 
 const STAGE_LABELS: Record<string, string> = {
   RECEPTION: '前台导引',
@@ -101,6 +101,26 @@ export type VnRuntimeEvent =
   | { type: 'ws-error'; payload?: Record<string, unknown> }
   | { type: 'ws-unknown'; payload?: Record<string, unknown> };
 
+const BACKEND_IDLE_SCENE: DialogueScene = {
+  id: 'backend-idle',
+  caseTitle: '后端案件状态同步中',
+  playerSeat: '当前角色：等待后端同步',
+  stageCode: 'LC',
+  stageName: '法律咨询',
+  background: '/art/vn/bg-law-office.png',
+  speaker: 'playerLawyer',
+  text: '当前没有可展示的实时对话。系统正在恢复后端案件状态；如果案件显示已暂停，请使用顶部“继续当前案件”恢复流程，或在确认需要重来时再重置。',
+  characters: ['playerLawyer', 'client'],
+  actions: [],
+  tech: {
+    agent: '等待后端同步',
+    tools: [],
+    skills: [],
+    memory: '等待真实案件状态恢复',
+    pipeline: '等待后端事件',
+  },
+};
+
 export function createInitialVnRuntimeState(): VnRuntimeState {
   return {
     background: [],
@@ -114,7 +134,7 @@ export function createInitialVnRuntimeState(): VnRuntimeState {
       lastEventAt: '',
       lastError: '',
     },
-    scene: scenes[0],
+    scene: BACKEND_IDLE_SCENE,
     wsConnected: false,
   };
 }
