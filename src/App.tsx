@@ -152,10 +152,7 @@ function AppShell({ auth }: AppShellProps) {
             </span>
           </div>
           <button className="primary-action" disabled={playerLawyer.loading} onClick={() => setPlayerDialogOpen(true)} type="button">
-            {isDocumentStage(playerLawyer.activeRequest.stage) ? '继续处理文书任务' : '继续输入当前角色回复'}
-          </button>
-          <button className="secondary-action" disabled={playerLawyer.loading} onClick={playerLawyer.refresh} type="button">
-            刷新任务状态
+            {isDocumentStage(playerLawyer.activeRequest.stage) ? '继续文书' : '继续处理'}
           </button>
         </section>
       )}

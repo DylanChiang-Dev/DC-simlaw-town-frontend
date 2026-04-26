@@ -44,15 +44,6 @@ export function DialogueBox({
   const speaker = characters[scene.speaker];
   const transcript = backendMode ? history : [];
   const currentEntry = transcript[transcript.length - 1] || null;
-  const speakerPlate = currentEntry
-    ? {
-      name: currentEntry.speakerName,
-      role: getEntryRole(currentEntry),
-    }
-    : {
-      name: scene.speakerLabel || speaker.name,
-      role: speaker.role,
-    };
   const showTranscript = backendMode && Boolean(currentEntry);
   const canOpenTranscript = backendMode && transcript.length > 1;
   const fallbackNotice = backendMode && !showTranscript && !pendingRequest && !dialogueGate
@@ -65,6 +56,25 @@ export function DialogueBox({
       wsConnected,
     })
     : null;
+  const speakerPlate = currentEntry
+    ? {
+      name: currentEntry.speakerName,
+      role: getEntryRole(currentEntry),
+    }
+    : pendingRequest
+      ? {
+        name: pendingRequest.speakerLabel || '当前角色',
+        role: '等待用户处理',
+      }
+    : fallbackNotice
+      ? {
+        name: '系统',
+        role: getFallbackRole(fallbackNotice),
+      }
+      : {
+        name: scene.speakerLabel || speaker.name,
+        role: speaker.role,
+      };
   const showActions = Boolean(pendingRequest || dialogueGate || canOpenTranscript || fallbackNotice?.action);
   const canClickToContinue = Boolean(dialogueGate && !dialogueGate.pending && wsConnected && onContinueDialogue);
 
@@ -106,7 +116,7 @@ export function DialogueBox({
             <strong>{fallbackNotice.title}</strong>
             <MarkdownText text={fallbackNotice.message} />
           </div>
-        ) : (
+        ) : pendingRequest ? null : (
           <MarkdownText className="dialogue-current-text" text={scene.text} />
         )}
         {backendMode && pendingRequest && (
@@ -174,10 +184,22 @@ function isDocumentStage(stage?: string): boolean {
 }
 
 function getEntryRole(entry: DialogueHistoryEntry): string {
+  if (entry.kind === 'system') {
+    return '流程提示';
+  }
+  if (entry.kind === 'error') {
+    return '异常提示';
+  }
   if (entry.stageCode === 'RECEPTION' || entry.speaker === 'receptionist') {
     return '前台接待与律师推荐';
   }
   return characters[entry.speaker].role;
+}
+
+function getFallbackRole(notice: BackendFallbackNotice): string {
+  if (notice.tone === 'error') return '异常提示';
+  if (notice.tone === 'warn') return '状态提示';
+  return '流程提示';
 }
 
 type BackendFallbackInput = {
