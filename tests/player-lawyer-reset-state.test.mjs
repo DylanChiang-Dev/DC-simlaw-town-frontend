@@ -8,6 +8,7 @@ const appSource = readFileSync(join(root, 'src', 'App.tsx'), 'utf8');
 const dialogueSource = readFileSync(join(root, 'src', 'components', 'DialogueBox.tsx'), 'utf8');
 const simulationRuntimeSource = readFileSync(join(root, 'src', 'state', 'useSimulationRuntime.ts'), 'utf8');
 const runtimeSource = readFileSync(join(root, 'src', 'state', 'usePlayerLawyerRuntime.ts'), 'utf8');
+const vnReducerSource = readFileSync(join(root, 'src', 'state', 'vnEventReducer.ts'), 'utf8');
 
 assert.match(
   appSource,
@@ -97,4 +98,16 @@ assert.doesNotMatch(
   dialogueSource,
   /player-turn-preview|当前用户任务要求|轮到用户处理当前角色任务|等待用户处理|onOpenPlayerInput|pendingRequest \?/,
   'Pending user tasks should not be rendered as persistent main dialogue content.',
+);
+
+const disconnectedCase = vnReducerSource.match(/case 'ws-disconnected':([\s\S]*?)case 'dialogue-update':/)?.[1] || '';
+assert.match(
+  disconnectedCase,
+  /updateRuntimeStatus[\s\S]*phase: 'disconnected'[\s\S]*系统正在自动重连/,
+  'A WebSocket close during reset should still update runtime status as reconnecting.',
+);
+assert.doesNotMatch(
+  disconnectedCase,
+  /appendErrorLine|lastError:\s*'实时连接已断开'/,
+  'A normal WebSocket close during reset should not become the current dialogue error.',
 );

@@ -145,18 +145,15 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
         '实时连接已建立',
       );
     case 'ws-disconnected':
-      return appendErrorLine(
-        appendDiagnostic(
-          updateRuntimeStatus({ ...state, wsConnected: false }, {
-            phase: 'disconnected',
-            message: '实时连接已断开',
-            detail: '系统正在自动重连',
-            blocking: true,
-            lastError: '实时连接已断开',
-          }),
-          '实时连接已断开',
-        ),
-        '实时连接已断开，系统正在自动重连。',
+      return appendDiagnostic(
+        updateRuntimeStatus({ ...state, wsConnected: false }, {
+          phase: 'disconnected',
+          message: '实时连接已断开',
+          detail: '系统正在自动重连',
+          blocking: true,
+          lastError: '',
+        }),
+        '实时连接已断开，系统正在自动重连',
       );
     case 'dialogue-update':
       return applyDialogueUpdate(state, event.payload || {});
