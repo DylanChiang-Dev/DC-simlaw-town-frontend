@@ -33,6 +33,18 @@ assert.match(
   'selectedCaseId should not count as active after reset when sandbox status is idle.',
 );
 
+assert.match(
+  appSource,
+  /const activePlayerRequest = playerLawyer\.activeRequest[\s\S]*runtime\.activeCaseId[\s\S]*playerLawyer\.activeRequest\.caseId === runtime\.activeCaseId[\s\S]*\? playerLawyer\.activeRequest[\s\S]*: null;/,
+  'Recovered player-lawyer tasks should only display when they belong to the current active case.',
+);
+
+assert.doesNotMatch(
+  appSource,
+  /\{playerLawyer\.activeRequest && !playerDialogOpen &&/,
+  'The recovery banner must not render directly from stale activeRequest after reset.',
+);
+
 assert.doesNotMatch(
   dialogueSource,
   /player-turn-preview|当前用户任务要求|轮到用户处理当前角色任务|等待用户处理|onOpenPlayerInput|pendingRequest \?/,

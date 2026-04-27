@@ -57,7 +57,12 @@ function AppShell({ auth }: AppShellProps) {
   );
   const [vnRuntime, dispatchVnEvent] = useReducer(vnEventReducer, undefined, createInitialVnRuntimeState);
   const scene = vnRuntime.scene;
-  const showUserTaskPanel = Boolean(playerLawyer.activeRequest || playerLawyer.error);
+  const activePlayerRequest = playerLawyer.activeRequest
+    && runtime.activeCaseId
+    && playerLawyer.activeRequest.caseId === runtime.activeCaseId
+    ? playerLawyer.activeRequest
+    : null;
+  const showUserTaskPanel = Boolean(activePlayerRequest || playerLawyer.error);
   const casePickerOpen = Boolean(
     auth.backendConfigured
     && auth.user
@@ -203,7 +208,7 @@ function AppShell({ auth }: AppShellProps) {
         user={auth.user}
         wsConnected={vnRuntime.wsConnected}
       />
-      {playerLawyer.activeRequest && !playerDialogOpen && (
+      {activePlayerRequest && !playerDialogOpen && (
         <section className="user-task-recovery-banner" aria-label="当前流程等待用户处理">
           <div>
             <strong>当前流程正在等待你处理用户任务</strong>
@@ -212,7 +217,7 @@ function AppShell({ auth }: AppShellProps) {
             </span>
           </div>
           <button className="primary-action" disabled={playerLawyer.actionLoading} onClick={() => setPlayerDialogOpen(true)} type="button">
-            {isDocumentStage(playerLawyer.activeRequest.stage) ? '继续文书' : '继续处理'}
+            {isDocumentStage(activePlayerRequest.stage) ? '继续文书' : '继续处理'}
           </button>
         </section>
       )}
@@ -232,7 +237,7 @@ function AppShell({ auth }: AppShellProps) {
         <div className="side-rail">
           {showUserTaskPanel && (
             <PlayerLawyerTaskPanel
-              activeRequest={playerLawyer.activeRequest}
+              activeRequest={activePlayerRequest}
               error={playerLawyer.error}
               loading={playerLawyer.actionLoading}
               onOpenRequest={() => setPlayerDialogOpen(true)}
@@ -279,7 +284,7 @@ function AppShell({ auth }: AppShellProps) {
           });
           setPlayerDialogOpen(false);
         }}
-        request={playerDialogOpen ? playerLawyer.activeRequest : null}
+        request={playerDialogOpen ? activePlayerRequest : null}
       />
       <CaseTimeline activeCode={scene.stageCode} />
       <CaseDocumentsPanel
