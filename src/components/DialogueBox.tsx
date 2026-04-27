@@ -39,7 +39,7 @@ export function DialogueBox({
   const [recordsOpen, setRecordsOpen] = useState(false);
   const speaker = characters[scene.speaker];
   const transcript = backendMode ? history : [];
-  const currentEntry = transcript[transcript.length - 1] || null;
+  const currentEntry = getVisibleCurrentEntry(transcript);
   const showTranscript = backendMode && Boolean(currentEntry);
   const canOpenTranscript = backendMode && transcript.length > 1;
   const fallbackNotice = backendMode && !showTranscript && !dialogueGate
@@ -154,6 +154,16 @@ export function DialogueBox({
       )}
     </section>
   );
+}
+
+function getVisibleCurrentEntry(history: DialogueHistoryEntry[]): DialogueHistoryEntry | null {
+  for (let index = history.length - 1; index >= 0; index -= 1) {
+    const entry = history[index];
+    if (entry.kind === 'dialogue' || entry.kind === 'error') {
+      return entry;
+    }
+  }
+  return history[history.length - 1] || null;
 }
 
 function getEntryRole(entry: DialogueHistoryEntry): string {

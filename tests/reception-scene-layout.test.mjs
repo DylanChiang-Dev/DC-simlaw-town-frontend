@@ -7,6 +7,7 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const reducerSource = readFileSync(join(root, 'src', 'state', 'vnEventReducer.ts'), 'utf8');
 const stageSource = readFileSync(join(root, 'src', 'components', 'VisualNovelStage.tsx'), 'utf8');
 const webSocketSource = readFileSync(join(root, 'src', 'services', 'webSocket.ts'), 'utf8');
+const dialogueSource = readFileSync(join(root, 'src', 'components', 'DialogueBox.tsx'), 'utf8');
 
 assert.match(
   reducerSource,
@@ -54,6 +55,12 @@ assert.match(
   webSocketSource,
   /function isReceptionAgentDialogue[\s\S]*agentId\.includes\('reception'\)[\s\S]*推荐律师[\s\S]*分配给/,
   'Only reception-related map dialogue should bypass map handling; LC dialogue gates must stay intact.',
+);
+
+assert.match(
+  dialogueSource,
+  /function getVisibleCurrentEntry\(history: DialogueHistoryEntry\[\]\): DialogueHistoryEntry \| null \{[\s\S]*for \(let index = history\.length - 1; index >= 0; index -= 1\)[\s\S]*entry\.kind === 'dialogue' \|\| entry\.kind === 'error'[\s\S]*return history\[history\.length - 1\] \|\| null;[\s\S]*\}/,
+  'The main dialogue box should keep the latest character dialogue visible instead of letting generic system progress lines hide it.',
 );
 
 assert.match(
