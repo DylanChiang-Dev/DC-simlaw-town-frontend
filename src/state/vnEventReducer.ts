@@ -1,6 +1,7 @@
 import { characters, type CharacterKey, type DialogueScene } from '../data/runtimeScene';
 
 const STAGE_LABELS: Record<string, string> = {
+  SYSTEM: '系统运行',
   RECEPTION: '前台导引',
   LC: '法律咨询',
   CD: '起诉状起草',
@@ -15,6 +16,7 @@ const STAGE_LABELS: Record<string, string> = {
 };
 
 const BACKGROUND_BY_STAGE: Record<string, string> = {
+  SYSTEM: '/art/vn/bg-case-analysis-room.png',
   RECEPTION: '/art/vn/bg-reception-desk.png',
   LC: '/art/vn/bg-law-office.png',
   CD: '/art/vn/bg-case-analysis-room.png',
@@ -91,16 +93,16 @@ export type VnRuntimeEvent =
   | { type: 'ws-error'; payload?: Record<string, unknown> }
   | { type: 'ws-unknown'; payload?: Record<string, unknown> };
 
-const BACKEND_IDLE_SCENE: DialogueScene = {
-  id: 'backend-idle',
+const SYSTEM_SCENE: DialogueScene = {
+  id: 'system-idle',
   caseTitle: '等待后端案件事件',
-  playerSeat: '当前角色：等待恢复',
-  stageCode: 'LC',
-  stageName: '法律咨询',
-  background: '/art/vn/bg-law-office.png',
-  speaker: 'playerLawyer',
+  playerSeat: '当前角色：系统运行',
+  stageCode: 'SYSTEM',
+  stageName: '系统运行',
+  background: '/art/vn/bg-case-analysis-room.png',
+  speaker: 'system',
   text: '当前没有可展示的实时对话。页面正在等待后端返回明确的案件状态。',
-  characters: ['playerLawyer'],
+  characters: [],
   actions: [],
   tech: {
     agent: '等待后端同步',
@@ -124,7 +126,7 @@ export function createInitialVnRuntimeState(): VnRuntimeState {
       lastEventAt: '',
       lastError: '',
     },
-    scene: BACKEND_IDLE_SCENE,
+    scene: SYSTEM_SCENE,
     wsConnected: false,
   };
 }
@@ -297,24 +299,12 @@ function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unkn
 function applyScenarioStart(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
   const stageCode = normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
   const text = `当前阶段：${getStageName(stageCode)}。系统正在等待后端生成下一轮对话。`;
-  const speaker = getStageDefaultSpeaker(stageCode);
-  const scene = createSceneFromState(state.scene, {
-    characters: inferCharacters(stageCode, speaker),
-    speaker,
-    stageCode,
-    text,
-  });
+  const scene = createSystemScene(state.scene, text);
   return appendDiagnostic({ ...state, scene }, `进入阶段 ${stageCode}`);
 }
 
 function applyRuntimeIssue(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
-  const stageCode = normalizeStageCode(payload.scenario_type || state.scene.stageCode);
-  const scene = createSceneFromState(state.scene, {
-    characters: inferCharacters(stageCode, 'playerLawyer'),
-    speaker: 'playerLawyer',
-    stageCode,
-    text: String(payload.message || '后端运行异常，当前案件流程已暂停。'),
-  });
+  const scene = createSystemScene(state.scene, String(payload.message || '后端运行异常，当前案件流程已暂停。'));
   return appendHistory(
     appendDiagnostic({ ...state, scene }, `运行异常：${String(payload.code || 'UNKNOWN')}`),
     scene,
@@ -323,18 +313,12 @@ function applyRuntimeIssue(state: VnRuntimeState, payload: Record<string, unknow
 }
 
 function appendSystemLine(state: VnRuntimeState, text: string): VnRuntimeState {
-  const scene = createSceneFromState(state.scene, {
-    speaker: state.scene.speaker,
-    text,
-  });
+  const scene = createSystemScene(state.scene, text);
   return appendHistory({ ...state, scene }, scene, 'system');
 }
 
 function appendErrorLine(state: VnRuntimeState, text: string): VnRuntimeState {
-  const scene = createSceneFromState(state.scene, {
-    speaker: state.scene.speaker,
-    text,
-  });
+  const scene = createSystemScene(state.scene, text);
   return appendHistory({ ...state, scene }, scene, 'error');
 }
 
@@ -452,6 +436,16 @@ function createSceneFromState(
   };
 }
 
+function createSystemScene(scene: DialogueScene, text: string): DialogueScene {
+  return createSceneFromState(scene, {
+    characters: [],
+    speaker: 'system',
+    speakerLabel: '系统',
+    stageCode: 'SYSTEM',
+    text,
+  });
+}
+
 function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text: string): CharacterKey {
   const value = `${payload.speaker_name || payload.speaker_id || ''}`.toLowerCase();
   if (stageCode === 'RECEPTION' || isReceptionPayload(payload, text)) {
@@ -482,12 +476,6 @@ function getSceneSpeakerName(scene: DialogueScene): string {
 
 function inferCharacters(stageCode: string, speaker: CharacterKey): CharacterKey[] {
   return [speaker];
-}
-
-function getStageDefaultSpeaker(stageCode: string): CharacterKey {
-  if (stageCode === 'RECEPTION') return 'receptionist';
-  if (stageCode === 'CI' || stageCode === 'CIA') return 'judge';
-  return 'playerLawyer';
 }
 
 function normalizeStageCode(value: unknown): string {

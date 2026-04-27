@@ -31,6 +31,7 @@ export function VisualNovelStage({ scene }: Props) {
 }
 
 function getVisibleCharacters(scene: DialogueScene) {
+  if (scene.speaker === 'system') return [];
   return [scene.speaker];
 }
 

@@ -1,4 +1,5 @@
 export type CharacterKey =
+  | 'system'
   | 'playerLawyer'
   | 'client'
   | 'receptionist'
@@ -41,6 +42,13 @@ export type LifecycleStage = {
 };
 
 export const characters: Record<CharacterKey, Character> = {
+  system: {
+    key: 'system',
+    name: '系统',
+    role: '流程运行与状态提示',
+    portrait: '',
+    position: 'center',
+  },
   playerLawyer: {
     key: 'playerLawyer',
     name: '原告代理人',
