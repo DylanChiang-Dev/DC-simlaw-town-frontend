@@ -66,6 +66,12 @@ assert.match(
 
 assert.match(
   appSource,
+  /const \[autoOpenedPlayerRequestId, setAutoOpenedPlayerRequestId\] = useState\(''\);[\s\S]*useEffect\(\(\) => \{[\s\S]*if \(!activePlayerRequest\?\.requestId\) return;[\s\S]*if \(autoOpenedPlayerRequestId === activePlayerRequest\.requestId\) return;[\s\S]*setPlayerDialogOpen\(true\);[\s\S]*setAutoOpenedPlayerRequestId\(activePlayerRequest\.requestId\);[\s\S]*\}, \[activePlayerRequest\?\.requestId, autoOpenedPlayerRequestId\]\);/,
+  'A new active player-lawyer task should automatically open the centered input dialog once.',
+);
+
+assert.match(
+  appSource,
   /\['ws:dialogue-gate-error', \(payload\) => \{[\s\S]*setDialogueGate\(null\)[\s\S]*dispatchVnEvent\(\{ type: 'dialogue-gate-error', payload \}\)/,
   'A backend dialogue gate not-found error should remove the stale continue gate from the UI.',
 );

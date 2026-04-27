@@ -49,6 +49,7 @@ function AppShell({ auth }: AppShellProps) {
   const [documentsOpen, setDocumentsOpen] = useState(false);
   const [dialogueGate, setDialogueGate] = useState<DialogueGateState>(null);
   const [playerDialogOpen, setPlayerDialogOpen] = useState(false);
+  const [autoOpenedPlayerRequestId, setAutoOpenedPlayerRequestId] = useState('');
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const runtime = useSimulationRuntime(auth.backendConfigured && Boolean(auth.user));
   const playerLawyer = usePlayerLawyerRuntime(
@@ -75,8 +76,16 @@ function AppShell({ auth }: AppShellProps) {
     if (!runtime.activeCaseId) {
       setDialogueGate(null);
       setPlayerDialogOpen(false);
+      setAutoOpenedPlayerRequestId('');
     }
   }, [runtime.activeCaseId]);
+
+  useEffect(() => {
+    if (!activePlayerRequest?.requestId) return;
+    if (autoOpenedPlayerRequestId === activePlayerRequest.requestId) return;
+    setPlayerDialogOpen(true);
+    setAutoOpenedPlayerRequestId(activePlayerRequest.requestId);
+  }, [activePlayerRequest?.requestId, autoOpenedPlayerRequestId]);
 
   useEffect(() => {
     if (!auth.backendConfigured || !auth.user) {
@@ -163,12 +172,14 @@ function AppShell({ auth }: AppShellProps) {
   async function handleStartSelectedCase(caseId?: string): Promise<void> {
     setDialogueGate(null);
     setPlayerDialogOpen(false);
+    setAutoOpenedPlayerRequestId('');
     await runtime.startSelectedCase(caseId);
   }
 
   async function handleRestartSimulation(): Promise<void> {
     setDialogueGate(null);
     setPlayerDialogOpen(false);
+    setAutoOpenedPlayerRequestId('');
     await runtime.restart();
   }
 
