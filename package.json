@@ -12,6 +12,7 @@
     "test:vn-system-scene": "node tests/vn-system-scene-rules.test.mjs",
     "test:reception-scene": "node tests/reception-scene-layout.test.mjs",
     "test:reset-state": "node tests/player-lawyer-reset-state.test.mjs",
+    "test:dialogue-sequence": "node tests/player-lawyer-dialogue-sequence.test.mjs",
     "test:unified-task-dialog": "node tests/player-lawyer-unified-task-dialog.test.mjs",
     "preview": "vite preview --host 0.0.0.0 --port 4174"
   },

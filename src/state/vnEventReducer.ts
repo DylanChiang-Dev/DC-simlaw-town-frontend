@@ -219,7 +219,13 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
     case 'case-runtime-issue':
       return applyRuntimeIssue(state, event.payload || {});
     case 'player-lawyer-input-required':
-      return appendSystemLine(state, '轮到用户处理当前角色任务：请准备输入回复或处理文书任务。');
+      return updateRuntimeStatus(state, {
+        phase: 'waiting_player_task',
+        message: '轮到用户处理当前角色任务',
+        detail: '请准备输入回复或处理文书任务',
+        blocking: true,
+        lastError: '',
+      });
     case 'player-lawyer-input-submitted':
       return appendSystemLine(state, '当前角色回复已提交，后端正在继续推进案件流程。');
     case 'player-lawyer-document-draft-ready':

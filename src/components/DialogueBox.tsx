@@ -13,6 +13,7 @@ type Props = {
     turn: number;
   } | null;
   history?: DialogueHistoryEntry[];
+  onAcknowledgeCurrentEntry?: (entry: DialogueHistoryEntry) => void;
   onContinueDialogue?: () => void;
   onRefreshRuntime?: () => Promise<void>;
   onResumeCurrentCase?: () => Promise<void>;
@@ -28,6 +29,7 @@ export function DialogueBox({
   dialogueGate = null,
   history = [],
   onContinueDialogue,
+  onAcknowledgeCurrentEntry,
   onRefreshRuntime,
   onResumeCurrentCase,
   runtimeError = '',
@@ -70,18 +72,24 @@ export function DialogueBox({
   const canClickToContinue = Boolean(dialogueGate && !dialogueGate.pending && wsConnected && onContinueDialogue);
 
   function handleDialogueBoxClick(event: MouseEvent<HTMLElement>): void {
-    if (!canClickToContinue) return;
     const target = event.target as HTMLElement;
     if (target.closest('button, a, textarea, input, select, [role="button"]')) return;
+    if (currentEntry?.kind === 'dialogue') {
+      onAcknowledgeCurrentEntry?.(currentEntry);
+    }
+    if (!canClickToContinue) return;
     onContinueDialogue?.();
   }
 
   function handleDialogueBoxKeyDown(event: KeyboardEvent<HTMLElement>): void {
-    if (!canClickToContinue) return;
     const target = event.target as HTMLElement;
     if (target.closest('button, a, textarea, input, select, [role="button"]')) return;
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
+    if (currentEntry?.kind === 'dialogue') {
+      onAcknowledgeCurrentEntry?.(currentEntry);
+    }
+    if (!canClickToContinue) return;
     onContinueDialogue?.();
   }
 

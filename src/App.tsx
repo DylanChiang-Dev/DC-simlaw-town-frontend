@@ -18,7 +18,7 @@ import {
 import { getWebSocketService } from './services/webSocket';
 import { usePlayerLawyerRuntime } from './state/usePlayerLawyerRuntime';
 import { useSimulationRuntime } from './state/useSimulationRuntime';
-import { createInitialVnRuntimeState, vnEventReducer } from './state/vnEventReducer';
+import { createInitialVnRuntimeState, vnEventReducer, type DialogueHistoryEntry } from './state/vnEventReducer';
 
 type AppShellProps = {
   auth: AuthGateState;
@@ -50,6 +50,7 @@ function AppShell({ auth }: AppShellProps) {
   const [dialogueGate, setDialogueGate] = useState<DialogueGateState>(null);
   const [playerDialogOpen, setPlayerDialogOpen] = useState(false);
   const [autoOpenedPlayerRequestId, setAutoOpenedPlayerRequestId] = useState('');
+  const [acknowledgedDialogueEntryId, setAcknowledgedDialogueEntryId] = useState('');
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const runtime = useSimulationRuntime(auth.backendConfigured && Boolean(auth.user));
   const playerLawyer = usePlayerLawyerRuntime(
@@ -58,6 +59,8 @@ function AppShell({ auth }: AppShellProps) {
   );
   const [vnRuntime, dispatchVnEvent] = useReducer(vnEventReducer, undefined, createInitialVnRuntimeState);
   const scene = vnRuntime.scene;
+  const latestDialogueEntry = getLatestDialogueEntry(vnRuntime.history);
+  const playerDialogMayAutoOpen = !latestDialogueEntry || latestDialogueEntry.id === acknowledgedDialogueEntryId;
   const activePlayerRequest = playerLawyer.activeRequest
     && runtime.activeCaseId
     && playerLawyer.activeRequest.caseId === runtime.activeCaseId
@@ -77,15 +80,17 @@ function AppShell({ auth }: AppShellProps) {
       setDialogueGate(null);
       setPlayerDialogOpen(false);
       setAutoOpenedPlayerRequestId('');
+      setAcknowledgedDialogueEntryId('');
     }
   }, [runtime.activeCaseId]);
 
   useEffect(() => {
     if (!activePlayerRequest?.requestId) return;
     if (autoOpenedPlayerRequestId === activePlayerRequest.requestId) return;
+    if (!playerDialogMayAutoOpen) return;
     setPlayerDialogOpen(true);
     setAutoOpenedPlayerRequestId(activePlayerRequest.requestId);
-  }, [activePlayerRequest?.requestId, autoOpenedPlayerRequestId]);
+  }, [activePlayerRequest?.requestId, autoOpenedPlayerRequestId, playerDialogMayAutoOpen]);
 
   useEffect(() => {
     if (!auth.backendConfigured || !auth.user) {
@@ -173,6 +178,7 @@ function AppShell({ auth }: AppShellProps) {
     setDialogueGate(null);
     setPlayerDialogOpen(false);
     setAutoOpenedPlayerRequestId('');
+    setAcknowledgedDialogueEntryId('');
     await runtime.startSelectedCase(caseId);
   }
 
@@ -180,6 +186,7 @@ function AppShell({ auth }: AppShellProps) {
     setDialogueGate(null);
     setPlayerDialogOpen(false);
     setAutoOpenedPlayerRequestId('');
+    setAcknowledgedDialogueEntryId('');
     await runtime.restart();
   }
 
@@ -287,6 +294,9 @@ function AppShell({ auth }: AppShellProps) {
             backendMode={auth.backendConfigured && Boolean(auth.user)}
             dialogueGate={dialogueGate}
             history={vnRuntime.history}
+            onAcknowledgeCurrentEntry={(entry) => {
+              setAcknowledgedDialogueEntryId(entry.id);
+            }}
             onContinueDialogue={handleDialogueContinue}
             onRefreshRuntime={runtime.refresh}
             onResumeCurrentCase={runtime.activeCaseId ? handleStartSelectedCase : undefined}
@@ -362,6 +372,16 @@ function AppShell({ auth }: AppShellProps) {
 
 export function App() {
   return <AuthGate>{(auth) => <AppShell auth={auth} />}</AuthGate>;
+}
+
+function getLatestDialogueEntry(history: DialogueHistoryEntry[]): DialogueHistoryEntry | null {
+  for (let index = history.length - 1; index >= 0; index -= 1) {
+    const entry = history[index];
+    if (entry.kind === 'dialogue') {
+      return entry;
+    }
+  }
+  return null;
 }
 
 function isDocumentStage(stage?: string): boolean {
