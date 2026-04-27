@@ -59,7 +59,7 @@ export const characters: Record<CharacterKey, Character> = {
     key: 'receptionist',
     name: '律所前台',
     role: '前台接待与律师推荐',
-    portrait: '/art/vn/char-client-worried.png',
+    portrait: '/art/vn/char-receptionist-warm.png',
     position: 'right',
   },
   judge: {
