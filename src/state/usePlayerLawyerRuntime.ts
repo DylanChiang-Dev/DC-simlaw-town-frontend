@@ -53,6 +53,7 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
       setStatus(nextStatus);
       setActiveRequest(pending[pending.length - 1] || null);
     } catch (err) {
+      setActiveRequest(null);
       setError(err instanceof Error ? err.message : '读取用户任务失败');
     } finally {
       setRefreshLoading(false);

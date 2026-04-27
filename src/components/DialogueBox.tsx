@@ -1,7 +1,7 @@
 import { useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { characters, type DialogueScene } from '../data/runtimeScene';
 import { MarkdownText } from './MarkdownText';
-import type { PlayerLawyerRequest, SimulationStatus } from '../services/types';
+import type { SimulationStatus } from '../services/types';
 import type { DialogueHistoryEntry } from '../state/vnEventReducer';
 
 type Props = {
@@ -14,11 +14,9 @@ type Props = {
   } | null;
   history?: DialogueHistoryEntry[];
   onContinueDialogue?: () => void;
-  onOpenPlayerInput?: () => void;
   onRefreshRuntime?: () => Promise<void>;
   onResumeCurrentCase?: () => Promise<void>;
   scene: DialogueScene;
-  pendingRequest?: PlayerLawyerRequest | null;
   runtimeError?: string;
   selectedCaseId?: string;
   simulation?: SimulationStatus | null;
@@ -30,10 +28,8 @@ export function DialogueBox({
   dialogueGate = null,
   history = [],
   onContinueDialogue,
-  onOpenPlayerInput,
   onRefreshRuntime,
   onResumeCurrentCase,
-  pendingRequest,
   runtimeError = '',
   selectedCaseId = '',
   scene,
@@ -46,7 +42,7 @@ export function DialogueBox({
   const currentEntry = transcript[transcript.length - 1] || null;
   const showTranscript = backendMode && Boolean(currentEntry);
   const canOpenTranscript = backendMode && transcript.length > 1;
-  const fallbackNotice = backendMode && !showTranscript && !pendingRequest && !dialogueGate
+  const fallbackNotice = backendMode && !showTranscript && !dialogueGate
     ? getBackendFallbackNotice({
       onRefreshRuntime,
       onResumeCurrentCase,
@@ -61,11 +57,6 @@ export function DialogueBox({
       name: currentEntry.speakerName,
       role: getEntryRole(currentEntry),
     }
-    : pendingRequest
-      ? {
-        name: pendingRequest.speakerLabel || '当前角色',
-        role: '等待用户处理',
-      }
     : fallbackNotice
       ? {
         name: '系统',
@@ -75,7 +66,7 @@ export function DialogueBox({
         name: scene.speakerLabel || speaker.name,
         role: speaker.role,
       };
-  const showActions = Boolean(pendingRequest || dialogueGate || canOpenTranscript || fallbackNotice?.action);
+  const showActions = Boolean(dialogueGate || canOpenTranscript || fallbackNotice?.action);
   const canClickToContinue = Boolean(dialogueGate && !dialogueGate.pending && wsConnected && onContinueDialogue);
 
   function handleDialogueBoxClick(event: MouseEvent<HTMLElement>): void {
@@ -116,18 +107,8 @@ export function DialogueBox({
             <strong>{fallbackNotice.title}</strong>
             <MarkdownText text={fallbackNotice.message} />
           </div>
-        ) : pendingRequest ? null : (
+        ) : (
           <MarkdownText className="dialogue-current-text" text={scene.text} />
-        )}
-        {backendMode && pendingRequest && (
-          <div className="player-turn-preview" aria-label="当前用户任务要求">
-            <strong>轮到用户处理当前角色任务</strong>
-            <MarkdownText text={pendingRequest.contextSummary} />
-            <MarkdownText
-              fallback="请根据当前案件进展输入当前角色回复。"
-              text={pendingRequest.prompt || pendingRequest.message}
-            />
-          </div>
         )}
       </div>
       {showActions && <div className="dialogue-actions">
@@ -138,11 +119,7 @@ export function DialogueBox({
                 查看全部记录
               </button>
             )}
-            {pendingRequest ? (
-              <button type="button" onClick={onOpenPlayerInput}>
-                {isDocumentStage(pendingRequest.stage) ? '处理文书任务' : '输入当前角色回复'}
-              </button>
-            ) : dialogueGate ? (
+            {dialogueGate ? (
               <button disabled={dialogueGate.pending || !wsConnected} type="button" onClick={onContinueDialogue}>
                 {!wsConnected ? '实时未连接，正在重连' : dialogueGate.pending ? '等待后端响应' : '继续'}
               </button>
@@ -177,10 +154,6 @@ export function DialogueBox({
       )}
     </section>
   );
-}
-
-function isDocumentStage(stage?: string): boolean {
-  return ['CD', 'DD', 'AD', 'AR'].includes(String(stage || '').toUpperCase());
 }
 
 function getEntryRole(entry: DialogueHistoryEntry): string {

@@ -52,8 +52,8 @@ function AppShell({ auth }: AppShellProps) {
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const runtime = useSimulationRuntime(auth.backendConfigured && Boolean(auth.user));
   const playerLawyer = usePlayerLawyerRuntime(
-    auth.backendConfigured && Boolean(auth.user),
-    runtime.selectedCaseId,
+    auth.backendConfigured && Boolean(auth.user) && Boolean(runtime.activeCaseId),
+    runtime.activeCaseId,
   );
   const [vnRuntime, dispatchVnEvent] = useReducer(vnEventReducer, undefined, createInitialVnRuntimeState);
   const scene = vnRuntime.scene;
@@ -249,10 +249,8 @@ function AppShell({ auth }: AppShellProps) {
             dialogueGate={dialogueGate}
             history={vnRuntime.history}
             onContinueDialogue={handleDialogueContinue}
-            onOpenPlayerInput={() => setPlayerDialogOpen(true)}
             onRefreshRuntime={runtime.refresh}
             onResumeCurrentCase={runtime.activeCaseId ? runtime.startSelectedCase : undefined}
-            pendingRequest={playerLawyer.activeRequest}
             runtimeError={runtime.error}
             scene={scene}
             selectedCaseId={runtime.selectedCaseId}

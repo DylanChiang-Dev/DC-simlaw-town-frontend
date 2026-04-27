@@ -21,6 +21,8 @@ export type SimulationRuntimeState = {
 };
 
 function resolveActiveCaseId(simulation: SimulationStatus | null, cases: SandboxCaseSummary[]): string {
+  const status = simulation?.status || '';
+  if (!simulation?.simulationRunning && status !== 'running' && status !== 'paused') return '';
   return simulation?.selectedCaseId || cases.find((item) => item.status === 'running')?.caseId || '';
 }
 
