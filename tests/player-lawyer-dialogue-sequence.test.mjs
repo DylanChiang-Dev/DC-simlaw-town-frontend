@@ -36,6 +36,12 @@ assert.match(
 );
 
 assert.match(
+  dialogueSource,
+  /dialogue-gate-notice[\s\S]*下一句已准备好[\s\S]*后端正在等待继续/,
+  'DialogueBox should visibly explain that the backend is waiting for the user to continue.',
+);
+
+assert.match(
   appSource,
   /const \[acknowledgedDialogueEntryId, setAcknowledgedDialogueEntryId\] = useState\(''\);/,
   'App should track whether the latest visible role dialogue has been acknowledged.',

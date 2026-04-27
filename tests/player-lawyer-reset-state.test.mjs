@@ -78,6 +78,18 @@ assert.match(
 
 assert.match(
   appSource,
+  /\['ws:dialogue-gate-waiting', \(payload\) => \{[\s\S]*dispatchVnEvent\(\{ type: 'dialogue-gate-waiting', payload \}\)/,
+  'A backend dialogue gate waiting event should update visible runtime state, not only set an invisible button.',
+);
+
+assert.match(
+  appSource,
+  /const DIALOGUE_CONTINUE_TIMEOUT_MS = 12000;[\s\S]*setTimeout\(\(\) => \{[\s\S]*type: 'ws-error'[\s\S]*后端超过 12 秒未响应继续请求/,
+  'If a continue request is pending too long, the frontend should surface a visible error instead of silently waiting.',
+);
+
+assert.match(
+  appSource,
   /\['ws:scenario-start', \(payload\) => \{[\s\S]*setDialogueGate\(null\)[\s\S]*dispatchVnEvent\(\{ type: 'scenario-start', payload \}\)/,
   'Starting a new scenario should clear any dialogue gate from the previous run.',
 );

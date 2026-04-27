@@ -122,6 +122,16 @@ export function DialogueBox({
       {showActions && <div className="dialogue-actions">
         {backendMode ? (
           <>
+            {dialogueGate && (
+              <div className="dialogue-gate-notice" role="status">
+                <strong>下一句已准备好</strong>
+                <span>
+                  {dialogueGate.pending
+                    ? '已请求后端继续，正在等待响应。'
+                    : `后端正在等待继续${dialogueGate.speakerName ? `：${dialogueGate.speakerName}` : ''}。点击“继续”或直接点击对话框推进。`}
+                </span>
+              </div>
+            )}
             {canOpenTranscript && (
               <button className="secondary-action" type="button" onClick={() => setRecordsOpen(true)}>
                 查看全部记录

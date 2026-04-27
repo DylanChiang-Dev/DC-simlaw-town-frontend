@@ -27,9 +27,12 @@ type AppShellProps = {
 type DialogueGateState = {
   gateId: string;
   pending: boolean;
+  requestedAt?: number;
   speakerName: string;
   turn: number;
 } | null;
+
+const DIALOGUE_CONTINUE_TIMEOUT_MS = 12000;
 
 const STAGE_DOCUMENT_TYPES: Record<string, string> = {
   CD: 'CD',
@@ -93,6 +96,23 @@ function AppShell({ auth }: AppShellProps) {
   }, [activePlayerRequest?.requestId, autoOpenedPlayerRequestId, playerDialogMayAutoOpen]);
 
   useEffect(() => {
+    if (!dialogueGate?.gateId || !dialogueGate.pending) return;
+    const gateId = dialogueGate.gateId;
+    const timer = setTimeout(() => {
+      setDialogueGate((current) => (
+        current?.gateId === gateId && current.pending
+          ? { ...current, pending: false }
+          : current
+      ));
+      dispatchVnEvent({
+        type: 'ws-error',
+        payload: { message: '后端超过 12 秒未响应继续请求，请刷新状态或重新点击继续。' },
+      });
+    }, DIALOGUE_CONTINUE_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [dialogueGate?.gateId, dialogueGate?.pending]);
+
+  useEffect(() => {
     if (!auth.backendConfigured || !auth.user) {
       getWebSocketService().disconnect();
       return;
@@ -114,6 +134,7 @@ function AppShell({ auth }: AppShellProps) {
           speakerName: String(payload?.speaker_name || ''),
           turn: Number(payload?.turn || 0),
         });
+        dispatchVnEvent({ type: 'dialogue-gate-waiting', payload });
       }],
       ['ws:dialogue-gate-accepted', (payload) => {
         const gateId = String(payload?.gate_id || '');
@@ -159,7 +180,7 @@ function AppShell({ auth }: AppShellProps) {
   async function handleDialogueContinue(): Promise<void> {
     if (!dialogueGate?.gateId) return;
     setDialogueGate((current) => (
-      current?.gateId === dialogueGate.gateId ? { ...current, pending: true } : current
+      current?.gateId === dialogueGate.gateId ? { ...current, pending: true, requestedAt: Date.now() } : current
     ));
     const sent = await getWebSocketService().sendDialogueContinue(dialogueGate.gateId);
     if (sent) {

@@ -75,6 +75,7 @@ export type VnRuntimeEvent =
   | { type: 'ws-disconnected' }
   | { type: 'dialogue-update'; payload?: Record<string, unknown> }
   | { type: 'dialogue-continue-sent'; payload?: Record<string, unknown> }
+  | { type: 'dialogue-gate-waiting'; payload?: Record<string, unknown> }
   | { type: 'dialogue-gate-accepted'; payload?: Record<string, unknown> }
   | { type: 'dialogue-gate-error'; payload?: Record<string, unknown> }
   | { type: 'runtime-progress'; payload?: Record<string, unknown> }
@@ -159,6 +160,14 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
       return applyDialogueUpdate(state, event.payload || {});
     case 'dialogue-continue-sent':
       return appendSystemLine(state, '已请求后端继续生成下一句，等待后端返回。');
+    case 'dialogue-gate-waiting':
+      return updateRuntimeStatus(state, {
+        phase: 'waiting_dialogue_continue',
+        message: '后端正在等待继续下一句',
+        detail: String(event.payload?.speaker_name || event.payload?.gate_id || ''),
+        blocking: true,
+        lastError: '',
+      });
     case 'dialogue-gate-accepted':
       return appendSystemLine(
         updateRuntimeStatus(state, {
