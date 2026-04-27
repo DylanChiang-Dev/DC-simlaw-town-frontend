@@ -28,17 +28,6 @@ const BACKGROUND_BY_STAGE: Record<string, string> = {
   FINAL_VERDICT: '/art/vn/bg-courtroom.png',
 };
 
-const CHARACTERS_BY_STAGE: Record<string, CharacterKey[]> = {
-  RECEPTION: ['receptionist', 'client'],
-  LC: ['playerLawyer', 'client'],
-  CD: ['playerLawyer', 'client'],
-  DD: ['playerLawyer', 'opponentLawyer'],
-  CI: ['playerLawyer', 'judge', 'opponentLawyer'],
-  AD: ['playerLawyer', 'client'],
-  AR: ['playerLawyer', 'opponentLawyer'],
-  CIA: ['playerLawyer', 'judge', 'opponentLawyer'],
-};
-
 const CASE_EVENT_MESSAGES: Record<string, string> = {
   CASE_STARTED: '案件已启动，系统正在安排第一轮咨询。',
   PLAINTIFF_ARRIVED: '当事人已进入咨询，正在准备案情说明。',
@@ -111,7 +100,7 @@ const BACKEND_IDLE_SCENE: DialogueScene = {
   background: '/art/vn/bg-law-office.png',
   speaker: 'playerLawyer',
   text: '当前没有可展示的实时对话。页面正在等待后端返回明确的案件状态。',
-  characters: ['playerLawyer', 'client'],
+  characters: ['playerLawyer'],
   actions: [],
   tech: {
     agent: '等待后端同步',
@@ -492,8 +481,7 @@ function getSceneSpeakerName(scene: DialogueScene): string {
 }
 
 function inferCharacters(stageCode: string, speaker: CharacterKey): CharacterKey[] {
-  const base = CHARACTERS_BY_STAGE[stageCode] || ['playerLawyer', 'client'];
-  return base.includes(speaker) ? base : [speaker, ...base].filter((key, index, list) => list.indexOf(key) === index);
+  return [speaker];
 }
 
 function getStageDefaultSpeaker(stageCode: string): CharacterKey {

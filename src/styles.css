@@ -383,33 +383,18 @@ h1 {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  --vn-character-height: min(76vh, 780px);
 }
 
 .character-portrait {
   position: absolute;
   bottom: 15%;
-  max-height: min(86vh, 840px);
-  width: min(40vw, 560px);
+  height: var(--vn-character-height);
+  width: auto;
   object-fit: contain;
   object-position: bottom center;
   filter: drop-shadow(0 28px 30px rgba(0, 0, 0, 0.44));
   transition: opacity 0.2s ease, transform 0.2s ease, filter 0.2s ease;
-}
-
-.portrait-layer.count-2 .character-portrait {
-  bottom: 10%;
-  max-height: min(92vh, 960px);
-  width: min(48vw, 680px);
-}
-
-.portrait-layer.count-3 .character-portrait {
-  bottom: 13%;
-  max-height: min(86vh, 800px);
-  width: min(34vw, 520px);
-}
-
-.portrait-layer.count-3 .character-portrait.center {
-  width: min(30vw, 460px);
 }
 
 .character-portrait.left {
@@ -1670,23 +1655,12 @@ h1 {
     min-height: 620px;
   }
 
+  .portrait-layer {
+    --vn-character-height: min(56vh, 520px);
+  }
+
   .character-portrait {
     bottom: 28%;
-    width: 76vw;
-  }
-
-  .portrait-layer.count-2 .character-portrait {
-    bottom: 26%;
-    width: 82vw;
-  }
-
-  .portrait-layer.count-3 .character-portrait {
-    bottom: 31%;
-    width: 58vw;
-  }
-
-  .portrait-layer.count-3 .character-portrait.center {
-    width: 54vw;
   }
 
   .character-portrait.left {

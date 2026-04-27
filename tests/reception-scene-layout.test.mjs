@@ -33,8 +33,8 @@ assert.match(
 
 assert.match(
   reducerSource,
-  /RECEPTION:\s*\['receptionist',\s*'client'\]/,
-  'The RECEPTION stage should only show the receptionist and client.',
+  /function inferCharacters\(stageCode: string, speaker: CharacterKey\): CharacterKey\[\] \{\s*return \[speaker\];\s*\}/,
+  'The RECEPTION stage should follow the global single-speaker portrait rule.',
 );
 
 assert.match(

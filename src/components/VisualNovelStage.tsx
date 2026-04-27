@@ -5,12 +5,14 @@ type Props = {
 };
 
 export function VisualNovelStage({ scene }: Props) {
+  const visibleCharacters = getVisibleCharacters(scene);
+
   return (
     <section className="vn-stage" aria-label="案件场景">
       <img className="vn-background" src={scene.background} alt={`${scene.stageName}场景`} />
       <div className="vn-vignette" />
-      <div className={`portrait-layer count-${scene.characters.length}`}>
-        {scene.characters.map((key) => {
+      <div className={`portrait-layer count-${visibleCharacters.length}`}>
+        {visibleCharacters.map((key) => {
           const character = characters[key];
           const active = key === scene.speaker;
           const position = getSceneCharacterPosition(scene.stageCode, key, character.position);
@@ -26,6 +28,10 @@ export function VisualNovelStage({ scene }: Props) {
       </div>
     </section>
   );
+}
+
+function getVisibleCharacters(scene: DialogueScene) {
+  return [scene.speaker];
 }
 
 function getSceneCharacterPosition(

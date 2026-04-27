@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "test:auto-draft": "node tests/player-lawyer-auto-draft.test.mjs",
     "test:focus-regression": "node tests/player-lawyer-focus-regression.test.mjs",
+    "test:vn-character-rules": "node tests/vn-character-rendering-rules.test.mjs",
     "test:reception-scene": "node tests/reception-scene-layout.test.mjs",
     "test:reset-state": "node tests/player-lawyer-reset-state.test.mjs",
     "test:unified-task-dialog": "node tests/player-lawyer-unified-task-dialog.test.mjs",
