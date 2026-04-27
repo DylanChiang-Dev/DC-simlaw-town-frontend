@@ -28,6 +28,18 @@ assert.match(
 );
 
 assert.match(
+  runtimeSource,
+  /PLAYER_MODE_NEGOTIATING_MESSAGE = 'Player-lawyer mode is not enabled'/,
+  'The backend mode negotiation message should be recognized as a transient refresh condition.',
+);
+
+assert.match(
+  runtimeSource,
+  /catch \(err\) \{[\s\S]*setActiveRequest\(null\)[\s\S]*isPlayerLawyerModeNegotiatingError\(err\)[\s\S]*setError\(''\)/,
+  'Transient player-lawyer mode negotiation errors during page refresh should not show the user task panel.',
+);
+
+assert.match(
   simulationRuntimeSource,
   /const status = simulation\?\.status[\s\S]*if \(!simulation\?\.simulationRunning && status !== 'running' && status !== 'paused'\) return '';/,
   'selectedCaseId should not count as active after reset when sandbox status is idle.',

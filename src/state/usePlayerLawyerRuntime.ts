@@ -17,6 +17,7 @@ import type {
 } from '../services/types';
 
 const POLL_INTERVAL_MS = 10000;
+const PLAYER_MODE_NEGOTIATING_MESSAGE = 'Player-lawyer mode is not enabled';
 
 type PlayerLawyerPayload = {
   data?: Record<string, unknown>;
@@ -54,7 +55,11 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
       setActiveRequest(pending[pending.length - 1] || null);
     } catch (err) {
       setActiveRequest(null);
-      setError(err instanceof Error ? err.message : '读取用户任务失败');
+      if (isPlayerLawyerModeNegotiatingError(err)) {
+        setError('');
+      } else {
+        setError(err instanceof Error ? err.message : '读取用户任务失败');
+      }
     } finally {
       setRefreshLoading(false);
     }
@@ -90,7 +95,12 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
       void refresh();
     };
     const handleError = (payload?: Record<string, unknown>) => {
-      setError(readPayloadMessage(payload) || '用户任务处理失败');
+      const message = readPayloadMessage(payload);
+      if (isPlayerLawyerModeNegotiatingError(message)) {
+        setError('');
+        return;
+      }
+      setError(message || '用户任务处理失败');
     };
     const handleConnected = () => {
       void refresh();
@@ -216,4 +226,9 @@ function readPayloadMessage(payload?: Record<string, unknown>): string {
     ? payload.data as Record<string, unknown>
     : payload;
   return String(data.message || '').trim();
+}
+
+function isPlayerLawyerModeNegotiatingError(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err || '');
+  return message.includes(PLAYER_MODE_NEGOTIATING_MESSAGE);
 }
