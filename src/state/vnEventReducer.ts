@@ -15,7 +15,7 @@ const STAGE_LABELS: Record<string, string> = {
 };
 
 const BACKGROUND_BY_STAGE: Record<string, string> = {
-  RECEPTION: '/art/vn/bg-law-office.png',
+  RECEPTION: '/art/vn/bg-reception-desk.png',
   LC: '/art/vn/bg-law-office.png',
   CD: '/art/vn/bg-case-analysis-room.png',
   DD: '/art/vn/bg-case-analysis-room.png',
