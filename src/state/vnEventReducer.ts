@@ -288,7 +288,7 @@ function updateRuntimeStatus(state: VnRuntimeState, patch: Partial<RuntimeStatus
 
 function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
   const text = String(payload.content || '收到新的案件对话。');
-  const stageCode = isReceptionDialogueText(text)
+  const stageCode = isReceptionPayload(payload, text)
     ? 'RECEPTION'
     : normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
   const speaker = inferSpeaker(payload, stageCode, text);
@@ -308,7 +308,7 @@ function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unkn
 function applyScenarioStart(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
   const stageCode = normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
   const text = `当前阶段：${getStageName(stageCode)}。系统正在等待后端生成下一轮对话。`;
-  const speaker = stageCode === 'CI' || stageCode === 'CIA' ? 'judge' : 'playerLawyer';
+  const speaker = getStageDefaultSpeaker(stageCode);
   const scene = createSceneFromState(state.scene, {
     characters: inferCharacters(stageCode, speaker),
     speaker,
@@ -409,11 +409,26 @@ function appendBackground(state: VnRuntimeState, scene: DialogueScene): VnRuntim
 }
 
 function isBackgroundDialogue(stageCode: string, text: string): boolean {
-  return stageCode === 'RECEPTION' || isReceptionDialogueText(text);
+  return isReceptionRecommendationText(text);
 }
 
 function isReceptionDialogueText(text: string): boolean {
+  return isReceptionRecommendationText(text) || /前台|接待|欢迎来到本所/.test(text);
+}
+
+function isReceptionRecommendationText(text: string): boolean {
   return /【推荐律师[：:]/.test(text) || /推荐律师/.test(text);
+}
+
+function isReceptionPayload(payload: Record<string, unknown>, text: string): boolean {
+  const speaker = `${payload.speaker_name || payload.speaker_id || ''}`.toLowerCase();
+  const stage = `${payload.scenario_type || payload.stage || ''}`.toUpperCase();
+  return stage === 'RECEPTION'
+    || speaker.includes('reception')
+    || speaker.includes('front_desk')
+    || speaker.includes('前台')
+    || speaker.includes('接待')
+    || isReceptionDialogueText(text);
 }
 
 function getCaseStateMessage(payload: Record<string, unknown>): string {
@@ -450,7 +465,7 @@ function createSceneFromState(
 
 function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text: string): CharacterKey {
   const value = `${payload.speaker_name || payload.speaker_id || ''}`.toLowerCase();
-  if (stageCode === 'RECEPTION' || value.includes('reception') || value.includes('前台') || /推荐律师/.test(text)) {
+  if (stageCode === 'RECEPTION' || isReceptionPayload(payload, text)) {
     return 'receptionist';
   }
   if (value.includes('judge') || value.includes('法官') || value.includes('审判')) return 'judge';
@@ -479,6 +494,12 @@ function getSceneSpeakerName(scene: DialogueScene): string {
 function inferCharacters(stageCode: string, speaker: CharacterKey): CharacterKey[] {
   const base = CHARACTERS_BY_STAGE[stageCode] || ['playerLawyer', 'client'];
   return base.includes(speaker) ? base : [speaker, ...base].filter((key, index, list) => list.indexOf(key) === index);
+}
+
+function getStageDefaultSpeaker(stageCode: string): CharacterKey {
+  if (stageCode === 'RECEPTION') return 'receptionist';
+  if (stageCode === 'CI' || stageCode === 'CIA') return 'judge';
+  return 'playerLawyer';
 }
 
 function normalizeStageCode(value: unknown): string {

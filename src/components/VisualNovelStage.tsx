@@ -13,9 +13,10 @@ export function VisualNovelStage({ scene }: Props) {
         {scene.characters.map((key) => {
           const character = characters[key];
           const active = key === scene.speaker;
+          const position = getSceneCharacterPosition(scene.stageCode, key, character.position);
           return (
             <img
-              className={`character-portrait ${character.position} ${active ? 'active' : 'inactive'}`}
+              className={`character-portrait ${position} ${active ? 'active' : 'inactive'}`}
               src={character.portrait}
               alt={`${character.name} ${character.role}`}
               key={key}
@@ -25,4 +26,16 @@ export function VisualNovelStage({ scene }: Props) {
       </div>
     </section>
   );
+}
+
+function getSceneCharacterPosition(
+  stageCode: string,
+  key: string,
+  fallback: 'left' | 'center' | 'right',
+): 'left' | 'center' | 'right' {
+  if (stageCode === 'RECEPTION') {
+    if (key === 'client') return 'left';
+    if (key === 'receptionist') return 'right';
+  }
+  return fallback;
 }
