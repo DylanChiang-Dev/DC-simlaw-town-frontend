@@ -278,7 +278,7 @@ function updateRuntimeStatus(state: VnRuntimeState, patch: Partial<RuntimeStatus
 }
 
 function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
-  const text = String(payload.content || '收到新的案件对话。');
+  const text = String(payload.content || payload.dialogue_text || '收到新的案件对话。');
   const stageCode = isReceptionPayload(payload, text)
     ? 'RECEPTION'
     : normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
@@ -382,7 +382,7 @@ function appendBackground(state: VnRuntimeState, scene: DialogueScene): VnRuntim
 }
 
 function isBackgroundDialogue(stageCode: string, text: string): boolean {
-  return isReceptionRecommendationText(text);
+  return false;
 }
 
 function isReceptionDialogueText(text: string): boolean {
@@ -448,12 +448,18 @@ function createSystemScene(scene: DialogueScene, text: string): DialogueScene {
 
 function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text: string): CharacterKey {
   const value = `${payload.speaker_name || payload.speaker_id || ''}`.toLowerCase();
+  if (
+    value.includes('client')
+    || value.includes('plaintiff')
+    || value.includes('case_')
+    || value.includes('当事人')
+    || value.includes('刘玉田')
+  ) return 'client';
   if (stageCode === 'RECEPTION' || isReceptionPayload(payload, text)) {
     return 'receptionist';
   }
   if (value.includes('judge') || value.includes('法官') || value.includes('审判')) return 'judge';
   if (value.includes('defendant') || value.includes('被告') || value.includes('程')) return 'opponentLawyer';
-  if (value.includes('client') || value.includes('当事人') || value.includes('刘玉田')) return 'client';
   if (value.includes('lawyer') || value.includes('律师')) return 'playerLawyer';
   return 'playerLawyer';
 }

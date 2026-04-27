@@ -175,6 +175,10 @@ export class WebSocketService {
   private handleMessage(payload: Record<string, unknown>): void {
     const type = String(payload.type || '');
     const eventName = EVENT_NAME_BY_TYPE[type];
+    if (!eventName && type === 'agent_update_dialogue' && isReceptionAgentDialogue(payload)) {
+      getEventBus().emit('ws:dialogue-update', normalizeDialoguePayload(payload));
+      return;
+    }
     if (!eventName && MAP_EVENT_TYPES.has(type)) {
       getEventBus().emit('ws:map-event', payload);
       return;
@@ -183,7 +187,7 @@ export class WebSocketService {
       getEventBus().emit('ws:unknown', payload);
       return;
     }
-    getEventBus().emit(eventName, payload);
+    getEventBus().emit(eventName, eventName === 'ws:dialogue-update' ? normalizeDialoguePayload(payload) : payload);
   }
 
   private scheduleReconnect(): void {
@@ -197,4 +201,23 @@ export class WebSocketService {
 
 export function getWebSocketService(): WebSocketService {
   return WebSocketService.getInstance();
+}
+
+function normalizeDialoguePayload(payload: Record<string, unknown>): Record<string, unknown> {
+  if (payload.type !== 'agent_update_dialogue') {
+    return payload;
+  }
+  return {
+    ...payload,
+    content: payload.content || payload.dialogue_text || '',
+    speaker_id: payload.speaker_id || payload.agent_id || '',
+  };
+}
+
+function isReceptionAgentDialogue(payload: Record<string, unknown>): boolean {
+  const agentId = String(payload.agent_id || payload.speaker_id || '').toLowerCase();
+  const text = String(payload.dialogue_text || payload.content || '');
+  return agentId.includes('reception')
+    || agentId.includes('front_desk')
+    || /前台|接待|欢迎来到本所|推荐律师|分配给/.test(text);
 }

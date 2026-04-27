@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const reducerSource = readFileSync(join(root, 'src', 'state', 'vnEventReducer.ts'), 'utf8');
 const stageSource = readFileSync(join(root, 'src', 'components', 'VisualNovelStage.tsx'), 'utf8');
+const webSocketSource = readFileSync(join(root, 'src', 'services', 'webSocket.ts'), 'utf8');
 
 assert.match(
   reducerSource,
@@ -27,8 +28,32 @@ assert.match(
 
 assert.match(
   reducerSource,
-  /function isBackgroundDialogue\(stageCode: string, text: string\): boolean \{[\s\S]*return isReceptionRecommendationText\(text\);[\s\S]*\}/,
-  'Only lawyer recommendation text should move to background consultation; normal front desk dialogue should stay in the main dialogue box.',
+  /function isBackgroundDialogue\(stageCode: string, text: string\): boolean \{[\s\S]*return false;[\s\S]*\}/,
+  'Front desk recommendation text should stay in the main dialogue flow instead of being hidden in the background rail.',
+);
+
+assert.match(
+  reducerSource,
+  /value\.includes\('client'\)[\s\S]*value\.includes\('plaintiff'\)[\s\S]*value\.includes\('case_'\)[\s\S]*return 'client';[\s\S]*if \(stageCode === 'RECEPTION'/,
+  'Reception client lines should render as the client, not as the receptionist.',
+);
+
+assert.match(
+  webSocketSource,
+  /type === 'agent_update_dialogue'[\s\S]*isReceptionAgentDialogue\(payload\)[\s\S]*'ws:dialogue-update'/,
+  'Front desk agent dialogue updates should feed the VN dialogue stream.',
+);
+
+assert.match(
+  webSocketSource,
+  /content:\s*payload\.content\s*\|\|\s*payload\.dialogue_text/,
+  'Map-style dialogue payloads should be normalized to the dialogue_update content field.',
+);
+
+assert.match(
+  webSocketSource,
+  /function isReceptionAgentDialogue[\s\S]*agentId\.includes\('reception'\)[\s\S]*推荐律师[\s\S]*分配给/,
+  'Only reception-related map dialogue should bypass map handling; LC dialogue gates must stay intact.',
 );
 
 assert.match(
