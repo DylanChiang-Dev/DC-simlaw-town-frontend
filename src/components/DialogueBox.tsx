@@ -180,7 +180,7 @@ export function DialogueBox({
 }
 
 function isDocumentStage(stage?: string): boolean {
-  return ['CD', 'AD', 'AR'].includes(String(stage || '').toUpperCase());
+  return ['CD', 'DD', 'AD', 'AR'].includes(String(stage || '').toUpperCase());
 }
 
 function getEntryRole(entry: DialogueHistoryEntry): string {

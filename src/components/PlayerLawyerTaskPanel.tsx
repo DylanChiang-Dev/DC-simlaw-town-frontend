@@ -54,5 +54,5 @@ function getStageLabel(stage: string): string {
 }
 
 function isDocumentStage(stage?: string): boolean {
-  return ['CD', 'AD', 'AR'].includes(String(stage || '').toUpperCase());
+  return ['CD', 'DD', 'AD', 'AR'].includes(String(stage || '').toUpperCase());
 }

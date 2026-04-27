@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { MarkdownText } from './MarkdownText';
 import type { PlayerLawyerRequest } from '../services/types';
 
-const DOCUMENT_STAGES = new Set(['CD', 'AD', 'AR']);
+const DOCUMENT_STAGES = new Set(['CD', 'DD', 'AD', 'AR']);
 const RESPONSE_HINTS = [
   { id: 'liability_scope', label: '责任和赔偿范围', description: '引导用户回应责任承担、合理损失范围和例外。' },
   { id: 'evidence_support', label: '证据支持', description: '引导用户说明医疗、交警、鉴定等证据如何支撑主张。' },
@@ -13,8 +13,7 @@ const RESPONSE_HINTS = [
 type Props = {
   loading: boolean;
   onClose: () => void;
-  onAutoDocumentSubmit: () => Promise<void>;
-  onOpenDocumentWorkbench: () => void;
+  onAutoDocumentSubmit: (input: { playerDraft?: string }) => Promise<void>;
   onDraftText: (input: { hintIds: string[] }) => Promise<string>;
   onPolishText: (input: { originalMessage: string; hintIds: string[] }) => Promise<string>;
   onSubmitText: (input: {
@@ -32,7 +31,6 @@ export function PlayerLawyerInputDialog({
   loading,
   onClose,
   onAutoDocumentSubmit,
-  onOpenDocumentWorkbench,
   onDraftText,
   onPolishText,
   onSubmitText,
@@ -59,6 +57,10 @@ export function PlayerLawyerInputDialog({
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     if (!message.trim()) return;
+    if (documentStage) {
+      await handleAutoDocumentSubmit(message.trim());
+      return;
+    }
     const finalMessage = (polishedMessage || message).trim();
     await onSubmitText({
       message: finalMessage,
@@ -113,12 +115,12 @@ export function PlayerLawyerInputDialog({
     }
   }
 
-  async function handleAutoDocumentSubmit(): Promise<void> {
+  async function handleAutoDocumentSubmit(playerDraft = ''): Promise<void> {
     if (loading || autoDocumentLoading) return;
     setPolishError('');
     setAutoDocumentLoading(true);
     try {
-      await onAutoDocumentSubmit();
+      await onAutoDocumentSubmit({ playerDraft });
     } catch (err) {
       setPolishError(err instanceof Error ? err.message : 'AI 生成文书失败');
     } finally {
@@ -144,41 +146,32 @@ export function PlayerLawyerInputDialog({
           text={request.prompt}
         />
 
-        {documentStage ? (
-          <div className="player-lawyer-document-callout">
-            <p>这个阶段需要进入文书工作台完成模板化输入、Skill 约束草稿和最终确认。</p>
-            <div className="document-callout-actions">
-              <button
-                className="primary-action wide"
-                disabled={loading || autoDocumentLoading}
-                onClick={handleAutoDocumentSubmit}
-                type="button"
-              >
-                {autoDocumentLoading ? '生成并确认中' : 'AI 生成文书并继续流程'}
-              </button>
-              <button
-                className="secondary-action wide"
-                disabled={loading || autoDocumentLoading}
-                onClick={onOpenDocumentWorkbench}
-                type="button"
-              >
-                打开文书工作台
-              </button>
-            </div>
-            {polishError && <div className="document-error" role="alert">{polishError}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="response-assist-explain" aria-label={documentStage ? '文书辅助机制说明' : '回复辅助机制说明'}>
+            <strong>{documentStage ? '文书辅助机制' : '回复辅助机制'}</strong>
+            {documentStage ? (
+              <>
+                <p>
+                  当前文本框就是文书任务入口。用户可以直接写文书要点或粘贴草稿，也可以留空后点击
+                  “AI 生成文书并继续流程”，系统会读取案件上下文、当前任务和用户输入，用对应文书 Skill 生成并确认草稿。
+                </p>
+                <p>
+                  提交时会把用户写入内容作为 <code>playerDraft</code> 传给文书辅助接口，生成后的文书会继续保存并导出 PDF。
+                </p>
+              </>
+            ) : (
+              <>
+                <p>
+                  下方四个按钮是前端写作提示，不是 Agent Skill 调用。选择后只记录提示方向
+                  <code>hint_ids</code>，帮助用户组织原始回复；点击“AI 润色”时，系统才把用户原文、提示方向和案件上下文发送给后端润色接口。
+                </p>
+                <p>
+                  提交时会保存用户原文、最终提交文本、是否使用 AI 润色和提示方向，便于论文实验分析用户输入与辅助机制的关系。
+                </p>
+              </>
+            )}
           </div>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <div className="response-assist-explain" aria-label="回复辅助机制说明">
-              <strong>回复辅助机制</strong>
-              <p>
-                下方四个按钮是前端写作提示，不是 Agent Skill 调用。选择后只记录提示方向
-                <code>hint_ids</code>，帮助用户组织原始回复；点击“AI 润色”时，系统才把用户原文、提示方向和案件上下文发送给后端润色接口。
-              </p>
-              <p>
-                提交时会保存用户原文、最终提交文本、是否使用 AI 润色和提示方向，便于论文实验分析用户输入与辅助机制的关系。
-              </p>
-            </div>
+          {!documentStage && (
             <div className="response-hint-row" aria-label="回复提示">
               {RESPONSE_HINTS.map((hint) => (
                 <button
@@ -194,42 +187,55 @@ export function PlayerLawyerInputDialog({
                 </button>
               ))}
             </div>
-            <textarea
-              autoFocus
-              disabled={loading}
-              onChange={(event) => setMessage(event.target.value)}
-              placeholder="请写下你准备让当前角色表达的回复要点。"
-              value={message}
-            />
-            <div className="response-assist-actions">
-              <button className="secondary-action" disabled={loading} onClick={handleAutoDraftSubmit} type="button">
-                {loading ? '处理中' : 'AI 代答并提交'}
+          )}
+          <textarea
+            autoFocus
+            disabled={loading || autoDocumentLoading}
+            onChange={(event) => setMessage(event.target.value)}
+            placeholder={documentStage ? '可以写文书起草重点，或粘贴你自己的文书草稿。' : '请写下你准备让当前角色表达的回复要点。'}
+            value={message}
+          />
+          <div className="response-assist-actions">
+            {documentStage ? (
+              <button
+                className="secondary-action"
+                disabled={loading || autoDocumentLoading}
+                onClick={() => void handleAutoDocumentSubmit(message.trim())}
+                type="button"
+              >
+                {autoDocumentLoading ? '生成并确认中' : 'AI 生成文书并继续流程'}
               </button>
-              <button className="secondary-action" disabled={loading || !message.trim()} onClick={handlePolish} type="button">
-                {loading ? '处理中' : 'AI 润色'}
-              </button>
-            </div>
-            {polishedMessage && (
-              <label className="polished-response-field">
-                <span>润色稿，可继续修改</span>
-                <textarea
-                  disabled={loading}
-                  onChange={(event) => setPolishedMessage(event.target.value)}
-                  value={polishedMessage}
-                />
-              </label>
+            ) : (
+              <>
+                <button className="secondary-action" disabled={loading} onClick={handleAutoDraftSubmit} type="button">
+                  {loading ? '处理中' : 'AI 代答并提交'}
+                </button>
+                <button className="secondary-action" disabled={loading || !message.trim()} onClick={handlePolish} type="button">
+                  {loading ? '处理中' : 'AI 润色'}
+                </button>
+              </>
             )}
-            {polishError && <div className="document-error" role="alert">{polishError}</div>}
-            <div className="player-lawyer-dialog-actions">
-              <button className="secondary-action" disabled={loading} onClick={onClose} type="button">
-                稍后处理
-              </button>
-              <button className="primary-action" disabled={loading || !message.trim()} type="submit">
-                {loading ? '提交中' : '提交回复'}
-              </button>
-            </div>
-          </form>
-        )}
+          </div>
+          {!documentStage && polishedMessage && (
+            <label className="polished-response-field">
+              <span>润色稿，可继续修改</span>
+              <textarea
+                disabled={loading}
+                onChange={(event) => setPolishedMessage(event.target.value)}
+                value={polishedMessage}
+              />
+            </label>
+          )}
+          {polishError && <div className="document-error" role="alert">{polishError}</div>}
+          <div className="player-lawyer-dialog-actions">
+            <button className="secondary-action" disabled={loading || autoDocumentLoading} onClick={onClose} type="button">
+              稍后处理
+            </button>
+            <button className="primary-action" disabled={loading || autoDocumentLoading || !message.trim()} type="submit">
+              {loading || autoDocumentLoading ? '提交中' : documentStage ? '提交文书并继续' : '提交回复'}
+            </button>
+          </div>
+        </form>
       </section>
     </div>
   );

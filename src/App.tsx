@@ -5,7 +5,6 @@ import { CaseDocumentsPanel } from './components/CaseDocumentsPanel';
 import { CaseTimeline } from './components/CaseTimeline';
 import { CommandHud } from './components/CommandHud';
 import { DialogueBox } from './components/DialogueBox';
-import { DocumentWorkbench } from './components/DocumentWorkbench';
 import { PlayerLawyerInputDialog } from './components/PlayerLawyerInputDialog';
 import { PlayerLawyerTaskPanel } from './components/PlayerLawyerTaskPanel';
 import { TechLedger } from './components/TechLedger';
@@ -34,18 +33,19 @@ type DialogueGateState = {
 
 const STAGE_DOCUMENT_TYPES: Record<string, string> = {
   CD: 'CD',
+  DD: 'DD',
   AD: 'AD',
   AR: 'AR',
 };
 
 const STAGE_SKILL_IDS: Record<string, string> = {
   CD: 'lawyer-complaint-drafting',
+  DD: 'lawyer-defense-drafting',
   AD: 'lawyer-appeal-drafting',
   AR: 'lawyer-appeal-response-drafting',
 };
 
 function AppShell({ auth }: AppShellProps) {
-  const [documentOpen, setDocumentOpen] = useState(false);
   const [documentsOpen, setDocumentsOpen] = useState(false);
   const [dialogueGate, setDialogueGate] = useState<DialogueGateState>(null);
   const [playerDialogOpen, setPlayerDialogOpen] = useState(false);
@@ -144,7 +144,7 @@ function AppShell({ auth }: AppShellProps) {
     }
   }
 
-  async function handleAutoDocumentSubmit(): Promise<void> {
+  async function handleAutoDocumentSubmit(input: { playerDraft?: string } = {}): Promise<void> {
     const request = playerLawyer.activeRequest;
     if (!request) {
       throw new Error('当前没有待处理的文书任务');
@@ -169,7 +169,7 @@ function AppShell({ auth }: AppShellProps) {
       documentType,
       skillId: selectedSkillId,
       playerPrompt: request.prompt,
-      playerDraft: '',
+      playerDraft: input.playerDraft || '',
       requestId: request.requestId,
     });
     if (!draft.documentText.trim()) {
@@ -265,10 +265,6 @@ function AppShell({ auth }: AppShellProps) {
         loading={playerLawyer.actionLoading}
         onAutoDocumentSubmit={handleAutoDocumentSubmit}
         onClose={() => setPlayerDialogOpen(false)}
-        onOpenDocumentWorkbench={() => {
-          setPlayerDialogOpen(false);
-          setDocumentOpen(true);
-        }}
         onDraftText={async (input) => {
           const assist = await playerLawyer.draftTextReply(input);
           return assist.aiPolishedMessage;
@@ -288,14 +284,6 @@ function AppShell({ auth }: AppShellProps) {
         request={playerDialogOpen ? playerLawyer.activeRequest : null}
       />
       <CaseTimeline activeCode={scene.stageCode} />
-      <DocumentWorkbench
-        onClose={() => setDocumentOpen(false)}
-        onConfirmed={async () => {
-          await playerLawyer.refresh();
-        }}
-        open={documentOpen}
-        request={playerLawyer.activeRequest}
-      />
       <CaseDocumentsPanel
         caseId={runtime.selectedCaseId || playerLawyer.activeRequest?.caseId || ''}
         onClose={() => setDocumentsOpen(false)}
@@ -340,5 +328,5 @@ export function App() {
 }
 
 function isDocumentStage(stage?: string): boolean {
-  return ['CD', 'AD', 'AR'].includes(String(stage || '').toUpperCase());
+  return ['CD', 'DD', 'AD', 'AR'].includes(String(stage || '').toUpperCase());
 }

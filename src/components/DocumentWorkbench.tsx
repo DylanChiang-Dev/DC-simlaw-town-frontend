@@ -9,12 +9,14 @@ import type { PlayerLawyerDocumentDraft, PlayerLawyerRequest, PlayerLawyerSkill 
 
 const STAGE_DOCUMENT_TYPES: Record<string, string> = {
   CD: 'CD',
+  DD: 'DD',
   AD: 'AD',
   AR: 'AR',
 };
 
 const STAGE_SKILL_IDS: Record<string, string> = {
   CD: 'lawyer-complaint-drafting',
+  DD: 'lawyer-defense-drafting',
   AD: 'lawyer-appeal-drafting',
   AR: 'lawyer-appeal-response-drafting',
 };
