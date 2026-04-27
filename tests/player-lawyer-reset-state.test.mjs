@@ -57,6 +57,42 @@ assert.doesNotMatch(
   'The recovery banner must not render directly from stale activeRequest after reset.',
 );
 
+assert.match(
+  appSource,
+  /if \(!runtime\.activeCaseId\) \{[\s\S]*setDialogueGate\(null\)[\s\S]*setPlayerDialogOpen\(false\)[\s\S]*\}/,
+  'Resetting to no active case should clear stale dialogue gates and player dialogs.',
+);
+
+assert.match(
+  appSource,
+  /\['ws:dialogue-gate-error', \(payload\) => \{[\s\S]*setDialogueGate\(null\)[\s\S]*dispatchVnEvent\(\{ type: 'dialogue-gate-error', payload \}\)/,
+  'A backend dialogue gate not-found error should remove the stale continue gate from the UI.',
+);
+
+assert.match(
+  appSource,
+  /\['ws:scenario-start', \(payload\) => \{[\s\S]*setDialogueGate\(null\)[\s\S]*dispatchVnEvent\(\{ type: 'scenario-start', payload \}\)/,
+  'Starting a new scenario should clear any dialogue gate from the previous run.',
+);
+
+assert.match(
+  appSource,
+  /async function handleStartSelectedCase\(caseId\?: string\): Promise<void> \{[\s\S]*setDialogueGate\(null\)[\s\S]*await runtime\.startSelectedCase\(caseId\)/,
+  'Starting a selected case should clear stale dialogue gates before entering the new run.',
+);
+
+assert.doesNotMatch(
+  appSource,
+  /onResumeCurrentCase=\{runtime\.activeCaseId \? runtime\.startSelectedCase : undefined\}/,
+  'Resume actions should use the stale-gate clearing start handler, not call runtime.startSelectedCase directly.',
+);
+
+assert.match(
+  appSource,
+  /async function handleRestartSimulation\(\): Promise<void> \{[\s\S]*setDialogueGate\(null\)[\s\S]*await runtime\.restart\(\)/,
+  'Restarting the simulation should clear stale dialogue gates immediately.',
+);
+
 assert.doesNotMatch(
   dialogueSource,
   /player-turn-preview|当前用户任务要求|轮到用户处理当前角色任务|等待用户处理|onOpenPlayerInput|pendingRequest \?/,

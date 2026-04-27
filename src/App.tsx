@@ -72,6 +72,13 @@ function AppShell({ auth }: AppShellProps) {
   );
 
   useEffect(() => {
+    if (!runtime.activeCaseId) {
+      setDialogueGate(null);
+      setPlayerDialogOpen(false);
+    }
+  }, [runtime.activeCaseId]);
+
+  useEffect(() => {
     if (!auth.backendConfigured || !auth.user) {
       getWebSocketService().disconnect();
       return;
@@ -100,6 +107,7 @@ function AppShell({ auth }: AppShellProps) {
         dispatchVnEvent({ type: 'dialogue-gate-accepted', payload });
       }],
       ['ws:dialogue-gate-error', (payload) => {
+        setDialogueGate(null);
         dispatchVnEvent({ type: 'dialogue-gate-error', payload });
       }],
       ['ws:runtime-progress', (payload) => dispatchVnEvent({ type: 'runtime-progress', payload })],
@@ -107,7 +115,10 @@ function AppShell({ auth }: AppShellProps) {
       ['ws:step-gate-accepted', (payload) => dispatchVnEvent({ type: 'step-gate-accepted', payload })],
       ['ws:step-gate-error', (payload) => dispatchVnEvent({ type: 'step-gate-error', payload })],
       ['ws:case-state-change', (payload) => dispatchVnEvent({ type: 'case-state-change', payload })],
-      ['ws:scenario-start', (payload) => dispatchVnEvent({ type: 'scenario-start', payload })],
+      ['ws:scenario-start', (payload) => {
+        setDialogueGate(null);
+        dispatchVnEvent({ type: 'scenario-start', payload });
+      }],
       ['ws:scenario-end', (payload) => dispatchVnEvent({ type: 'scenario-end', payload })],
       ['ws:case-runtime-issue', (payload) => dispatchVnEvent({ type: 'case-runtime-issue', payload })],
       ['ws:player-lawyer-input-required', (payload) => {
@@ -147,6 +158,18 @@ function AppShell({ auth }: AppShellProps) {
         current?.gateId === dialogueGate.gateId ? { ...current, pending: false } : current
       ));
     }
+  }
+
+  async function handleStartSelectedCase(caseId?: string): Promise<void> {
+    setDialogueGate(null);
+    setPlayerDialogOpen(false);
+    await runtime.startSelectedCase(caseId);
+  }
+
+  async function handleRestartSimulation(): Promise<void> {
+    setDialogueGate(null);
+    setPlayerDialogOpen(false);
+    await runtime.restart();
   }
 
   async function handleAutoDocumentSubmit(input: { playerDraft?: string } = {}): Promise<void> {
@@ -201,7 +224,7 @@ function AppShell({ auth }: AppShellProps) {
         onOpenDocuments={() => setDocumentsOpen(true)}
         onRefresh={runtime.refresh}
         onRestart={() => setRestartConfirmOpen(true)}
-        onResumeCurrentCase={runtime.activeCaseId ? runtime.startSelectedCase : undefined}
+        onResumeCurrentCase={runtime.activeCaseId ? handleStartSelectedCase : undefined}
         runtimeError={runtime.error}
         runtimeStatus={vnRuntime.runtimeStatus}
         simulation={runtime.simulation}
@@ -229,7 +252,7 @@ function AppShell({ auth }: AppShellProps) {
           loading={runtime.loading}
           onRefresh={runtime.refresh}
           onSelect={runtime.selectCase}
-          onStart={runtime.startSelectedCase}
+          onStart={handleStartSelectedCase}
           selectedCaseId={runtime.selectedCaseId}
         />
       )}
@@ -255,7 +278,7 @@ function AppShell({ auth }: AppShellProps) {
             history={vnRuntime.history}
             onContinueDialogue={handleDialogueContinue}
             onRefreshRuntime={runtime.refresh}
-            onResumeCurrentCase={runtime.activeCaseId ? runtime.startSelectedCase : undefined}
+            onResumeCurrentCase={runtime.activeCaseId ? handleStartSelectedCase : undefined}
             runtimeError={runtime.error}
             scene={scene}
             selectedCaseId={runtime.selectedCaseId}
@@ -311,7 +334,7 @@ function AppShell({ auth }: AppShellProps) {
                 className="primary-action"
                 disabled={runtime.loading}
                 onClick={async () => {
-                  await runtime.restart();
+                  await handleRestartSimulation();
                   setRestartConfirmOpen(false);
                 }}
                 type="button"
