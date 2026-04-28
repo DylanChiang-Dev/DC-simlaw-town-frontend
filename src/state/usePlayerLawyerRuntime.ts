@@ -163,7 +163,9 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
   }
 
   async function submitTextReply(input: Omit<PlayerLawyerTextSubmitInput, 'requestId'>): Promise<void> {
-    if (!activeRequest) return;
+    if (!activeRequest) {
+      throw new Error('当前没有待处理的用户任务');
+    }
     setActionLoading(true);
     setError('');
     try {
@@ -180,6 +182,7 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : '提交当前角色回复失败');
+      throw err;
     } finally {
       setActionLoading(false);
     }

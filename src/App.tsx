@@ -125,7 +125,10 @@ function AppShell({ auth }: AppShellProps) {
       ['ws:disconnected', () => {
         dispatchVnEvent({ type: 'ws-disconnected' });
       }],
-      ['ws:dialogue-update', (payload) => dispatchVnEvent({ type: 'dialogue-update', payload })],
+      ['ws:dialogue-update', (payload) => {
+        setDialogueGate(null);
+        dispatchVnEvent({ type: 'dialogue-update', payload });
+      }],
       ['ws:dialogue-gate-waiting', (payload) => {
         const gateId = String(payload?.gate_id || '');
         if (!gateId) return;
@@ -146,24 +149,41 @@ function AppShell({ auth }: AppShellProps) {
         setDialogueGate(null);
         dispatchVnEvent({ type: 'dialogue-gate-error', payload });
       }],
-      ['ws:runtime-progress', (payload) => dispatchVnEvent({ type: 'runtime-progress', payload })],
+      ['ws:runtime-progress', (payload) => {
+        if (shouldClearDialogueGateAfterRuntimeProgress(payload)) {
+          setDialogueGate(null);
+        }
+        dispatchVnEvent({ type: 'runtime-progress', payload });
+      }],
       ['ws:step-gate-waiting', (payload) => dispatchVnEvent({ type: 'step-gate-waiting', payload })],
       ['ws:step-gate-accepted', (payload) => dispatchVnEvent({ type: 'step-gate-accepted', payload })],
       ['ws:step-gate-error', (payload) => dispatchVnEvent({ type: 'step-gate-error', payload })],
-      ['ws:case-state-change', (payload) => dispatchVnEvent({ type: 'case-state-change', payload })],
+      ['ws:case-state-change', (payload) => {
+        setDialogueGate(null);
+        dispatchVnEvent({ type: 'case-state-change', payload });
+      }],
       ['ws:scenario-start', (payload) => {
         setDialogueGate(null);
         dispatchVnEvent({ type: 'scenario-start', payload });
       }],
-      ['ws:scenario-end', (payload) => dispatchVnEvent({ type: 'scenario-end', payload })],
+      ['ws:scenario-end', (payload) => {
+        setDialogueGate(null);
+        dispatchVnEvent({ type: 'scenario-end', payload });
+      }],
       ['ws:case-runtime-issue', (payload) => dispatchVnEvent({ type: 'case-runtime-issue', payload })],
       ['ws:player-lawyer-input-required', (payload) => {
         setDialogueGate(null);
         dispatchVnEvent({ type: 'player-lawyer-input-required', payload });
       }],
-      ['ws:player-lawyer-input-submitted', (payload) => dispatchVnEvent({ type: 'player-lawyer-input-submitted', payload })],
+      ['ws:player-lawyer-input-submitted', (payload) => {
+        setDialogueGate(null);
+        dispatchVnEvent({ type: 'player-lawyer-input-submitted', payload });
+      }],
       ['ws:player-lawyer-document-draft-ready', (payload) => dispatchVnEvent({ type: 'player-lawyer-document-draft-ready', payload })],
-      ['ws:player-lawyer-document-confirmed', (payload) => dispatchVnEvent({ type: 'player-lawyer-document-confirmed', payload })],
+      ['ws:player-lawyer-document-confirmed', (payload) => {
+        setDialogueGate(null);
+        dispatchVnEvent({ type: 'player-lawyer-document-confirmed', payload });
+      }],
       ['ws:player-lawyer-error', (payload) => dispatchVnEvent({ type: 'player-lawyer-error', payload })],
       ['ws:error', (payload) => dispatchVnEvent({ type: 'ws-error', payload })],
       ['ws:unknown', (payload) => dispatchVnEvent({ type: 'ws-unknown', payload })],
@@ -180,18 +200,20 @@ function AppShell({ auth }: AppShellProps) {
 
   async function handleDialogueContinue(): Promise<void> {
     if (!dialogueGate?.gateId) return;
+    if (dialogueGate.pending) return;
+    const gateId = dialogueGate.gateId;
     setDialogueGate((current) => (
-      current?.gateId === dialogueGate.gateId ? { ...current, pending: true, requestedAt: Date.now() } : current
+      current?.gateId === gateId ? { ...current, pending: true, requestedAt: Date.now() } : current
     ));
-    const sent = await getWebSocketService().sendDialogueContinue(dialogueGate.gateId);
+    const sent = await getWebSocketService().sendDialogueContinue(gateId);
     if (sent) {
       dispatchVnEvent({
         type: 'dialogue-continue-sent',
-        payload: { gate_id: dialogueGate.gateId },
+        payload: { gate_id: gateId },
       });
     } else {
       setDialogueGate((current) => (
-        current?.gateId === dialogueGate.gateId ? { ...current, pending: false } : current
+        current?.gateId === gateId ? { ...current, pending: false } : current
       ));
     }
   }
@@ -249,6 +271,7 @@ function AppShell({ auth }: AppShellProps) {
       documentText: draft.documentText.trim(),
     });
     await playerLawyer.refresh();
+    setDialogueGate(null);
     dispatchVnEvent({
       type: 'player-lawyer-document-confirmed',
       payload: { message: `${documentType} 文书已由 AI 生成并确认。` },
@@ -346,6 +369,7 @@ function AppShell({ auth }: AppShellProps) {
         }}
         onSubmitText={async (input) => {
           await playerLawyer.submitTextReply(input);
+          setDialogueGate(null);
           dispatchVnEvent({
             type: 'player-lawyer-input-submitted',
             payload: { message: input.finalMessage || input.message },
@@ -417,4 +441,9 @@ function getNextUnacknowledgedDialogueEntry(
 
 function isDocumentStage(stage?: string): boolean {
   return ['CD', 'DD', 'AD', 'AR'].includes(String(stage || '').toUpperCase());
+}
+
+function shouldClearDialogueGateAfterRuntimeProgress(payload?: Record<string, unknown>): boolean {
+  const phase = String(payload?.phase || '').trim();
+  return Boolean(phase && phase !== 'next_ready');
 }

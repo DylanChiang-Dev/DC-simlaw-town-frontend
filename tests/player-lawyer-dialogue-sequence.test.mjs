@@ -101,6 +101,24 @@ assert.match(
   'DialogueBox acknowledgement should update the App-level latest dialogue acknowledgement state.',
 );
 
+assert.match(
+  appSource,
+  /\['ws:player-lawyer-input-submitted', \(payload\) => \{[\s\S]*setDialogueGate\(null\);[\s\S]*dispatchVnEvent\(\{ type: 'player-lawyer-input-submitted', payload \}\);[\s\S]*\}\]/,
+  'Submitting a player-lawyer task should clear any stale dialogue gate before the next user click.',
+);
+
+assert.match(
+  appSource,
+  /\['ws:player-lawyer-document-confirmed', \(payload\) => \{[\s\S]*setDialogueGate\(null\);[\s\S]*dispatchVnEvent\(\{ type: 'player-lawyer-document-confirmed', payload \}\);[\s\S]*\}\]/,
+  'Confirming a player-lawyer document should clear any stale dialogue gate before the flow advances.',
+);
+
+assert.match(
+  appSource,
+  /if \(dialogueGate\.pending\) return;/,
+  'Dialogue continue should not send duplicate requests while the same gate is already pending.',
+);
+
 assert.doesNotMatch(
   vnReducerSource,
   /case 'player-lawyer-input-required':\s*return appendSystemLine\(state, '轮到用户处理当前角色任务：请准备输入回复或处理文书任务。'\);/,

@@ -62,14 +62,19 @@ export function PlayerLawyerInputDialog({
       return;
     }
     const finalMessage = (polishedMessage || message).trim();
-    await onSubmitText({
-      message: finalMessage,
-      originalMessage: message.trim(),
-      polishedMessage: polishedMessage.trim(),
-      finalMessage,
-      hintIds: selectedHints,
-      usedAiPolish: Boolean(polishedMessage.trim()),
-    });
+    setPolishError('');
+    try {
+      await onSubmitText({
+        message: finalMessage,
+        originalMessage: message.trim(),
+        polishedMessage: polishedMessage.trim(),
+        finalMessage,
+        hintIds: selectedHints,
+        usedAiPolish: Boolean(polishedMessage.trim()),
+      });
+    } catch (err) {
+      setPolishError(err instanceof Error ? err.message : '提交回复失败');
+    }
   }
 
   function toggleHint(hintId: string): void {

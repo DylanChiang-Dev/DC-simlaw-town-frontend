@@ -24,3 +24,9 @@ assert.doesNotMatch(
   /<PlayerLawyerInputDialog[\s\S]*?loading=\{playerLawyer\.loading\}/,
   'PlayerLawyerInputDialog should not disable controls during background polling refreshes.',
 );
+
+assert.match(
+  runtimeSource,
+  /catch \(err\) \{[\s\S]*setError\(err instanceof Error \? err\.message : '提交当前角色回复失败'\);[\s\S]*throw err;[\s\S]*\} finally \{/,
+  'Player text submit failures must be rethrown so the dialog does not close or append a fake submitted line.',
+);

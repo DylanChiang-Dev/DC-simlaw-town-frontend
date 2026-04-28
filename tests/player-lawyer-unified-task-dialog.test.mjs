@@ -36,3 +36,9 @@ assert.match(
   /DOCUMENT_STAGES\s*=\s*new Set\(\['CD', 'DD', 'AD', 'AR'\]\)/,
   'The unified document task dialog should cover CD, DD, AD, and AR document stages.',
 );
+
+assert.match(
+  dialogSource,
+  /try \{[\s\S]*await onSubmitText\(\{[\s\S]*\}\);[\s\S]*\} catch \(err\) \{[\s\S]*setPolishError\(err instanceof Error \? err\.message : '提交回复失败'\);[\s\S]*\}/,
+  'Manual text submit failures should stay inside the dialog and show an error instead of closing as if submitted.',
+);
