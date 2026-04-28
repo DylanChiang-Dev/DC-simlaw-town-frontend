@@ -33,6 +33,7 @@ const BACKGROUND_BY_STAGE: Record<string, string> = {
 const CASE_EVENT_MESSAGES: Record<string, string> = {
   CASE_STARTED: '案件已启动，系统正在安排第一轮咨询。',
   PLAINTIFF_ARRIVED: '当事人已进入咨询，正在准备案情说明。',
+  DEFENDANT_ARRIVED: '被告已收到法院送达，正在前往律所咨询应对。',
   CLIENT_ARRIVED: '当事人已进入咨询，正在准备案情说明。',
   CONSULTATION_STARTED: '法律咨询开始，等待当事人说明情况。',
   STAGE_STARTED: '新阶段已开始，等待下一轮案件对话。',

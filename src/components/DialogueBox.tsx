@@ -12,6 +12,7 @@ type Props = {
     speakerName: string;
     turn: number;
   } | null;
+  heldDialogueEntryId?: string;
   history?: DialogueHistoryEntry[];
   onAcknowledgeCurrentEntry?: (entry: DialogueHistoryEntry) => void;
   onContinueDialogue?: () => void;
@@ -27,6 +28,7 @@ type Props = {
 export function DialogueBox({
   backendMode = false,
   dialogueGate = null,
+  heldDialogueEntryId = '',
   history = [],
   onContinueDialogue,
   onAcknowledgeCurrentEntry,
@@ -41,7 +43,7 @@ export function DialogueBox({
   const [recordsOpen, setRecordsOpen] = useState(false);
   const speaker = characters[scene.speaker];
   const transcript = backendMode ? history : [];
-  const currentEntry = getVisibleCurrentEntry(transcript);
+  const currentEntry = getVisibleCurrentEntry(transcript, heldDialogueEntryId);
   const showTranscript = backendMode && Boolean(currentEntry);
   const canOpenTranscript = backendMode && transcript.length > 1;
   const fallbackNotice = backendMode && !showTranscript && !dialogueGate
@@ -174,8 +176,9 @@ export function DialogueBox({
   );
 }
 
-function getVisibleCurrentEntry(history: DialogueHistoryEntry[]): DialogueHistoryEntry | null {
-  return history[history.length - 1] || null;
+function getVisibleCurrentEntry(history: DialogueHistoryEntry[], heldDialogueEntryId = ''): DialogueHistoryEntry | null {
+  const heldEntry = history.find((entry) => entry.id === heldDialogueEntryId);
+  return heldEntry || history[history.length - 1] || null;
 }
 
 function getEntryRole(entry: DialogueHistoryEntry): string {

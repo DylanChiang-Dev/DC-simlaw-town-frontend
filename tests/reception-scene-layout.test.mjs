@@ -59,8 +59,8 @@ assert.match(
 
 assert.match(
   dialogueSource,
-  /function getVisibleCurrentEntry\(history: DialogueHistoryEntry\[\]\): DialogueHistoryEntry \| null \{[\s\S]*for \(let index = history\.length - 1; index >= 0; index -= 1\)[\s\S]*entry\.kind === 'dialogue' \|\| entry\.kind === 'error'[\s\S]*return history\[history\.length - 1\] \|\| null;[\s\S]*\}/,
-  'The main dialogue box should keep the latest character dialogue visible instead of letting generic system progress lines hide it.',
+  /function getVisibleCurrentEntry\(history: DialogueHistoryEntry\[\], heldDialogueEntryId = ''\): DialogueHistoryEntry \| null \{[\s\S]*const heldEntry = history\.find\(\(entry\) => entry\.id === heldDialogueEntryId\);[\s\S]*return heldEntry \|\| history\[history\.length - 1\] \|\| null;[\s\S]*\}/,
+  'The main dialogue box should keep an unacknowledged reception character line visible, then show latest system progress after acknowledgement.',
 );
 
 assert.match(

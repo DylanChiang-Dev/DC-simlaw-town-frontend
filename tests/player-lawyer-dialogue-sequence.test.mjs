@@ -41,6 +41,18 @@ assert.match(
   'DialogueBox should visibly explain that the backend is waiting for the user to continue.',
 );
 
+assert.match(
+  dialogueSource,
+  /heldDialogueEntryId\?: string/,
+  'DialogueBox should accept an App-level held dialogue id so fast system events cannot flash over an unacknowledged role line.',
+);
+
+assert.match(
+  dialogueSource,
+  /function getVisibleCurrentEntry\(history: DialogueHistoryEntry\[\], heldDialogueEntryId = ''\): DialogueHistoryEntry \| null \{[\s\S]*const heldEntry = history\.find\(\(entry\) => entry\.id === heldDialogueEntryId\);[\s\S]*return heldEntry \|\| history\[history\.length - 1\] \|\| null;/,
+  'DialogueBox should keep an unacknowledged role line visible until the user confirms it, then fall through to the latest system progress line.',
+);
+
 assert.doesNotMatch(
   dialogueSource,
   /if \(entry\.kind === 'dialogue' \|\| entry\.kind === 'error'\)/,
@@ -67,6 +79,12 @@ assert.match(
 
 assert.match(
   appSource,
+  /const heldDialogueEntryId = latestDialogueEntry && latestDialogueEntry\.id !== acknowledgedDialogueEntryId\s*\? latestDialogueEntry\.id\s*: '';/,
+  'App should hold the latest unacknowledged role dialogue in the main story box while later system progress is queued in history.',
+);
+
+assert.match(
+  appSource,
   /if \(!playerDialogMayAutoOpen\) return;[\s\S]*setPlayerDialogOpen\(true\);/,
   'The auto-open effect must be gated by playerDialogMayAutoOpen.',
 );
@@ -81,4 +99,10 @@ assert.doesNotMatch(
   vnReducerSource,
   /case 'player-lawyer-input-required':\s*return appendSystemLine\(state, '轮到用户处理当前角色任务：请准备输入回复或处理文书任务。'\);/,
   'Player input requests should not append a system line into the main story history.',
+);
+
+assert.match(
+  vnReducerSource,
+  /DEFENDANT_ARRIVED:\s*'被告已收到法院送达，正在前往律所咨询应对。'/,
+  'The defendant arrival event should explain that the defendant is responding to service, not fall back to generic case progress text.',
 );

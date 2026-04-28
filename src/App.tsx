@@ -64,6 +64,9 @@ function AppShell({ auth }: AppShellProps) {
   const scene = vnRuntime.scene;
   const latestDialogueEntry = getLatestDialogueEntry(vnRuntime.history);
   const playerDialogMayAutoOpen = !latestDialogueEntry || latestDialogueEntry.id === acknowledgedDialogueEntryId;
+  const heldDialogueEntryId = latestDialogueEntry && latestDialogueEntry.id !== acknowledgedDialogueEntryId
+    ? latestDialogueEntry.id
+    : '';
   const activePlayerRequest = playerLawyer.activeRequest
     && runtime.activeCaseId
     && playerLawyer.activeRequest.caseId === runtime.activeCaseId
@@ -314,6 +317,7 @@ function AppShell({ auth }: AppShellProps) {
           <DialogueBox
             backendMode={auth.backendConfigured && Boolean(auth.user)}
             dialogueGate={dialogueGate}
+            heldDialogueEntryId={heldDialogueEntryId}
             history={vnRuntime.history}
             onAcknowledgeCurrentEntry={(entry) => {
               setAcknowledgedDialogueEntryId(entry.id);
