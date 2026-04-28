@@ -41,6 +41,12 @@ assert.match(
   'DialogueBox should visibly explain that the backend is waiting for the user to continue.',
 );
 
+assert.doesNotMatch(
+  dialogueSource,
+  /if \(entry\.kind === 'dialogue' \|\| entry\.kind === 'error'\)/,
+  'DialogueBox should show the latest story history entry, including system progress lines, instead of skipping them until the transcript modal is opened.',
+);
+
 assert.match(
   appSource,
   /const \[acknowledgedDialogueEntryId, setAcknowledgedDialogueEntryId\] = useState\(''\);/,

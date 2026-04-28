@@ -175,12 +175,6 @@ export function DialogueBox({
 }
 
 function getVisibleCurrentEntry(history: DialogueHistoryEntry[]): DialogueHistoryEntry | null {
-  for (let index = history.length - 1; index >= 0; index -= 1) {
-    const entry = history[index];
-    if (entry.kind === 'dialogue' || entry.kind === 'error') {
-      return entry;
-    }
-  }
   return history[history.length - 1] || null;
 }
 
