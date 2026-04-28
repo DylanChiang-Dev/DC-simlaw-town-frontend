@@ -39,6 +39,21 @@ const CASE_EVENT_MESSAGES: Record<string, string> = {
   STAGE_COMPLETED: '当前阶段已完成，案件流程正在推进。',
   DOCUMENT_DRAFT_STARTED: '文书起草阶段开始，等待用户处理当前角色任务。',
   TRIAL_STARTED: '庭审阶段开始，等待法庭发言。',
+  CASE_ASSIGNED: '律师已分配，即将进入法律咨询。',
+  COMPLAINT_DRAFTING_COMPLETED: '起诉状起草已结束，即将向法院递交。',
+  LAWSUIT_FILED: '起诉状已递交法院，等待被告方响应。',
+  DEFENSE_DRAFTING_COMPLETED: '答辩状起草已结束，即将向法院递交。',
+  DEFENSE_FILED: '答辩状已递交法院，即将进入一审庭审。',
+  ENTER_TRIAL_FIRST_INSTANCE: '一审正式开庭。',
+  TRIAL_FIRST_INSTANCE_COMPLETED: '一审庭审已结束，等待判决及后续。',
+  APPEAL_DECISION_MADE: '当事人已决定上诉，即将起草上诉状。',
+  APPEAL_DRAFTING_COMPLETED: '上诉状起草已结束，即将向中级法院递交。',
+  APPEAL_FILED: '上诉状已递交中级法院，等待被上诉人答辩。',
+  APPEAL_RESPONSE_DRAFTING_COMPLETED: '上诉答辩状起草已结束，即将递交法院。',
+  APPEAL_RESPONSE_FILED: '上诉答辩状已递交法院，即将进入二审庭审。',
+  ENTER_TRIAL_SECOND_INSTANCE: '二审正式开庭。',
+  TRIAL_SECOND_INSTANCE_COMPLETED: '二审庭审已结束，等待终审判决。',
+  CASE_CLOSED: '本案已结案。',
 };
 
 export type VnRuntimeState = {
@@ -310,9 +325,11 @@ function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unkn
 
 function applyScenarioStart(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
   const stageCode = normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
-  const text = `当前阶段：${getStageName(stageCode)}。系统正在等待后端生成下一轮对话。`;
+  const stageName = getStageName(stageCode);
+  const text = `当前阶段：${stageName}。系统正在等待后端生成下一轮对话。`;
   const scene = createSystemScene(state.scene, text);
-  return appendDiagnostic({ ...state, scene }, `进入阶段 ${stageCode}`);
+  const withDiag = appendDiagnostic({ ...state, scene }, `进入阶段 ${stageCode}`);
+  return appendSystemLine(withDiag, `进入阶段：${stageName}`);
 }
 
 function applyRuntimeIssue(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
