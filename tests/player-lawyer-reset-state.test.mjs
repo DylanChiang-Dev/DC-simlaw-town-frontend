@@ -108,8 +108,14 @@ assert.doesNotMatch(
 
 assert.match(
   appSource,
-  /async function handleRestartSimulation\(\): Promise<void> \{[\s\S]*setDialogueGate\(null\)[\s\S]*await runtime\.restart\(\)/,
-  'Restarting the simulation should clear stale dialogue gates immediately.',
+  /async function handleRestartSimulation\(\): Promise<void> \{[\s\S]*setDialogueGate\(null\)[\s\S]*await runtime\.restart\(\);[\s\S]*dispatchVnEvent\(\{ type: 'runtime-reset' \}\)/,
+  'Restarting the simulation should clear stale dialogue gates and old VN history after the backend reset succeeds.',
+);
+
+assert.match(
+  vnReducerSource,
+  /case 'runtime-reset':\s*return \{[\s\S]*\.\.\.createInitialVnRuntimeState\(\),[\s\S]*wsConnected: state\.wsConnected,[\s\S]*\};/,
+  'A sandbox reset should clear old dialogue history while preserving the current websocket connection indicator.',
 );
 
 assert.doesNotMatch(

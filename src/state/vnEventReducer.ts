@@ -89,6 +89,7 @@ export type DialogueHistoryEntry = {
 export type VnRuntimeEvent =
   | { type: 'ws-connected' }
   | { type: 'ws-disconnected' }
+  | { type: 'runtime-reset' }
   | { type: 'dialogue-update'; payload?: Record<string, unknown> }
   | { type: 'dialogue-continue-sent'; payload?: Record<string, unknown> }
   | { type: 'dialogue-gate-waiting'; payload?: Record<string, unknown> }
@@ -150,6 +151,11 @@ export function createInitialVnRuntimeState(): VnRuntimeState {
 
 export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): VnRuntimeState {
   switch (event.type) {
+    case 'runtime-reset':
+      return {
+        ...createInitialVnRuntimeState(),
+        wsConnected: state.wsConnected,
+      };
     case 'ws-connected':
       return appendDiagnostic(
         updateRuntimeStatus({ ...state, wsConnected: true }, {

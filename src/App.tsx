@@ -210,6 +210,7 @@ function AppShell({ auth }: AppShellProps) {
     setAutoOpenedPlayerRequestId('');
     setAcknowledgedDialogueEntryId('');
     await runtime.restart();
+    dispatchVnEvent({ type: 'runtime-reset' });
   }
 
   async function handleAutoDocumentSubmit(input: { playerDraft?: string } = {}): Promise<void> {
