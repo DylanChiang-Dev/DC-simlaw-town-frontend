@@ -67,20 +67,26 @@ assert.match(
 
 assert.match(
   appSource,
-  /const latestDialogueEntry = getLatestDialogueEntry\(vnRuntime\.history\);/,
-  'App should derive the latest role dialogue entry from VN history.',
+  /const nextUnacknowledgedDialogueEntry = getNextUnacknowledgedDialogueEntry\(vnRuntime\.history, acknowledgedDialogueEntryId\);/,
+  'App should derive the earliest unacknowledged role dialogue entry from VN history.',
 );
 
 assert.match(
   appSource,
-  /const playerDialogMayAutoOpen = !latestDialogueEntry \|\| latestDialogueEntry\.id === acknowledgedDialogueEntryId;/,
-  'Player task dialogs should auto-open only after the latest role dialogue has been acknowledged.',
+  /const playerDialogMayAutoOpen = !nextUnacknowledgedDialogueEntry;/,
+  'Player task dialogs should auto-open only after every queued role dialogue has been acknowledged.',
 );
 
 assert.match(
   appSource,
-  /const heldDialogueEntryId = latestDialogueEntry && latestDialogueEntry\.id !== acknowledgedDialogueEntryId\s*\? latestDialogueEntry\.id\s*: '';/,
-  'App should hold the latest unacknowledged role dialogue in the main story box while later system progress is queued in history.',
+  /const heldDialogueEntryId = nextUnacknowledgedDialogueEntry\?\.id \|\| '';/,
+  'App should hold the earliest unacknowledged role dialogue in the main story box so fast consecutive character lines are shown in order.',
+);
+
+assert.match(
+  appSource,
+  /function getNextUnacknowledgedDialogueEntry\([\s\S]*history: DialogueHistoryEntry\[\],[\s\S]*acknowledgedDialogueEntryId: string,[\s\S]*\): DialogueHistoryEntry \| null \{[\s\S]*for \(let index = startIndex; index < history\.length; index \+= 1\)[\s\S]*entry\.kind === 'dialogue'[\s\S]*return entry;[\s\S]*return null;[\s\S]*\}/,
+  'Queued role dialogue should advance from oldest to newest after each acknowledgement instead of jumping to the latest line.',
 );
 
 assert.match(

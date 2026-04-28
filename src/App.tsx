@@ -62,11 +62,9 @@ function AppShell({ auth }: AppShellProps) {
   );
   const [vnRuntime, dispatchVnEvent] = useReducer(vnEventReducer, undefined, createInitialVnRuntimeState);
   const scene = vnRuntime.scene;
-  const latestDialogueEntry = getLatestDialogueEntry(vnRuntime.history);
-  const playerDialogMayAutoOpen = !latestDialogueEntry || latestDialogueEntry.id === acknowledgedDialogueEntryId;
-  const heldDialogueEntryId = latestDialogueEntry && latestDialogueEntry.id !== acknowledgedDialogueEntryId
-    ? latestDialogueEntry.id
-    : '';
+  const nextUnacknowledgedDialogueEntry = getNextUnacknowledgedDialogueEntry(vnRuntime.history, acknowledgedDialogueEntryId);
+  const playerDialogMayAutoOpen = !nextUnacknowledgedDialogueEntry;
+  const heldDialogueEntryId = nextUnacknowledgedDialogueEntry?.id || '';
   const activePlayerRequest = playerLawyer.activeRequest
     && runtime.activeCaseId
     && playerLawyer.activeRequest.caseId === runtime.activeCaseId
@@ -399,8 +397,15 @@ export function App() {
   return <AuthGate>{(auth) => <AppShell auth={auth} />}</AuthGate>;
 }
 
-function getLatestDialogueEntry(history: DialogueHistoryEntry[]): DialogueHistoryEntry | null {
-  for (let index = history.length - 1; index >= 0; index -= 1) {
+function getNextUnacknowledgedDialogueEntry(
+  history: DialogueHistoryEntry[],
+  acknowledgedDialogueEntryId: string,
+): DialogueHistoryEntry | null {
+  const acknowledgedIndex = acknowledgedDialogueEntryId
+    ? history.findIndex((entry) => entry.id === acknowledgedDialogueEntryId)
+    : -1;
+  const startIndex = acknowledgedIndex >= 0 ? acknowledgedIndex + 1 : 0;
+  for (let index = startIndex; index < history.length; index += 1) {
     const entry = history[index];
     if (entry.kind === 'dialogue') {
       return entry;
