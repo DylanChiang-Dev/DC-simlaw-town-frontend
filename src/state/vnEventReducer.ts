@@ -86,6 +86,8 @@ const CASE_EVENT_STAGE_CODES: Record<string, string> = {
   CASE_CLOSED: 'CIA',
 };
 
+const DOCUMENT_SCENARIO_END_STAGES = new Set(['CD', 'DD', 'AD', 'AR']);
+
 export type VnRuntimeState = {
   background: DialogueHistoryEntry[];
   diagnostics: string[];
@@ -286,6 +288,9 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
     case 'scenario-start':
       return applyScenarioStart(state, event.payload || {});
     case 'scenario-end':
+      if (!shouldDisplayScenarioEndInStory(event.payload?.scenario_type)) {
+        return state;
+      }
       return appendSystemLine(state, `${getStageName(event.payload?.scenario_type)}已结束`, String(event.payload?.scenario_type || ''));
     case 'case-runtime-issue':
       return applyRuntimeIssue(state, event.payload || {});
@@ -780,6 +785,11 @@ function inferCharacters(stageCode: string, speaker: CharacterKey): CharacterKey
 function normalizeStageCode(value: unknown): string {
   const raw = String(value || '').trim().toUpperCase();
   return raw || 'LC';
+}
+
+function shouldDisplayScenarioEndInStory(scenarioType: unknown): boolean {
+  const stageCode = normalizeStageCode(scenarioType);
+  return !DOCUMENT_SCENARIO_END_STAGES.has(stageCode);
 }
 
 function getStageName(value: unknown): string {

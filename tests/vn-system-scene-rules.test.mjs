@@ -89,8 +89,14 @@ assert.match(
 
 assert.match(
   reducerSource,
-  /case 'scenario-end':[\s\S]*return appendSystemLine\(state, `\$\{getStageName\(event\.payload\?\.scenario_type\)\}已结束`, String\(event\.payload\?\.scenario_type \|\| ''\)\);/,
-  'Scenario-end system notices should remain in the stage that ended.',
+  /case 'scenario-end':[\s\S]*if \(!shouldDisplayScenarioEndInStory\(event\.payload\?\.scenario_type\)\) \{[\s\S]*return state;[\s\S]*\}[\s\S]*return appendSystemLine\(state, `\$\{getStageName\(event\.payload\?\.scenario_type\)\}已结束`, String\(event\.payload\?\.scenario_type \|\| ''\)\);/,
+  'Document scenario-end notices should not occupy the main story, while other scenario-end notices remain visible.',
+);
+
+assert.match(
+  reducerSource,
+  /const DOCUMENT_SCENARIO_END_STAGES = new Set\(\['CD', 'DD', 'AD', 'AR'\]\);[\s\S]*function shouldDisplayScenarioEndInStory\(scenarioType: unknown\): boolean \{[\s\S]*return !DOCUMENT_SCENARIO_END_STAGES\.has\(stageCode\);[\s\S]*\}/,
+  'Document drafting scenario-end notices should be suppressed so the story does not duplicate completion state changes.',
 );
 
 assert.match(
