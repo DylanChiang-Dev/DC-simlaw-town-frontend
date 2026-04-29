@@ -79,6 +79,24 @@ assert.match(
 
 assert.match(
   appSource,
+  /const latestAcknowledgedStoryEntry = getLatestAcknowledgedStoryEntry\(vnRuntime\.history, acknowledgedDialogueEntryId\);/,
+  'App should keep track of the latest story entry the user has actually confirmed.',
+);
+
+assert.match(
+  appSource,
+  /const activePlayerRequestReady = activePlayerRequest[\s\S]*\? isPlayerRequestReadyForDisplay\([\s\S]*activePlayerRequest,[\s\S]*vnRuntime\.history,[\s\S]*latestAcknowledgedStoryEntry,[\s\S]*\)[\s\S]*: false;/,
+  'Player requests should not become visible until their triggering dialogue has been shown and acknowledged.',
+);
+
+assert.match(
+  appSource,
+  /const visiblePlayerRequest = activePlayerRequestReady && playerDialogMayAutoOpen \? activePlayerRequest : null;/,
+  'The task panel and modal should use a display-ready request instead of the raw pending request or unconfirmed story state.',
+);
+
+assert.match(
+  appSource,
   /const heldDialogueEntryId = nextUnacknowledgedStoryEntry\?\.id \|\| '';/,
   'App should hold the earliest unacknowledged story entry in the main story box so fast stage progress cannot be skipped.',
 );
@@ -99,6 +117,12 @@ assert.match(
   appSource,
   /if \(!playerDialogMayAutoOpen\) return;[\s\S]*setPlayerDialogOpen\(true\);/,
   'The auto-open effect must be gated by playerDialogMayAutoOpen.',
+);
+
+assert.match(
+  appSource,
+  /function isPlayerRequestReadyForDisplay\([\s\S]*request: NonNullable<ReturnType<typeof usePlayerLawyerRuntime>\['activeRequest'\]>,[\s\S]*history: DialogueHistoryEntry\[\],[\s\S]*latestAcknowledgedStoryEntry: DialogueHistoryEntry \| null,[\s\S]*\): boolean \{[\s\S]*if \(isDocumentStage\(request\.stage\)\) return true;[\s\S]*const requestPrompt = normalizeDialogueText\(request\.prompt\);[\s\S]*return acknowledgedPromptIndex >= 0 && acknowledgedPromptIndex <= latestAcknowledgedIndex;[\s\S]*\}/,
+  'Text replies should wait until the request prompt has appeared in the story and the player has acknowledged that line.',
 );
 
 assert.match(

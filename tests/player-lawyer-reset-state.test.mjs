@@ -66,8 +66,8 @@ assert.match(
 
 assert.match(
   appSource,
-  /const \[autoOpenedPlayerRequestId, setAutoOpenedPlayerRequestId\] = useState\(''\);[\s\S]*const \[acknowledgedDialogueEntryId, setAcknowledgedDialogueEntryId\] = useState\(''\);[\s\S]*const nextUnacknowledgedStoryEntry = getNextUnacknowledgedStoryEntry\(vnRuntime\.history, acknowledgedDialogueEntryId\);[\s\S]*const playerDialogMayAutoOpen = !nextUnacknowledgedStoryEntry;[\s\S]*useEffect\(\(\) => \{[\s\S]*if \(!activePlayerRequest\?\.requestId\) return;[\s\S]*if \(autoOpenedPlayerRequestId === activePlayerRequest\.requestId\) return;[\s\S]*if \(!playerDialogMayAutoOpen\) return;[\s\S]*setPlayerDialogOpen\(true\);[\s\S]*setAutoOpenedPlayerRequestId\(activePlayerRequest\.requestId\);/,
-  'A new active player-lawyer task should automatically open once, but only after all queued story progress has been acknowledged.',
+  /const \[autoOpenedPlayerRequestId, setAutoOpenedPlayerRequestId\] = useState\(''\);[\s\S]*const \[acknowledgedDialogueEntryId, setAcknowledgedDialogueEntryId\] = useState\(''\);[\s\S]*const nextUnacknowledgedStoryEntry = getNextUnacknowledgedStoryEntry\(vnRuntime\.history, acknowledgedDialogueEntryId\);[\s\S]*const playerDialogMayAutoOpen = !nextUnacknowledgedStoryEntry;[\s\S]*const visiblePlayerRequest = activePlayerRequestReady && playerDialogMayAutoOpen \? activePlayerRequest : null;[\s\S]*useEffect\(\(\) => \{[\s\S]*if \(!visiblePlayerRequest\?\.requestId\) return;[\s\S]*if \(autoOpenedPlayerRequestId === visiblePlayerRequest\.requestId\) return;[\s\S]*if \(!playerDialogMayAutoOpen\) return;[\s\S]*setPlayerDialogOpen\(true\);[\s\S]*setAutoOpenedPlayerRequestId\(visiblePlayerRequest\.requestId\);/,
+  'A new display-ready player-lawyer task should automatically open once, but only after all queued story progress has been acknowledged.',
 );
 
 assert.match(

@@ -72,13 +72,22 @@ function AppShell({ auth }: AppShellProps) {
     ? createSceneForHistoryEntry(scene, nextUnacknowledgedStoryEntry)
     : scene;
   const playerDialogMayAutoOpen = !nextUnacknowledgedStoryEntry;
+  const latestAcknowledgedStoryEntry = getLatestAcknowledgedStoryEntry(vnRuntime.history, acknowledgedDialogueEntryId);
   const heldDialogueEntryId = nextUnacknowledgedStoryEntry?.id || '';
   const activePlayerRequest = playerLawyer.activeRequest
     && runtime.activeCaseId
     && playerLawyer.activeRequest.caseId === runtime.activeCaseId
     ? playerLawyer.activeRequest
     : null;
-  const showUserTaskPanel = Boolean(activePlayerRequest || playerLawyer.error);
+  const activePlayerRequestReady = activePlayerRequest
+    ? isPlayerRequestReadyForDisplay(
+      activePlayerRequest,
+      vnRuntime.history,
+      latestAcknowledgedStoryEntry,
+    )
+    : false;
+  const visiblePlayerRequest = activePlayerRequestReady && playerDialogMayAutoOpen ? activePlayerRequest : null;
+  const showUserTaskPanel = Boolean(visiblePlayerRequest || playerLawyer.error);
   const casePickerOpen = Boolean(
     auth.backendConfigured
     && auth.user
@@ -97,12 +106,12 @@ function AppShell({ auth }: AppShellProps) {
   }, [runtime.activeCaseId]);
 
   useEffect(() => {
-    if (!activePlayerRequest?.requestId) return;
-    if (autoOpenedPlayerRequestId === activePlayerRequest.requestId) return;
+    if (!visiblePlayerRequest?.requestId) return;
+    if (autoOpenedPlayerRequestId === visiblePlayerRequest.requestId) return;
     if (!playerDialogMayAutoOpen) return;
     setPlayerDialogOpen(true);
-    setAutoOpenedPlayerRequestId(activePlayerRequest.requestId);
-  }, [activePlayerRequest?.requestId, autoOpenedPlayerRequestId, playerDialogMayAutoOpen]);
+    setAutoOpenedPlayerRequestId(visiblePlayerRequest.requestId);
+  }, [autoOpenedPlayerRequestId, playerDialogMayAutoOpen, visiblePlayerRequest?.requestId]);
 
   useEffect(() => {
     if (!dialogueGate?.gateId || !dialogueGate.pending) return;
@@ -303,7 +312,7 @@ function AppShell({ auth }: AppShellProps) {
         user={auth.user}
         wsConnected={vnRuntime.wsConnected}
       />
-      {activePlayerRequest && !playerDialogOpen && (
+      {visiblePlayerRequest && !playerDialogOpen && (
         <section className="user-task-recovery-banner" aria-label="当前流程等待用户处理">
           <div>
             <strong>当前流程正在等待你处理用户任务</strong>
@@ -312,7 +321,7 @@ function AppShell({ auth }: AppShellProps) {
             </span>
           </div>
           <button className="primary-action" disabled={playerLawyer.actionLoading} onClick={() => setPlayerDialogOpen(true)} type="button">
-            {isDocumentStage(activePlayerRequest.stage) ? '继续文书' : '继续处理'}
+            {isDocumentStage(visiblePlayerRequest.stage) ? '继续文书' : '继续处理'}
           </button>
         </section>
       )}
@@ -332,7 +341,7 @@ function AppShell({ auth }: AppShellProps) {
         <div className="side-rail">
           {showUserTaskPanel && (
             <PlayerLawyerTaskPanel
-              activeRequest={activePlayerRequest}
+              activeRequest={visiblePlayerRequest}
               error={playerLawyer.error}
               loading={playerLawyer.actionLoading}
               onOpenRequest={() => setPlayerDialogOpen(true)}
@@ -384,7 +393,7 @@ function AppShell({ auth }: AppShellProps) {
           });
           setPlayerDialogOpen(false);
         }}
-        request={playerDialogOpen ? activePlayerRequest : null}
+        request={playerDialogOpen ? visiblePlayerRequest : null}
       />
       <CaseTimeline
         activeCode={displayedScene.stageCode}
@@ -449,6 +458,46 @@ function getNextUnacknowledgedStoryEntry(
     }
   }
   return null;
+}
+
+function getLatestAcknowledgedStoryEntry(
+  history: DialogueHistoryEntry[],
+  acknowledgedDialogueEntryId: string,
+): DialogueHistoryEntry | null {
+  if (!acknowledgedDialogueEntryId) return null;
+  const entry = history.find((item) => item.id === acknowledgedDialogueEntryId);
+  if (!entry || (entry.kind !== 'dialogue' && !isNarrativeSystemEntry(entry))) return null;
+  return entry;
+}
+
+function isPlayerRequestReadyForDisplay(
+  request: NonNullable<ReturnType<typeof usePlayerLawyerRuntime>['activeRequest']>,
+  history: DialogueHistoryEntry[],
+  latestAcknowledgedStoryEntry: DialogueHistoryEntry | null,
+): boolean {
+  if (isDocumentStage(request.stage)) return true;
+  const requestPrompt = normalizeDialogueText(request.prompt);
+  if (!requestPrompt || !latestAcknowledgedStoryEntry) return false;
+
+  const latestAcknowledgedIndex = history.findIndex((entry) => entry.id === latestAcknowledgedStoryEntry.id);
+  if (latestAcknowledgedIndex < 0) return false;
+
+  const acknowledgedPromptIndex = history.findIndex((entry) => (
+    entry.kind === 'dialogue'
+    && dialogueTextMatchesRequestPrompt(entry.text, requestPrompt)
+  ));
+  return acknowledgedPromptIndex >= 0 && acknowledgedPromptIndex <= latestAcknowledgedIndex;
+}
+
+function dialogueTextMatchesRequestPrompt(entryText: string, requestPrompt: string): boolean {
+  const normalizedEntry = normalizeDialogueText(entryText);
+  return normalizedEntry === requestPrompt
+    || normalizedEntry.includes(requestPrompt)
+    || requestPrompt.includes(normalizedEntry);
+}
+
+function normalizeDialogueText(text: string): string {
+  return String(text || '').replace(/\s+/g, '').trim();
 }
 
 function isNarrativeSystemEntry(entry: DialogueHistoryEntry): boolean {
