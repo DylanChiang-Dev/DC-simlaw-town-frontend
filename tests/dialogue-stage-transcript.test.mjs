@@ -42,6 +42,18 @@ assert.match(
 
 assert.match(
   timelineSource,
+  /className=\{`dialogue-history-entry stage-transcript-entry \$\{item\.entry\.kind\}`\}/,
+  'The stage transcript modal should use a dedicated entry class instead of relying on the two-column dialogue history layout.',
+);
+
+assert.match(
+  stylesSource,
+  /\.dialogue-records-list \.stage-transcript-entry\s*\{[\s\S]*grid-template-columns:\s*minmax\(132px,\s*max-content\)\s+max-content\s+minmax\(0,\s*1fr\)[\s\S]*\}[\s\S]*\.dialogue-records-list \.stage-transcript-entry \.markdown-text\s*\{[\s\S]*grid-column:\s*3[\s\S]*min-width:\s*0/,
+  'Transcript modal entries should reserve separate columns for the marker, speaker, and full-width body text.',
+);
+
+assert.match(
+  timelineSource,
   /function getEntryTurnNumber\(entry: DialogueHistoryEntry, fallbackIndex: number\): number \{[\s\S]*typeof entry\.turn === 'number'[\s\S]*return entry\.turn \+ 1[\s\S]*return fallbackIndex \+ 1;[\s\S]*\}/,
   'Transcript markers should reuse backend turn numbers as one-based labels and fall back to stage-local order when turn is missing.',
 );

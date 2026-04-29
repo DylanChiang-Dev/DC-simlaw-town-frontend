@@ -758,6 +758,29 @@ h1 {
   background: rgba(255, 241, 220, 0.05);
 }
 
+.dialogue-records-list .stage-transcript-entry {
+  grid-template-columns: minmax(132px, max-content) max-content minmax(0, 1fr);
+  gap: 8px 12px;
+}
+
+.dialogue-records-list .stage-transcript-entry .transcript-entry-marker {
+  width: auto;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.dialogue-records-list .stage-transcript-entry > span:not(.transcript-entry-marker) {
+  min-width: 0;
+  max-width: 112px;
+}
+
+.dialogue-records-list .stage-transcript-entry .markdown-text {
+  grid-column: 3;
+  min-width: 0;
+}
+
 .dialogue-records-actions {
   margin-top: 16px;
   display: flex;
@@ -1788,6 +1811,18 @@ h1 {
   .dialogue-history-entry {
     grid-template-columns: 1fr;
     gap: 3px;
+  }
+
+  .dialogue-records-list .stage-transcript-entry {
+    grid-template-columns: 1fr;
+  }
+
+  .dialogue-records-list .stage-transcript-entry .markdown-text {
+    grid-column: 1;
+  }
+
+  .dialogue-records-list .stage-transcript-entry .transcript-entry-marker {
+    white-space: normal;
   }
 
   .dialogue-actions {

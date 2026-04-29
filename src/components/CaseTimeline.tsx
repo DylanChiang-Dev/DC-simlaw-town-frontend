@@ -74,7 +74,7 @@ export function CaseTimeline({ activeCode, backendMode = false, history = [] }: 
             <h2>{activeStage.label}对话记录</h2>
             <div className="dialogue-records-list">
               {activeStageItems.map((item) => (
-                <article className={`dialogue-history-entry ${item.entry.kind}`} key={item.entry.id}>
+                <article className={`dialogue-history-entry stage-transcript-entry ${item.entry.kind}`} key={item.entry.id}>
                   <span className="transcript-entry-marker">{formatTranscriptMarker(item.meta)}</span>
                   <span>{item.entry.speakerName}</span>
                   <MarkdownText text={item.entry.text} />
