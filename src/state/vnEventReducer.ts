@@ -63,6 +63,29 @@ const CASE_EVENT_MESSAGES: Record<string, string> = {
   CASE_CLOSED: '本案已结案。',
 };
 
+const CASE_EVENT_STAGE_CODES: Record<string, string> = {
+  PLAINTIFF_ARRIVED: 'PLC',
+  DEFENDANT_ARRIVED: 'DLC',
+  CLIENT_ARRIVED: 'PLC',
+  CONSULTATION_STARTED: 'PLC',
+  CASE_ASSIGNED: 'PLC',
+  DOCUMENT_DRAFT_STARTED: 'CD',
+  COMPLAINT_DRAFTING_COMPLETED: 'CD',
+  LAWSUIT_FILED: 'CD',
+  DEFENSE_DRAFTING_COMPLETED: 'DD',
+  DEFENSE_FILED: 'DD',
+  ENTER_TRIAL_FIRST_INSTANCE: 'CI',
+  TRIAL_FIRST_INSTANCE_COMPLETED: 'CI',
+  APPEAL_DECISION_MADE: 'AD',
+  APPEAL_DRAFTING_COMPLETED: 'AD',
+  APPEAL_FILED: 'AD',
+  APPEAL_RESPONSE_DRAFTING_COMPLETED: 'AR',
+  APPEAL_RESPONSE_FILED: 'AR',
+  ENTER_TRIAL_SECOND_INSTANCE: 'CIA',
+  TRIAL_SECOND_INSTANCE_COMPLETED: 'CIA',
+  CASE_CLOSED: 'CIA',
+};
+
 export type VnRuntimeState = {
   background: DialogueHistoryEntry[];
   diagnostics: string[];
@@ -259,11 +282,11 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
         `继续推进失败：${String(event.payload?.message || event.payload?.error || '系统暂时没有接受继续请求')}`,
       );
     case 'case-state-change':
-      return appendSystemLine(state, getCaseStateMessage(event.payload || {}));
+      return appendSystemLine(state, getCaseStateMessage(event.payload || {}), getCaseStateStageCode(event.payload || {}));
     case 'scenario-start':
       return applyScenarioStart(state, event.payload || {});
     case 'scenario-end':
-      return appendSystemLine(state, `${getStageName(event.payload?.scenario_type)}已结束`);
+      return appendSystemLine(state, `${getStageName(event.payload?.scenario_type)}已结束`, String(event.payload?.scenario_type || ''));
     case 'case-runtime-issue':
       return applyRuntimeIssue(state, event.payload || {});
     case 'player-lawyer-input-required':
@@ -370,13 +393,14 @@ function applyScenarioStart(state: VnRuntimeState, payload: Record<string, unkno
   const stageCode = normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
   const stageName = getStageName(stageCode);
   const text = `当前阶段：${stageName}。系统正在生成下一轮对话。`;
-  const scene = createSystemScene(state.scene, text);
+  const scene = createSystemScene(state.scene, text, stageCode);
   const withDiag = appendDiagnostic({ ...state, scene }, `进入阶段 ${stageCode}`);
-  return appendSystemLine(withDiag, `进入阶段：${stageName}`);
+  return appendSystemLine(withDiag, `进入阶段：${stageName}`, stageCode);
 }
 
 function applyRuntimeIssue(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
-  const scene = createSystemScene(state.scene, String(payload.message || '案件运行异常，当前案件流程已暂停。'));
+  const stageCode = normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
+  const scene = createSystemScene(state.scene, String(payload.message || '案件运行异常，当前案件流程已暂停。'), stageCode);
   return appendHistory(
     appendDiagnostic({ ...state, scene }, `运行异常：${String(payload.code || 'UNKNOWN')}`),
     scene,
@@ -384,8 +408,8 @@ function applyRuntimeIssue(state: VnRuntimeState, payload: Record<string, unknow
   );
 }
 
-function appendSystemLine(state: VnRuntimeState, text: string): VnRuntimeState {
-  const scene = createSystemScene(state.scene, text);
+function appendSystemLine(state: VnRuntimeState, text: string, stageCode = 'SYSTEM'): VnRuntimeState {
+  const scene = createSystemScene(state.scene, text, stageCode);
   return appendHistory({ ...state, scene }, scene, 'system');
 }
 
@@ -489,6 +513,38 @@ function getCaseStateMessage(payload: Record<string, unknown>): string {
   return CASE_EVENT_MESSAGES[eventName] || '案件流程正在推进，等待下一轮案件对话。';
 }
 
+function getCaseStateStageCode(payload: Record<string, unknown>): string {
+  const explicitStage = String(payload.scenario_type || payload.stage || '').trim();
+  if (explicitStage) {
+    return normalizeStageCode(explicitStage);
+  }
+
+  const eventName = String(payload.event || payload.type || '').trim().toUpperCase();
+  const partyRole = String(payload.party_role || '').trim().toLowerCase();
+  if (eventName === 'CASE_ASSIGNED' && partyRole === 'defendant') {
+    return 'DLC';
+  }
+
+  return CASE_EVENT_STAGE_CODES[eventName]
+    || inferStageCodeFromCaseState(payload.to_state)
+    || inferStageCodeFromCaseState(payload.overall_state)
+    || 'SYSTEM';
+}
+
+function inferStageCodeFromCaseState(value: unknown): string {
+  const state = String(value || '').trim();
+  if (!state) return '';
+  if (state.includes('原告咨询')) return 'PLC';
+  if (state.includes('被告咨询')) return 'DLC';
+  if (state.includes('起诉状')) return 'CD';
+  if (state.includes('答辩状') && !state.includes('上诉')) return 'DD';
+  if (state.includes('上诉答辩')) return 'AR';
+  if (state.includes('上诉状') || state.includes('上诉决策')) return 'AD';
+  if (state.includes('二审')) return 'CIA';
+  if (state.includes('一审') || state.includes('庭前')) return 'CI';
+  return '';
+}
+
 function createSceneFromState(
   scene: DialogueScene,
   overrides: Partial<Pick<DialogueScene, 'characters' | 'speaker' | 'speakerLabel' | 'stageCode' | 'text'>>,
@@ -516,12 +572,12 @@ function createSceneFromState(
   };
 }
 
-function createSystemScene(scene: DialogueScene, text: string): DialogueScene {
+function createSystemScene(scene: DialogueScene, text: string, stageCode = 'SYSTEM'): DialogueScene {
   return createSceneFromState(scene, {
     characters: [],
     speaker: 'system',
     speakerLabel: '系统',
-    stageCode: 'SYSTEM',
+    stageCode,
     text,
   });
 }

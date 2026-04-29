@@ -65,14 +65,32 @@ assert.match(
 
 assert.match(
   reducerSource,
-  /function createSystemScene\(scene: DialogueScene, text: string\): DialogueScene \{[\s\S]*characters:\s*\[\][\s\S]*speaker:\s*'system'/,
-  'System lines should switch the main scene to a no-character system scene.',
+  /function createSystemScene\(scene: DialogueScene, text: string, stageCode = 'SYSTEM'\): DialogueScene \{[\s\S]*characters:\s*\[\][\s\S]*speaker:\s*'system'[\s\S]*stageCode,/,
+  'System lines should switch the main scene to a no-character system scene while preserving an explicit lifecycle stage when provided.',
 );
 
 assert.match(
   reducerSource,
-  /function applyScenarioStart[\s\S]*const scene = createSystemScene\(state\.scene, text\);/,
-  'Scenario-start waiting states should not pre-display the next role portrait.',
+  /function applyScenarioStart[\s\S]*const scene = createSystemScene\(state\.scene, text, stageCode\);[\s\S]*return appendSystemLine\(withDiag, `进入阶段：\$\{stageName\}`, stageCode\);/,
+  'Scenario-start waiting states should preserve the target lifecycle stage without pre-displaying the next role portrait.',
+);
+
+assert.match(
+  reducerSource,
+  /const CASE_EVENT_STAGE_CODES: Record<string, string> = \{[\s\S]*COMPLAINT_DRAFTING_COMPLETED:\s*'CD'[\s\S]*DEFENSE_DRAFTING_COMPLETED:\s*'DD'[\s\S]*APPEAL_DRAFTING_COMPLETED:\s*'AD'[\s\S]*APPEAL_RESPONSE_DRAFTING_COMPLETED:\s*'AR'/,
+  'Case-state system notices for document drafting completion should be assigned to their lifecycle stages.',
+);
+
+assert.match(
+  reducerSource,
+  /case 'case-state-change':[\s\S]*return appendSystemLine\(state, getCaseStateMessage\(event\.payload \|\| \{\}\), getCaseStateStageCode\(event\.payload \|\| \{\}\)\);/,
+  'Case-state system notices should carry a stage code so lifecycle counts do not fall back to the previous stage.',
+);
+
+assert.match(
+  reducerSource,
+  /case 'scenario-end':[\s\S]*return appendSystemLine\(state, `\$\{getStageName\(event\.payload\?\.scenario_type\)\}已结束`, String\(event\.payload\?\.scenario_type \|\| ''\)\);/,
+  'Scenario-end system notices should remain in the stage that ended.',
 );
 
 assert.match(
