@@ -1,6 +1,6 @@
 {
   "name": "simlaw-town-frontend-v2",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "version:bump": "node scripts/bump-version.mjs",
     "test:build-version": "node tests/build-version-badge.test.mjs",
+    "test:dialogue-refresh-action": "node tests/dialogue-refresh-action.test.mjs",
     "test:auto-draft": "node tests/player-lawyer-auto-draft.test.mjs",
     "test:focus-regression": "node tests/player-lawyer-focus-regression.test.mjs",
     "test:vn-character-rules": "node tests/vn-character-rendering-rules.test.mjs",

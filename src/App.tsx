@@ -125,7 +125,7 @@ function AppShell({ auth }: AppShellProps) {
       ));
       dispatchVnEvent({
         type: 'ws-error',
-        payload: { message: '案件流程超过 12 秒还没有响应，请刷新状态或重新点击继续。' },
+        payload: { message: '案件流程超过 12 秒还没有响应，请重新点击继续，或查看顶部连接状态。' },
       });
     }, DIALOGUE_CONTINUE_TIMEOUT_MS);
     return () => clearTimeout(timer);
@@ -363,7 +363,6 @@ function AppShell({ auth }: AppShellProps) {
               setAcknowledgedDialogueEntryId(entry.id);
             }}
             onContinueDialogue={handleDialogueContinue}
-            onRefreshRuntime={runtime.refresh}
             onResumeCurrentCase={runtime.activeCaseId ? handleStartSelectedCase : undefined}
             runtimeError={runtime.error}
             scene={displayedScene}

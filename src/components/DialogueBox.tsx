@@ -16,7 +16,6 @@ type Props = {
   history?: DialogueHistoryEntry[];
   onAcknowledgeCurrentEntry?: (entry: DialogueHistoryEntry) => void;
   onContinueDialogue?: () => void;
-  onRefreshRuntime?: () => Promise<void>;
   onResumeCurrentCase?: () => Promise<void>;
   scene: DialogueScene;
   runtimeError?: string;
@@ -32,7 +31,6 @@ export function DialogueBox({
   history = [],
   onContinueDialogue,
   onAcknowledgeCurrentEntry,
-  onRefreshRuntime,
   onResumeCurrentCase,
   runtimeError = '',
   selectedCaseId = '',
@@ -46,7 +44,6 @@ export function DialogueBox({
   const showTranscript = backendMode && Boolean(currentEntry);
   const fallbackNotice = backendMode && !showTranscript && !dialogueGate
     ? getBackendFallbackNotice({
-      onRefreshRuntime,
       onResumeCurrentCase,
       runtimeError,
       selectedCaseId,
@@ -175,7 +172,6 @@ function getFallbackRole(notice: BackendFallbackNotice): string {
 }
 
 type BackendFallbackInput = {
-  onRefreshRuntime?: () => Promise<void>;
   onResumeCurrentCase?: () => Promise<void>;
   runtimeError: string;
   selectedCaseId: string;
@@ -195,7 +191,6 @@ type BackendFallbackNotice = {
 };
 
 function getBackendFallbackNotice({
-  onRefreshRuntime,
   onResumeCurrentCase,
   runtimeError,
   selectedCaseId,
@@ -204,8 +199,7 @@ function getBackendFallbackNotice({
 }: BackendFallbackInput): BackendFallbackNotice {
   if (runtimeError) {
     return {
-      action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
-      message: `页面已打开，但读取案件状态失败：${runtimeError}\n\n请先刷新状态；如果仍然失败，说明当前案件暂时无法继续。`,
+      message: `页面已打开，但读取案件状态失败：${runtimeError}\n\n请查看顶部运行状态；如果仍然失败，说明当前案件暂时无法继续。`,
       title: '案件状态读取失败',
       tone: 'error',
     };
@@ -213,8 +207,7 @@ function getBackendFallbackNotice({
 
   if (simulation?.lastError?.message) {
     return {
-      action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
-      message: `案件运行出现错误：${simulation.lastError.message}\n\n当前页面不会继续展示默认对话。请刷新状态；如果错误仍在，需要先处理案件运行问题。`,
+      message: `案件运行出现错误：${simulation.lastError.message}\n\n当前页面不会继续展示默认对话。请先处理案件运行问题；确认需要重来时再使用右上角“重置”。`,
       title: '案件运行错误',
       tone: 'error',
     };
@@ -222,8 +215,7 @@ function getBackendFallbackNotice({
 
   if (!wsConnected) {
     return {
-      action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
-      message: '实时连接还没有建立，页面不会显示默认案件对话。系统会自动重连；如果长时间未恢复，请刷新状态。',
+      message: '实时连接还没有建立，页面不会显示默认案件对话。系统会自动重连；如果长时间未恢复，请查看顶部连接状态。',
       title: '实时连接未建立',
       tone: 'warn',
     };
@@ -241,7 +233,6 @@ function getBackendFallbackNotice({
 
   if (!simulation) {
     return {
-      action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
       message: '页面正在读取案件状态。读取完成前不会展示默认案件对话。',
       title: '正在读取案件状态',
       tone: 'idle',
@@ -250,8 +241,7 @@ function getBackendFallbackNotice({
 
   if (simulation.canStart && !simulation.selectedCaseId) {
     return {
-      action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
-      message: '当前没有运行中的案件。请在案件选择区选择案件并启动；如果案件选择区没有出现，请刷新状态。',
+      message: '当前没有运行中的案件。请在案件选择区选择案件并启动；如果案件选择区没有出现，请使用页面顶部的“刷新”。',
       title: '当前没有运行中的案件',
       tone: 'idle',
     };
@@ -259,16 +249,14 @@ function getBackendFallbackNotice({
 
   if (simulation.simulationRunning || simulation.status === 'running') {
     return {
-      action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
-      message: '案件正在运行，但页面还没有收到下一条实时对话。请稍等；如果状态长时间不变，请刷新状态。',
+      message: '案件正在运行，但页面还没有收到下一条实时对话。系统会继续等待实时连接推送；如果长时间没有变化，请查看顶部连接状态或确认是否需要重置。',
       title: '等待下一条案件进展',
       tone: 'idle',
     };
   }
 
   return {
-    action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
-    message: '当前页面没有可展示的实时对话，也没有可继续的用户任务。请刷新状态，或在确认需要重新开始时使用右上角“重置”。',
+    message: '当前页面没有可展示的实时对话，也没有可继续的用户任务。请查看顶部运行状态，或在确认需要重新开始时使用右上角“重置”。',
     title: '没有可展示的案件事件',
     tone: 'idle',
   };
