@@ -78,14 +78,14 @@ assert.match(
 
 assert.match(
   appSource,
-  /\['ws:dialogue-gate-waiting', \(payload\) => \{[\s\S]*dispatchVnEvent\(\{ type: 'dialogue-gate-waiting', payload \}\)/,
-  'A backend dialogue gate waiting event should update visible runtime state, not only set an invisible button.',
+  /\['ws:dialogue-gate-waiting', \(payload\) => \{[\s\S]*void autoContinueDialogueGate\(payload\);[\s\S]*dispatchVnEvent\(\{ type: 'dialogue-gate-waiting', payload \}\)/,
+  'A legacy backend dialogue gate waiting event should be auto-continued while still updating runtime diagnostics.',
 );
 
-assert.match(
+assert.doesNotMatch(
   appSource,
-  /const DIALOGUE_CONTINUE_TIMEOUT_MS = 12000;[\s\S]*setTimeout\(\(\) => \{[\s\S]*type: 'ws-error'[\s\S]*案件流程超过 12 秒还没有响应/,
-  'If a continue request is pending too long, the frontend should surface a visible error instead of silently waiting.',
+  /const DIALOGUE_CONTINUE_TIMEOUT_MS|案件流程超过 12 秒还没有响应/,
+  'The frontend should not expose manual dialogue continue timeout errors after ordinary dialogue gates become automatic.',
 );
 
 assert.match(

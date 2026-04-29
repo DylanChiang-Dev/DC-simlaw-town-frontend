@@ -223,26 +223,29 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
     case 'dialogue-update':
       return applyDialogueUpdate(state, event.payload || {});
     case 'dialogue-continue-sent':
-      return appendSystemLine(state, '已请求继续生成下一句，正在等待案件进展。');
+      return updateRuntimeStatus(state, {
+        phase: 'dialogue_continue_sent',
+        message: '正在请求下一句对话',
+        detail: String(event.payload?.gate_id || ''),
+        blocking: false,
+        lastError: '',
+      });
     case 'dialogue-gate-waiting':
       return updateRuntimeStatus(state, {
         phase: 'waiting_dialogue_continue',
-        message: '下一句已准备好，等待你继续',
+        message: '正在等待 Agent 生成下一句对话',
         detail: String(event.payload?.speaker_name || event.payload?.gate_id || ''),
-        blocking: true,
+        blocking: false,
         lastError: '',
       });
     case 'dialogue-gate-accepted':
-      return appendSystemLine(
-        updateRuntimeStatus(state, {
-          phase: 'dialogue_accepted',
-          message: '已收到继续请求',
-          detail: '正在推进下一句对话',
-          blocking: false,
-          lastError: '',
-        }),
-        '已收到继续请求，正在推进下一句对话。',
-      );
+      return updateRuntimeStatus(state, {
+        phase: 'dialogue_accepted',
+        message: '正在推进下一句对话',
+        detail: String(event.payload?.gate_id || ''),
+        blocking: false,
+        lastError: '',
+      });
     case 'dialogue-gate-error':
       return appendErrorLine(
         updateRuntimeStatus(state, {

@@ -80,7 +80,7 @@ export class WebSocketService {
       this.sendIfOpen({
         type: 'client_ready',
         frontend_mode: 'player_v2',
-        capabilities: ['dialogue_turn_gate', 'runtime_progress', 'step_gate', 'supports_player_mode'],
+        capabilities: ['runtime_progress', 'step_gate', 'supports_player_mode'],
       });
       getEventBus().emit('ws:connected');
     };

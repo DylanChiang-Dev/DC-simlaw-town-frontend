@@ -6,16 +6,9 @@ import type { DialogueHistoryEntry } from '../state/vnEventReducer';
 
 type Props = {
   backendMode?: boolean;
-  dialogueGate?: {
-    gateId: string;
-    pending?: boolean;
-    speakerName: string;
-    turn: number;
-  } | null;
   heldDialogueEntryId?: string;
   history?: DialogueHistoryEntry[];
   onAcknowledgeCurrentEntry?: (entry: DialogueHistoryEntry) => void;
-  onContinueDialogue?: () => void;
   onResumeCurrentCase?: () => Promise<void>;
   scene: DialogueScene;
   runtimeError?: string;
@@ -26,10 +19,8 @@ type Props = {
 
 export function DialogueBox({
   backendMode = false,
-  dialogueGate = null,
   heldDialogueEntryId = '',
   history = [],
-  onContinueDialogue,
   onAcknowledgeCurrentEntry,
   onResumeCurrentCase,
   runtimeError = '',
@@ -42,7 +33,7 @@ export function DialogueBox({
   const transcript = backendMode ? history : [];
   const currentEntry = getVisibleCurrentEntry(transcript, heldDialogueEntryId);
   const showTranscript = backendMode && Boolean(currentEntry);
-  const fallbackNotice = backendMode && !showTranscript && !dialogueGate
+  const fallbackNotice = backendMode && !showTranscript
     ? getBackendFallbackNotice({
       onResumeCurrentCase,
       runtimeError,
@@ -65,18 +56,15 @@ export function DialogueBox({
         name: scene.speakerLabel || speaker.name,
         role: speaker.role,
       };
-  const showActions = Boolean(dialogueGate || fallbackNotice?.action);
-  const canClickToContinue = Boolean(dialogueGate && !dialogueGate.pending && wsConnected && onContinueDialogue);
+  const showActions = Boolean(fallbackNotice?.action);
+  const canAcknowledgeCurrentEntry = currentEntry?.id === heldDialogueEntryId;
 
   function handleDialogueBoxClick(event: MouseEvent<HTMLElement>): void {
     const target = event.target as HTMLElement;
     if (target.closest('button, a, textarea, input, select, [role="button"]')) return;
-    if (currentEntry?.id === heldDialogueEntryId) {
+    if (canAcknowledgeCurrentEntry && currentEntry) {
       onAcknowledgeCurrentEntry?.(currentEntry);
-      return;
     }
-    if (!canClickToContinue) return;
-    onContinueDialogue?.();
   }
 
   function handleDialogueBoxKeyDown(event: KeyboardEvent<HTMLElement>): void {
@@ -84,21 +72,18 @@ export function DialogueBox({
     if (target.closest('button, a, textarea, input, select, [role="button"]')) return;
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
-    if (currentEntry?.id === heldDialogueEntryId) {
+    if (canAcknowledgeCurrentEntry && currentEntry) {
       onAcknowledgeCurrentEntry?.(currentEntry);
-      return;
     }
-    if (!canClickToContinue) return;
-    onContinueDialogue?.();
   }
 
   return (
     <section
       aria-label="角色对话"
-      className={`dialogue-box ${canClickToContinue ? 'clickable' : ''}`}
+      className={`dialogue-box ${canAcknowledgeCurrentEntry ? 'clickable' : ''}`}
       onClick={handleDialogueBoxClick}
       onKeyDown={handleDialogueBoxKeyDown}
-      tabIndex={canClickToContinue ? 0 : undefined}
+      tabIndex={canAcknowledgeCurrentEntry ? 0 : undefined}
     >
       <div className="speaker-plate">
         <strong>{speakerPlate.name}</strong>
@@ -121,21 +106,7 @@ export function DialogueBox({
       {showActions && <div className="dialogue-actions">
         {backendMode ? (
           <>
-            {dialogueGate && (
-              <div className="dialogue-gate-notice" role="status">
-                <strong>下一句已准备好</strong>
-                <span>
-                  {dialogueGate.pending
-                    ? '已请求继续，正在等待响应。'
-                    : `下一句已准备好${dialogueGate.speakerName ? `：${dialogueGate.speakerName}` : ''}。点击“继续”或直接点击对话框推进。`}
-                </span>
-              </div>
-            )}
-            {dialogueGate ? (
-              <button disabled={dialogueGate.pending || !wsConnected} type="button" onClick={onContinueDialogue}>
-                {!wsConnected ? '实时未连接，正在重连' : dialogueGate.pending ? '等待响应' : '继续'}
-              </button>
-            ) : fallbackNotice?.action ? (
+            {fallbackNotice?.action ? (
               <button className={fallbackNotice.action.kind === 'secondary' ? 'secondary-action' : undefined} type="button" onClick={() => void fallbackNotice.action?.run()}>
                 {fallbackNotice.action.label}
               </button>
@@ -249,8 +220,8 @@ function getBackendFallbackNotice({
 
   if (simulation.simulationRunning || simulation.status === 'running') {
     return {
-      message: '案件正在运行，但页面还没有收到下一条实时对话。系统会继续等待实时连接推送；如果长时间没有变化，请查看顶部连接状态或确认是否需要重置。',
-      title: '等待下一条案件进展',
+      message: '案件正在运行，正在等待 Agent 生成下一句对话。生成完成后会自动进入前端阅读队列；如果长时间没有变化，请查看顶部连接状态。',
+      title: '正在等待 Agent 生成对话',
       tone: 'idle',
     };
   }

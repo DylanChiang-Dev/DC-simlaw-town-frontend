@@ -672,27 +672,6 @@ h1 {
   justify-content: flex-end;
 }
 
-.dialogue-gate-notice {
-  flex: 1 1 260px;
-  min-width: min(260px, 100%);
-  display: grid;
-  gap: 3px;
-  padding: 9px 11px;
-  border: 1px solid rgba(233, 188, 114, 0.34);
-  background: rgba(54, 42, 31, 0.82);
-  color: #fff2dc;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.dialogue-gate-notice strong {
-  font-size: 12px;
-}
-
-.dialogue-gate-notice span {
-  color: var(--text-muted);
-}
-
 .dialogue-actions button,
 .primary-action,
 .secondary-action {

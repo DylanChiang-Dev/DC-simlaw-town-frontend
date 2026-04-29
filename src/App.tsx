@@ -38,8 +38,6 @@ type DialogueGateState = {
   turn: number;
 } | null;
 
-const DIALOGUE_CONTINUE_TIMEOUT_MS = 12000;
-
 const STAGE_DOCUMENT_TYPES: Record<string, string> = {
   CD: 'CD',
   DD: 'DD',
@@ -56,7 +54,7 @@ const STAGE_SKILL_IDS: Record<string, string> = {
 
 function AppShell({ auth }: AppShellProps) {
   const [documentsOpen, setDocumentsOpen] = useState(false);
-  const [dialogueGate, setDialogueGate] = useState<DialogueGateState>(null);
+  const [, setDialogueGate] = useState<DialogueGateState>(null);
   const [playerDialogOpen, setPlayerDialogOpen] = useState(false);
   const [autoOpenedPlayerRequestId, setAutoOpenedPlayerRequestId] = useState('');
   const [acknowledgedDialogueEntryId, setAcknowledgedDialogueEntryId] = useState('');
@@ -115,23 +113,6 @@ function AppShell({ auth }: AppShellProps) {
   }, [autoOpenedPlayerRequestId, playerDialogMayAutoOpen, visiblePlayerRequest?.requestId]);
 
   useEffect(() => {
-    if (!dialogueGate?.gateId || !dialogueGate.pending) return;
-    const gateId = dialogueGate.gateId;
-    const timer = setTimeout(() => {
-      setDialogueGate((current) => (
-        current?.gateId === gateId && current.pending
-          ? { ...current, pending: false }
-          : current
-      ));
-      dispatchVnEvent({
-        type: 'ws-error',
-        payload: { message: '案件流程超过 12 秒还没有响应，请重新点击继续，或查看顶部连接状态。' },
-      });
-    }, DIALOGUE_CONTINUE_TIMEOUT_MS);
-    return () => clearTimeout(timer);
-  }, [dialogueGate?.gateId, dialogueGate?.pending]);
-
-  useEffect(() => {
     if (!auth.backendConfigured || !auth.user) {
       getWebSocketService().disconnect();
       return;
@@ -148,14 +129,7 @@ function AppShell({ auth }: AppShellProps) {
         dispatchVnEvent({ type: 'dialogue-update', payload });
       }],
       ['ws:dialogue-gate-waiting', (payload) => {
-        const gateId = String(payload?.gate_id || '');
-        if (!gateId) return;
-        setDialogueGate({
-          gateId,
-          pending: false,
-          speakerName: String(payload?.speaker_name || ''),
-          turn: Number(payload?.turn || 0),
-        });
+        void autoContinueDialogueGate(payload);
         dispatchVnEvent({ type: 'dialogue-gate-waiting', payload });
       }],
       ['ws:dialogue-gate-accepted', (payload) => {
@@ -215,26 +189,6 @@ function AppShell({ auth }: AppShellProps) {
       getWebSocketService().disconnect();
     };
   }, [auth.backendConfigured, auth.user]);
-
-  async function handleDialogueContinue(): Promise<void> {
-    if (!dialogueGate?.gateId) return;
-    if (dialogueGate.pending) return;
-    const gateId = dialogueGate.gateId;
-    setDialogueGate((current) => (
-      current?.gateId === gateId ? { ...current, pending: true, requestedAt: Date.now() } : current
-    ));
-    const sent = await getWebSocketService().sendDialogueContinue(gateId);
-    if (sent) {
-      dispatchVnEvent({
-        type: 'dialogue-continue-sent',
-        payload: { gate_id: gateId },
-      });
-    } else {
-      setDialogueGate((current) => (
-        current?.gateId === gateId ? { ...current, pending: false } : current
-      ));
-    }
-  }
 
   async function handleStartSelectedCase(caseId?: string): Promise<void> {
     setDialogueGate(null);
@@ -355,13 +309,11 @@ function AppShell({ auth }: AppShellProps) {
           <VisualNovelStage scene={displayedScene} />
           <DialogueBox
             backendMode={auth.backendConfigured && Boolean(auth.user)}
-            dialogueGate={dialogueGate}
             heldDialogueEntryId={heldDialogueEntryId}
             history={vnRuntime.history}
             onAcknowledgeCurrentEntry={(entry) => {
               setAcknowledgedDialogueEntryId(entry.id);
             }}
-            onContinueDialogue={handleDialogueContinue}
             onResumeCurrentCase={runtime.activeCaseId ? handleStartSelectedCase : undefined}
             runtimeError={runtime.error}
             scene={displayedScene}
@@ -507,10 +459,12 @@ function normalizeDialogueText(text: string): string {
 
 function isNarrativeSystemEntry(entry: DialogueHistoryEntry): boolean {
   if (entry.kind !== 'system') return false;
-  return !(
-    entry.text.includes('已请求继续生成下一句')
-    || entry.text.includes('已收到继续请求')
-  );
+  return !isOperationalContinueNotice(entry.text);
+}
+
+function isOperationalContinueNotice(text: string): boolean {
+  return text.includes('已请求继续生成下一句')
+    || text.includes('已收到继续请求');
 }
 
 function isDocumentStage(stage?: string): boolean {
@@ -520,4 +474,10 @@ function isDocumentStage(stage?: string): boolean {
 function shouldClearDialogueGateAfterRuntimeProgress(payload?: Record<string, unknown>): boolean {
   const phase = String(payload?.phase || '').trim();
   return Boolean(phase && phase !== 'next_ready');
+}
+
+async function autoContinueDialogueGate(payload?: Record<string, unknown>): Promise<void> {
+  const gateId = String(payload?.gate_id || '');
+  if (!gateId) return;
+  await getWebSocketService().sendDialogueContinue(gateId);
 }

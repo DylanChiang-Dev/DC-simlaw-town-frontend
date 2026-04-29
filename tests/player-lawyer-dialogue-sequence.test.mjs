@@ -7,6 +7,7 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const projectRoot = dirname(root);
 const appSource = readFileSync(join(root, 'src', 'App.tsx'), 'utf8');
 const dialogueSource = readFileSync(join(root, 'src', 'components', 'DialogueBox.tsx'), 'utf8');
+const webSocketSource = readFileSync(join(root, 'src', 'services', 'webSocket.ts'), 'utf8');
 const vnReducerSource = readFileSync(join(root, 'src', 'state', 'vnEventReducer.ts'), 'utf8');
 const agentsSource = readFileSync(join(projectRoot, 'AGENTS.md'), 'utf8');
 const rulesSource = readFileSync(join(projectRoot, 'RULES.md'), 'utf8');
@@ -31,14 +32,26 @@ assert.match(
 
 assert.match(
   dialogueSource,
-  /if \(currentEntry\?\.id === heldDialogueEntryId\) \{\s*onAcknowledgeCurrentEntry\?\.\(currentEntry\);\s*return;\s*\}/,
+  /const canAcknowledgeCurrentEntry = currentEntry\?\.id === heldDialogueEntryId;[\s\S]*if \(canAcknowledgeCurrentEntry && currentEntry\) \{\s*onAcknowledgeCurrentEntry\?\.\(currentEntry\);[\s\S]*\}/,
   'Clicking the held story entry should acknowledge the visible line before other UI can advance.',
+);
+
+assert.doesNotMatch(
+  dialogueSource,
+  /dialogue-gate-notice|下一句已准备好|点击“继续”/,
+  'DialogueBox should not expose the old next-line-ready gate prompt or a manual continue hint.',
 );
 
 assert.match(
   dialogueSource,
-  /dialogue-gate-notice[\s\S]*下一句已准备好[\s\S]*点击“继续”/,
-  'DialogueBox should visibly explain that the next line is ready and waiting for the user to continue.',
+  /正在等待 Agent 生成下一句对话/,
+  'DialogueBox should show a neutral waiting-for-agent-generation notice when the story queue is drained.',
+);
+
+assert.doesNotMatch(
+  webSocketSource,
+  /capabilities:\s*\[[^\]]*'dialogue_turn_gate'/,
+  'The player-v2 frontend should not advertise dialogue_turn_gate; ordinary dialogue should stream asynchronously from the backend.',
 );
 
 assert.match(
@@ -109,8 +122,14 @@ assert.match(
 
 assert.match(
   appSource,
-  /function isNarrativeSystemEntry\(entry: DialogueHistoryEntry\): boolean \{[\s\S]*entry\.kind !== 'system'[\s\S]*return !\([\s\S]*已请求继续生成下一句[\s\S]*已收到继续请求[\s\S]*\);[\s\S]*\}/,
+  /function isNarrativeSystemEntry\(entry: DialogueHistoryEntry\): boolean \{[\s\S]*entry\.kind !== 'system'[\s\S]*return !isOperationalContinueNotice\(entry\.text\);[\s\S]*\}/,
   'Operational continue notices should not force extra acknowledgements, but lifecycle system progress should.',
+);
+
+assert.match(
+  appSource,
+  /function isOperationalContinueNotice\(text: string\): boolean \{[\s\S]*已请求继续生成下一句[\s\S]*已收到继续请求[\s\S]*\}/,
+  'Operational continue notices should remain centralized so they can be filtered out of the story queue.',
 );
 
 assert.match(
@@ -157,7 +176,7 @@ assert.match(
 
 assert.match(
   dialogueSource,
-  /if \(currentEntry\?\.id === heldDialogueEntryId\) \{\s*onAcknowledgeCurrentEntry\?\.\(currentEntry\);\s*return;\s*\}/,
+  /if \(canAcknowledgeCurrentEntry && currentEntry\) \{\s*onAcknowledgeCurrentEntry\?\.\(currentEntry\);[\s\S]*\}/,
   'Clicking a held story entry should acknowledge that entry first instead of also sending a continue request in the same click.',
 );
 
@@ -175,8 +194,14 @@ assert.match(
 
 assert.match(
   appSource,
-  /if \(dialogueGate\.pending\) return;/,
-  'Dialogue continue should not send duplicate requests while the same gate is already pending.',
+  /\['ws:dialogue-gate-waiting', \(payload\) => \{[\s\S]*void autoContinueDialogueGate\(payload\);[\s\S]*dispatchVnEvent\(\{ type: 'dialogue-gate-waiting', payload \}\);[\s\S]*\}\]/,
+  'Legacy dialogue gates should be auto-consumed by the frontend instead of waiting for a visible user continue action.',
+);
+
+assert.doesNotMatch(
+  dialogueSource,
+  /onContinueDialogue|dialogueGate\?|canClickToContinue|等待响应/,
+  'DialogueBox should no longer own manual dialogue gate controls.',
 );
 
 assert.doesNotMatch(
