@@ -962,6 +962,27 @@ h1 {
   text-align: center;
 }
 
+.build-version-badge {
+  position: fixed;
+  left: 10px;
+  bottom: 58px;
+  z-index: 8;
+  max-width: min(280px, calc(100vw - 20px));
+  overflow: hidden;
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 222, 176, 0.18);
+  background: rgba(25, 15, 10, 0.56);
+  color: rgba(255, 241, 220, 0.72);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  line-height: 1.2;
+  pointer-events: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  backdrop-filter: blur(10px);
+}
+
 .modal-layer {
   position: fixed;
   inset: 0;
@@ -1714,6 +1735,10 @@ h1 {
     grid-template-columns: repeat(8, minmax(108px, 1fr));
   }
 
+  .build-version-badge {
+    bottom: 60px;
+  }
+
   .document-live-grid {
     grid-template-columns: 1fr;
   }
@@ -1811,6 +1836,13 @@ h1 {
   .dialogue-history-entry {
     grid-template-columns: 1fr;
     gap: 3px;
+  }
+
+  .build-version-badge {
+    left: 10px;
+    bottom: 58px;
+    max-width: calc(100vw - 20px);
+    font-size: 9px;
   }
 
   .dialogue-records-list .stage-transcript-entry {

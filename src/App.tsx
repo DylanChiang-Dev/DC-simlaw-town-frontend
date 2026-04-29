@@ -1,5 +1,6 @@
 import { useEffect, useReducer, useState } from 'react';
 import { AuthGate, type AuthGateState } from './components/AuthGate';
+import { BuildVersionBadge } from './components/BuildVersionBadge';
 import { CasePicker } from './components/CasePicker';
 import { CaseDocumentsPanel } from './components/CaseDocumentsPanel';
 import { CaseTimeline } from './components/CaseTimeline';
@@ -440,7 +441,12 @@ function AppShell({ auth }: AppShellProps) {
 }
 
 export function App() {
-  return <AuthGate>{(auth) => <AppShell auth={auth} />}</AuthGate>;
+  return (
+    <>
+      <AuthGate>{(auth) => <AppShell auth={auth} />}</AuthGate>
+      <BuildVersionBadge />
+    </>
+  );
 }
 
 function getNextUnacknowledgedStoryEntry(
