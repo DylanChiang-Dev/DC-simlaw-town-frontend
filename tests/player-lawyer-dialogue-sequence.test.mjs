@@ -31,8 +31,8 @@ assert.match(
 
 assert.match(
   dialogueSource,
-  /if \(currentEntry\?\.kind === 'dialogue'\) \{\s*onAcknowledgeCurrentEntry\?\.\(currentEntry\);\s*\}/,
-  'Clicking the current dialogue should acknowledge a visible role line before other UI can advance.',
+  /if \(currentEntry\?\.id === heldDialogueEntryId\) \{\s*onAcknowledgeCurrentEntry\?\.\(currentEntry\);\s*return;\s*\}/,
+  'Clicking the held story entry should acknowledge the visible line before other UI can advance.',
 );
 
 assert.match(
@@ -67,26 +67,32 @@ assert.match(
 
 assert.match(
   appSource,
-  /const nextUnacknowledgedDialogueEntry = getNextUnacknowledgedDialogueEntry\(vnRuntime\.history, acknowledgedDialogueEntryId\);/,
-  'App should derive the earliest unacknowledged role dialogue entry from VN history.',
+  /const nextUnacknowledgedStoryEntry = getNextUnacknowledgedStoryEntry\(vnRuntime\.history, acknowledgedDialogueEntryId\);/,
+  'App should derive the earliest unacknowledged story entry from VN history.',
 );
 
 assert.match(
   appSource,
-  /const playerDialogMayAutoOpen = !nextUnacknowledgedDialogueEntry;/,
-  'Player task dialogs should auto-open only after every queued role dialogue has been acknowledged.',
+  /const playerDialogMayAutoOpen = !nextUnacknowledgedStoryEntry;/,
+  'Player task dialogs should auto-open only after every queued story entry has been acknowledged.',
 );
 
 assert.match(
   appSource,
-  /const heldDialogueEntryId = nextUnacknowledgedDialogueEntry\?\.id \|\| '';/,
-  'App should hold the earliest unacknowledged role dialogue in the main story box so fast consecutive character lines are shown in order.',
+  /const heldDialogueEntryId = nextUnacknowledgedStoryEntry\?\.id \|\| '';/,
+  'App should hold the earliest unacknowledged story entry in the main story box so fast stage progress cannot be skipped.',
 );
 
 assert.match(
   appSource,
-  /function getNextUnacknowledgedDialogueEntry\([\s\S]*history: DialogueHistoryEntry\[\],[\s\S]*acknowledgedDialogueEntryId: string,[\s\S]*\): DialogueHistoryEntry \| null \{[\s\S]*for \(let index = startIndex; index < history\.length; index \+= 1\)[\s\S]*entry\.kind === 'dialogue'[\s\S]*return entry;[\s\S]*return null;[\s\S]*\}/,
-  'Queued role dialogue should advance from oldest to newest after each acknowledgement instead of jumping to the latest line.',
+  /function getNextUnacknowledgedStoryEntry\([\s\S]*history: DialogueHistoryEntry\[\],[\s\S]*acknowledgedDialogueEntryId: string,[\s\S]*\): DialogueHistoryEntry \| null \{[\s\S]*for \(let index = startIndex; index < history\.length; index \+= 1\)[\s\S]*entry\.kind === 'dialogue' \|\| isNarrativeSystemEntry\(entry\)[\s\S]*return entry;[\s\S]*return null;[\s\S]*\}/,
+  'Queued story entries should advance from oldest to newest, including key system phase progress.',
+);
+
+assert.match(
+  appSource,
+  /function isNarrativeSystemEntry\(entry: DialogueHistoryEntry\): boolean \{[\s\S]*entry\.kind !== 'system'[\s\S]*return !\([\s\S]*已请求继续生成下一句[\s\S]*已收到继续请求[\s\S]*\);[\s\S]*\}/,
+  'Operational continue notices should not force extra acknowledgements, but lifecycle system progress should.',
 );
 
 assert.match(
@@ -98,7 +104,13 @@ assert.match(
 assert.match(
   appSource,
   /onAcknowledgeCurrentEntry=\{\(entry\) => \{[\s\S]*setAcknowledgedDialogueEntryId\(entry\.id\);/,
-  'DialogueBox acknowledgement should update the App-level latest dialogue acknowledgement state.',
+  'DialogueBox acknowledgement should update the App-level latest story acknowledgement state.',
+);
+
+assert.match(
+  dialogueSource,
+  /if \(currentEntry\?\.id === heldDialogueEntryId\) \{\s*onAcknowledgeCurrentEntry\?\.\(currentEntry\);\s*return;\s*\}/,
+  'Clicking a held story entry should acknowledge that entry first instead of also sending a continue request in the same click.',
 );
 
 assert.match(

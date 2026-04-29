@@ -67,12 +67,12 @@ function AppShell({ auth }: AppShellProps) {
   );
   const [vnRuntime, dispatchVnEvent] = useReducer(vnEventReducer, undefined, createInitialVnRuntimeState);
   const scene = vnRuntime.scene;
-  const nextUnacknowledgedDialogueEntry = getNextUnacknowledgedDialogueEntry(vnRuntime.history, acknowledgedDialogueEntryId);
-  const displayedScene = nextUnacknowledgedDialogueEntry
-    ? createSceneForHistoryEntry(scene, nextUnacknowledgedDialogueEntry)
+  const nextUnacknowledgedStoryEntry = getNextUnacknowledgedStoryEntry(vnRuntime.history, acknowledgedDialogueEntryId);
+  const displayedScene = nextUnacknowledgedStoryEntry
+    ? createSceneForHistoryEntry(scene, nextUnacknowledgedStoryEntry)
     : scene;
-  const playerDialogMayAutoOpen = !nextUnacknowledgedDialogueEntry;
-  const heldDialogueEntryId = nextUnacknowledgedDialogueEntry?.id || '';
+  const playerDialogMayAutoOpen = !nextUnacknowledgedStoryEntry;
+  const heldDialogueEntryId = nextUnacknowledgedStoryEntry?.id || '';
   const activePlayerRequest = playerLawyer.activeRequest
     && runtime.activeCaseId
     && playerLawyer.activeRequest.caseId === runtime.activeCaseId
@@ -430,7 +430,7 @@ export function App() {
   return <AuthGate>{(auth) => <AppShell auth={auth} />}</AuthGate>;
 }
 
-function getNextUnacknowledgedDialogueEntry(
+function getNextUnacknowledgedStoryEntry(
   history: DialogueHistoryEntry[],
   acknowledgedDialogueEntryId: string,
 ): DialogueHistoryEntry | null {
@@ -440,11 +440,19 @@ function getNextUnacknowledgedDialogueEntry(
   const startIndex = acknowledgedIndex >= 0 ? acknowledgedIndex + 1 : 0;
   for (let index = startIndex; index < history.length; index += 1) {
     const entry = history[index];
-    if (entry.kind === 'dialogue') {
+    if (entry.kind === 'dialogue' || isNarrativeSystemEntry(entry)) {
       return entry;
     }
   }
   return null;
+}
+
+function isNarrativeSystemEntry(entry: DialogueHistoryEntry): boolean {
+  if (entry.kind !== 'system') return false;
+  return !(
+    entry.text.includes('已请求继续生成下一句')
+    || entry.text.includes('已收到继续请求')
+  );
 }
 
 function isDocumentStage(stage?: string): boolean {

@@ -72,7 +72,7 @@ assert.match(
 
 assert.match(
   appSource,
-  /const displayedScene = nextUnacknowledgedDialogueEntry[\s\S]*createSceneForHistoryEntry\(scene, nextUnacknowledgedDialogueEntry\)[\s\S]*<VisualNovelStage scene=\{displayedScene\} \/>/,
+  /const displayedScene = nextUnacknowledgedStoryEntry[\s\S]*createSceneForHistoryEntry\(scene, nextUnacknowledgedStoryEntry\)[\s\S]*<VisualNovelStage scene=\{displayedScene\} \/>/,
   'When a reception dialogue is held visible, the stage art should use that dialogue scene instead of the latest system scene.',
 );
 

@@ -76,8 +76,9 @@ export function DialogueBox({
   function handleDialogueBoxClick(event: MouseEvent<HTMLElement>): void {
     const target = event.target as HTMLElement;
     if (target.closest('button, a, textarea, input, select, [role="button"]')) return;
-    if (currentEntry?.kind === 'dialogue') {
+    if (currentEntry?.id === heldDialogueEntryId) {
       onAcknowledgeCurrentEntry?.(currentEntry);
+      return;
     }
     if (!canClickToContinue) return;
     onContinueDialogue?.();
@@ -88,8 +89,9 @@ export function DialogueBox({
     if (target.closest('button, a, textarea, input, select, [role="button"]')) return;
     if (event.key !== 'Enter' && event.key !== ' ') return;
     event.preventDefault();
-    if (currentEntry?.kind === 'dialogue') {
+    if (currentEntry?.id === heldDialogueEntryId) {
       onAcknowledgeCurrentEntry?.(currentEntry);
+      return;
     }
     if (!canClickToContinue) return;
     onContinueDialogue?.();
