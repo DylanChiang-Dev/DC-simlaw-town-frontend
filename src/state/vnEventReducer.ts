@@ -270,11 +270,29 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
         lastError: '',
       });
     case 'player-lawyer-input-submitted':
-      return appendSystemLine(state, '当前角色回复已提交，案件流程正在继续。');
+      return updateRuntimeStatus(state, {
+        phase: 'player_task_submitted',
+        message: '当前角色回复已提交，案件流程正在继续',
+        detail: '',
+        blocking: false,
+        lastError: '',
+      });
     case 'player-lawyer-document-draft-ready':
-      return appendSystemLine(state, '文书草稿已生成，等待用户确认。');
+      return updateRuntimeStatus(state, {
+        phase: 'player_document_draft_ready',
+        message: '文书草稿已生成，等待确认',
+        detail: '',
+        blocking: true,
+        lastError: '',
+      });
     case 'player-lawyer-document-confirmed':
-      return appendSystemLine(state, '用户已确认文书，系统正在保存并导出 PDF。');
+      return updateRuntimeStatus(state, {
+        phase: 'player_document_confirmed',
+        message: '文书已确认，案件流程正在继续',
+        detail: '',
+        blocking: false,
+        lastError: '',
+      });
     case 'player-lawyer-error':
       return appendErrorLine(state, `用户任务请求失败：${String(event.payload?.message || event.payload?.error || '请稍后重试')}`);
     case 'ws-error':

@@ -137,6 +137,30 @@ assert.doesNotMatch(
   'Player input requests should not append a system line into the main story history.',
 );
 
+assert.doesNotMatch(
+  vnReducerSource,
+  /case 'player-lawyer-input-submitted':\s*return appendSystemLine/,
+  'Submitted player text should return to the story through the real dialogue-update broadcast, not a synthetic system line.',
+);
+
+assert.doesNotMatch(
+  vnReducerSource,
+  /case 'player-lawyer-document-draft-ready':\s*return appendSystemLine/,
+  'Document draft readiness should update task state only, not insert a synthetic story line.',
+);
+
+assert.doesNotMatch(
+  vnReducerSource,
+  /case 'player-lawyer-document-confirmed':\s*return appendSystemLine/,
+  'Confirmed player documents should return to the story as a lawyer summary dialogue, not a synthetic system line.',
+);
+
+assert.match(
+  vnReducerSource,
+  /case 'player-lawyer-input-submitted':\s*return updateRuntimeStatus/,
+  'Submitted player tasks should still update the runtime status without polluting the main story transcript.',
+);
+
 assert.match(
   vnReducerSource,
   /DEFENDANT_ARRIVED:\s*'被告已收到法院送达，正在前往律所咨询应对。'/,
