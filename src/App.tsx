@@ -396,6 +396,7 @@ function AppShell({ auth }: AppShellProps) {
       />
       <CaseTimeline
         activeCode={displayedScene.stageCode}
+        activeEntry={nextUnacknowledgedStoryEntry}
         backendMode={auth.backendConfigured && Boolean(auth.user)}
         history={vnRuntime.history}
       />

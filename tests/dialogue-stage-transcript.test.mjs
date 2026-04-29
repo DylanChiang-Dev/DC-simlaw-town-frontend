@@ -96,8 +96,14 @@ assert.doesNotMatch(
 
 assert.match(
   appSource,
-  /<CaseTimeline[\s\S]*activeCode=\{displayedScene\.stageCode\}[\s\S]*backendMode=\{auth\.backendConfigured && Boolean\(auth\.user\)\}[\s\S]*history=\{vnRuntime\.history\}/,
-  'App should pass current VN history into the existing bottom lifecycle timeline.',
+  /<CaseTimeline[\s\S]*activeCode=\{displayedScene\.stageCode\}[\s\S]*activeEntry=\{nextUnacknowledgedStoryEntry\}[\s\S]*backendMode=\{auth\.backendConfigured && Boolean\(auth\.user\)\}[\s\S]*history=\{vnRuntime\.history\}/,
+  'App should pass the displayed story entry and current VN history into the existing bottom lifecycle timeline.',
+);
+
+assert.match(
+  timelineSource,
+  /const activeLifecycleCode = resolveActiveLifecycleCode\(activeCode, timelineHistory, activeEntry\);[\s\S]*function resolveActiveLifecycleCode\(\s*activeCode: string,\s*history: DialogueHistoryEntry\[\],\s*activeEntry\?: DialogueHistoryEntry \| null,\s*\): TranscriptStageCode \| string \{[\s\S]*if \(normalized === 'RECEPTION'\)[\s\S]*const receptionEntry = activeEntry\?\.stageCode === 'RECEPTION'\s*\? activeEntry\s*:\s*findLatestReceptionEntry\(history\);[\s\S]*getReceptionTranscriptStage\(receptionEntry, latestKnownStage\)/,
+  'The active lifecycle highlight should classify RECEPTION by the current reception record/history, so defendant reception highlights DLC instead of PLC.',
 );
 
 assert.match(

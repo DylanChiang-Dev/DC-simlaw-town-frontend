@@ -4,6 +4,7 @@ import type { DialogueHistoryEntry } from '../state/vnEventReducer';
 
 type Props = {
   activeCode: string;
+  activeEntry?: DialogueHistoryEntry | null;
   backendMode?: boolean;
   history?: DialogueHistoryEntry[];
 };
@@ -32,10 +33,11 @@ const AUXILIARY_TRANSCRIPT_STAGES: Record<string, TranscriptStageCode> = {
 
 const DIRECT_TRANSCRIPT_STAGE_CODES = new Set<string>(TRANSCRIPT_STAGES.map((stage) => stage.code));
 
-export function CaseTimeline({ activeCode, backendMode = false, history = [] }: Props) {
+export function CaseTimeline({ activeCode, activeEntry = null, backendMode = false, history = [] }: Props) {
   const [activeTranscriptStage, setActiveTranscriptStage] = useState<TranscriptStageCode | null>(null);
-  const transcriptGroups = groupTranscriptByStage(backendMode ? history : []);
-  const activeLifecycleCode = getTranscriptStageCode(activeCode) || activeCode;
+  const timelineHistory = backendMode ? history : [];
+  const transcriptGroups = groupTranscriptByStage(timelineHistory);
+  const activeLifecycleCode = resolveActiveLifecycleCode(activeCode, timelineHistory, activeEntry);
   const activeIndex = TRANSCRIPT_STAGES.findIndex((stage) => stage.code === activeLifecycleCode);
   const activeStage = TRANSCRIPT_STAGES.find((stage) => stage.code === activeTranscriptStage) || null;
   const activeStageEntries = activeStage ? transcriptGroups[activeStage.code] : [];
@@ -147,6 +149,52 @@ function groupTranscriptByStage(history: DialogueHistoryEntry[]): Record<Transcr
   }
 
   return groups;
+}
+
+function resolveActiveLifecycleCode(
+  activeCode: string,
+  history: DialogueHistoryEntry[],
+  activeEntry?: DialogueHistoryEntry | null,
+): TranscriptStageCode | string {
+  const normalized = String(activeCode || '').toUpperCase();
+  if (normalized === 'RECEPTION') {
+    const latestKnownStage = findLatestKnownTranscriptStage(history);
+    const receptionEntry = activeEntry?.stageCode === 'RECEPTION'
+      ? activeEntry
+      : findLatestReceptionEntry(history);
+    return receptionEntry
+      ? getReceptionTranscriptStage(receptionEntry, latestKnownStage)
+      : latestKnownStage;
+  }
+  return getTranscriptStageCode(normalized) || activeCode;
+}
+
+function findLatestKnownTranscriptStage(history: DialogueHistoryEntry[]): TranscriptStageCode {
+  let currentStage: TranscriptStageCode = 'PLC';
+  for (const entry of history) {
+    if (isOperationalTranscriptNotice(entry)) {
+      continue;
+    }
+    if (entry.stageCode === 'RECEPTION') {
+      currentStage = getReceptionTranscriptStage(entry, currentStage);
+      continue;
+    }
+    const mappedStage = getTranscriptStageCode(entry.stageCode);
+    if (mappedStage) {
+      currentStage = mappedStage;
+    }
+  }
+  return currentStage;
+}
+
+function findLatestReceptionEntry(history: DialogueHistoryEntry[]): DialogueHistoryEntry | null {
+  for (let index = history.length - 1; index >= 0; index -= 1) {
+    const entry = history[index];
+    if (entry.stageCode === 'RECEPTION') {
+      return entry;
+    }
+  }
+  return null;
 }
 
 function isOperationalTranscriptNotice(entry: DialogueHistoryEntry): boolean {
