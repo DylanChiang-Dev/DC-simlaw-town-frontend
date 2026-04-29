@@ -41,6 +41,18 @@ assert.match(
 
 assert.match(
   reducerSource,
+  /LC:\s*'\/art\/vn\/bg-law-office\.png'[\s\S]*CD:\s*'\/art\/vn\/bg-document-desk\.png'[\s\S]*DD:\s*'\/art\/vn\/bg-document-desk\.png'[\s\S]*CI:\s*'\/art\/vn\/bg-courtroom\.png'[\s\S]*AD:\s*'\/art\/vn\/bg-document-desk\.png'[\s\S]*CIA:\s*'\/art\/vn\/bg-appeal-courtroom\.png'/,
+  'The six visible lifecycle stages should each have the intended VN background mapping.',
+);
+
+assert.match(
+  runtimeSceneSource,
+  /code:\s*'LC'[\s\S]*code:\s*'CD'[\s\S]*code:\s*'DD'[\s\S]*code:\s*'CI'[\s\S]*code:\s*'AD'[\s\S]*code:\s*'CIA'/,
+  'The lifecycle rail should keep the six visible stages in process order.',
+);
+
+assert.match(
+  reducerSource,
   /CIA:\s*'\/art\/vn\/bg-appeal-courtroom\.png'[\s\S]*FINAL_VERDICT:\s*'\/art\/vn\/bg-appeal-courtroom\.png'/,
   'Second-instance hearing and final verdict stages should use the generated appeal courtroom background.',
 );

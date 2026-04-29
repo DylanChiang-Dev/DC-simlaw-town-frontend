@@ -37,6 +37,18 @@ assert.match(
 
 assert.match(
   reducerSource,
+  /value\.includes\('plaintiff_lawyer'\)[\s\S]*return 'playerLawyer';[\s\S]*value\.includes\('plaintiff'\)[\s\S]*return 'client';/,
+  'Plaintiff lawyer speaker ids should resolve to the player lawyer before generic plaintiff/client matching.',
+);
+
+assert.match(
+  reducerSource,
+  /value\.includes\('defendant_lawyer'\)[\s\S]*return 'opponentLawyer';[\s\S]*value\.includes\('defendant'\)[\s\S]*return 'defendant';/,
+  'Defendant lawyer speaker ids should resolve to Zhao Xue before generic defendant/client matching.',
+);
+
+assert.match(
+  reducerSource,
   /const speakerName = String\(payload\.speaker_name \|\| ''\)[\s\S]*speakerName\.includes\('刘正'\)[\s\S]*return 'judge'/,
   'First-instance judge dialogue with only the Chinese speaker name 刘正 should render as the judge, not the player lawyer.',
 );

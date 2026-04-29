@@ -512,6 +512,20 @@ function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text:
     return 'receptionist';
   }
   if (
+    value.includes('plaintiff_lawyer')
+    || value.includes('plaintiff lawyer')
+    || value.includes('lawyer_b01')
+    || value.includes('原告律师')
+  ) return 'playerLawyer';
+  if (
+    value.includes('defendant_lawyer')
+    || value.includes('defense_lawyer')
+    || value.includes('defendant lawyer')
+    || value.includes('defense lawyer')
+    || value.includes('lawyer_b02')
+    || value.includes('被告律师')
+  ) return 'opponentLawyer';
+  if (
     value.includes('defendant')
     || value.includes('cheng')
     || value.includes('程玉静')
