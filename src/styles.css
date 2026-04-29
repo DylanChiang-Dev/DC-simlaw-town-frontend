@@ -712,49 +712,6 @@ h1 {
   box-shadow: none;
 }
 
-.transcript-stage-actions {
-  flex: 1 1 100%;
-  min-width: 0;
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.transcript-stage-action {
-  min-width: 0;
-  padding: 9px 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  white-space: nowrap;
-}
-
-.transcript-stage-action span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.transcript-stage-action b {
-  min-width: 22px;
-  padding: 2px 6px;
-  border-radius: 999px;
-  background: rgba(255, 241, 220, 0.12);
-  color: #ffe2aa;
-  font-size: 11px;
-  line-height: 1.2;
-}
-
-.transcript-stage-action:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
-.transcript-stage-action:disabled b {
-  color: rgba(255, 226, 170, 0.64);
-}
-
 .dialogue-records-dialog {
   width: min(780px, 100%);
   max-height: min(760px, calc(100vh - 48px));
@@ -887,10 +844,26 @@ h1 {
 }
 
 .case-stage {
+  position: relative;
   min-width: 0;
   padding: 10px 12px;
   border: 1px solid rgba(255, 222, 176, 0.15);
+  appearance: none;
   background: rgba(39, 25, 18, 0.78);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.case-stage:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.case-stage:not(:disabled):hover {
+  border-color: rgba(233, 188, 114, 0.44);
+  background: rgba(77, 47, 32, 0.82);
 }
 
 .case-stage.done {
@@ -911,8 +884,23 @@ h1 {
 .case-stage span {
   display: block;
   margin-top: 4px;
+  padding-right: 34px;
   color: #f6dec0;
   font-size: 12px;
+}
+
+.case-stage-count {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  min-width: 22px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 241, 220, 0.12);
+  color: #ffe2aa;
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .modal-layer {
@@ -1777,14 +1765,6 @@ h1 {
     width: 100%;
     white-space: normal;
     overflow-wrap: anywhere;
-  }
-
-  .transcript-stage-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .transcript-stage-action {
-    width: 100%;
   }
 
   .login-panel,

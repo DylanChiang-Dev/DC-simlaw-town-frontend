@@ -386,7 +386,11 @@ function AppShell({ auth }: AppShellProps) {
         }}
         request={playerDialogOpen ? activePlayerRequest : null}
       />
-      <CaseTimeline activeCode={displayedScene.stageCode} />
+      <CaseTimeline
+        activeCode={displayedScene.stageCode}
+        backendMode={auth.backendConfigured && Boolean(auth.user)}
+        history={vnRuntime.history}
+      />
       <CaseDocumentsPanel
         caseId={runtime.selectedCaseId || playerLawyer.activeRequest?.caseId || ''}
         onClose={() => setDocumentsOpen(false)}
