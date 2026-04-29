@@ -127,10 +127,12 @@ export const characters: Record<CharacterKey, Character> = {
 };
 
 export const lifecycleStages: LifecycleStage[] = [
-  { code: 'LC', title: '咨询', status: 'done' },
-  { code: 'CD', title: '起诉状', status: 'active' },
-  { code: 'DD', title: '答辩状', status: 'upcoming' },
-  { code: 'CI', title: '一审', status: 'upcoming' },
-  { code: 'AD', title: '上诉', status: 'upcoming' },
-  { code: 'CIA', title: '二审', status: 'upcoming' },
+  { code: 'PLC', title: '原告咨询', status: 'done' },
+  { code: 'CD', title: '起诉状起草', status: 'active' },
+  { code: 'DLC', title: '被告咨询', status: 'upcoming' },
+  { code: 'DD', title: '答辩状起草', status: 'upcoming' },
+  { code: 'CI', title: '一审庭审', status: 'upcoming' },
+  { code: 'AD', title: '上诉状起草', status: 'upcoming' },
+  { code: 'AR', title: '上诉答辩状起草', status: 'upcoming' },
+  { code: 'CIA', title: '二审庭审', status: 'upcoming' },
 ];

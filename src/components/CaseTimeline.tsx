@@ -8,21 +8,23 @@ type Props = {
   history?: DialogueHistoryEntry[];
 };
 
-type TranscriptStageCode = 'LC' | 'CD' | 'DD' | 'CI' | 'AD' | 'CIA';
+type TranscriptStageCode = 'PLC' | 'CD' | 'DLC' | 'DD' | 'CI' | 'AD' | 'AR' | 'CIA';
 
 const TRANSCRIPT_STAGES: { code: TranscriptStageCode; label: string }[] = [
-  { code: 'LC', label: '咨询' },
-  { code: 'CD', label: '起诉状' },
-  { code: 'DD', label: '答辩状' },
-  { code: 'CI', label: '一审' },
-  { code: 'AD', label: '上诉' },
-  { code: 'CIA', label: '二审' },
+  { code: 'PLC', label: '原告咨询' },
+  { code: 'CD', label: '起诉状起草' },
+  { code: 'DLC', label: '被告咨询' },
+  { code: 'DD', label: '答辩状起草' },
+  { code: 'CI', label: '一审庭审' },
+  { code: 'AD', label: '上诉状起草' },
+  { code: 'AR', label: '上诉答辩状起草' },
+  { code: 'CIA', label: '二审庭审' },
 ];
 
 const AUXILIARY_TRANSCRIPT_STAGES: Record<string, TranscriptStageCode> = {
-  RECEPTION: 'LC',
+  LC: 'PLC',
+  RECEPTION: 'PLC',
   TIA: 'CI',
-  AR: 'AD',
   TIAA: 'CIA',
   FINAL_VERDICT: 'CIA',
 };
@@ -89,10 +91,16 @@ export function CaseTimeline({ activeCode, backendMode = false, history = [] }: 
 
 function groupTranscriptByStage(history: DialogueHistoryEntry[]): Record<TranscriptStageCode, DialogueHistoryEntry[]> {
   const groups = createEmptyTranscriptGroups();
-  let currentStage: TranscriptStageCode = 'LC';
+  let currentStage: TranscriptStageCode = 'PLC';
 
   for (const entry of history) {
     if (entry.stageCode === 'SYSTEM') {
+      groups[currentStage].push(entry);
+      continue;
+    }
+
+    if (entry.stageCode === 'RECEPTION') {
+      currentStage = getReceptionTranscriptStage(entry, currentStage);
       groups[currentStage].push(entry);
       continue;
     }
@@ -109,11 +117,13 @@ function groupTranscriptByStage(history: DialogueHistoryEntry[]): Record<Transcr
 
 function createEmptyTranscriptGroups(): Record<TranscriptStageCode, DialogueHistoryEntry[]> {
   return {
-    LC: [],
+    PLC: [],
     CD: [],
+    DLC: [],
     DD: [],
     CI: [],
     AD: [],
+    AR: [],
     CIA: [],
   };
 }
@@ -124,4 +134,15 @@ function getTranscriptStageCode(stageCode: string): TranscriptStageCode | null {
     return normalized as TranscriptStageCode;
   }
   return AUXILIARY_TRANSCRIPT_STAGES[normalized] || null;
+}
+
+function getReceptionTranscriptStage(entry: DialogueHistoryEntry, currentStage: TranscriptStageCode): TranscriptStageCode {
+  const text = `${entry.speakerName} ${entry.text}`.trim();
+  if (/被告|被起诉|收到法院送达|应诉|答辩|赵雪/.test(text)) {
+    return 'DLC';
+  }
+  if (/原告|起诉|索赔|李婷|咨询法律问题/.test(text)) {
+    return 'PLC';
+  }
+  return currentStage === 'DLC' ? 'DLC' : 'PLC';
 }

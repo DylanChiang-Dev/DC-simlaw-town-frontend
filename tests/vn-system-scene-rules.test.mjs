@@ -41,14 +41,14 @@ assert.match(
 
 assert.match(
   reducerSource,
-  /LC:\s*'\/art\/vn\/bg-law-office\.png'[\s\S]*CD:\s*'\/art\/vn\/bg-document-desk\.png'[\s\S]*DD:\s*'\/art\/vn\/bg-document-desk\.png'[\s\S]*CI:\s*'\/art\/vn\/bg-courtroom\.png'[\s\S]*AD:\s*'\/art\/vn\/bg-document-desk\.png'[\s\S]*CIA:\s*'\/art\/vn\/bg-appeal-courtroom\.png'/,
-  'The six visible lifecycle stages should each have the intended VN background mapping.',
+  /PLC:\s*'\/art\/vn\/bg-law-office\.png'[\s\S]*CD:\s*'\/art\/vn\/bg-document-desk\.png'[\s\S]*DLC:\s*'\/art\/vn\/bg-law-office\.png'[\s\S]*DD:\s*'\/art\/vn\/bg-document-desk\.png'[\s\S]*CI:\s*'\/art\/vn\/bg-courtroom\.png'[\s\S]*AD:\s*'\/art\/vn\/bg-document-desk\.png'[\s\S]*AR:\s*'\/art\/vn\/bg-document-desk\.png'[\s\S]*CIA:\s*'\/art\/vn\/bg-appeal-courtroom\.png'/,
+  'The eight visible lifecycle stages should each have the intended VN background mapping.',
 );
 
 assert.match(
   runtimeSceneSource,
-  /code:\s*'LC'[\s\S]*code:\s*'CD'[\s\S]*code:\s*'DD'[\s\S]*code:\s*'CI'[\s\S]*code:\s*'AD'[\s\S]*code:\s*'CIA'/,
-  'The lifecycle rail should keep the six visible stages in process order.',
+  /code:\s*'PLC'[\s\S]*code:\s*'CD'[\s\S]*code:\s*'DLC'[\s\S]*code:\s*'DD'[\s\S]*code:\s*'CI'[\s\S]*code:\s*'AD'[\s\S]*code:\s*'AR'[\s\S]*code:\s*'CIA'/,
+  'The lifecycle rail should keep the eight visible stages in process order.',
 );
 
 assert.match(
