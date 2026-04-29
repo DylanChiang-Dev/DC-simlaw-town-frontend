@@ -124,6 +124,10 @@ function groupTranscriptByStage(history: DialogueHistoryEntry[]): Record<Transcr
   let currentStage: TranscriptStageCode = 'PLC';
 
   for (const entry of history) {
+    if (isOperationalTranscriptNotice(entry)) {
+      continue;
+    }
+
     if (entry.stageCode === 'SYSTEM') {
       groups[currentStage].push(entry);
       continue;
@@ -143,6 +147,16 @@ function groupTranscriptByStage(history: DialogueHistoryEntry[]): Record<Transcr
   }
 
   return groups;
+}
+
+function isOperationalTranscriptNotice(entry: DialogueHistoryEntry): boolean {
+  if (entry.kind !== 'system') {
+    return false;
+  }
+  return (
+    entry.text.includes('已请求继续生成下一句')
+    || entry.text.includes('已收到继续请求')
+  );
 }
 
 function createEmptyTranscriptGroups(): Record<TranscriptStageCode, DialogueHistoryEntry[]> {

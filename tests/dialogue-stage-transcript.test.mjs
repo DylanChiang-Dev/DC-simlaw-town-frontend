@@ -42,6 +42,12 @@ assert.match(
 
 assert.match(
   timelineSource,
+  /if \(isOperationalTranscriptNotice\(entry\)\) \{\s*continue;\s*\}[\s\S]*function isOperationalTranscriptNotice\(entry: DialogueHistoryEntry\): boolean \{[\s\S]*entry\.kind !== 'system'[\s\S]*已请求继续生成下一句[\s\S]*已收到继续请求/,
+  'Operational continue notices should be excluded from stage transcripts and lifecycle stage counts.',
+);
+
+assert.match(
+  timelineSource,
   /className=\{`dialogue-history-entry stage-transcript-entry \$\{item\.entry\.kind\}`\}/,
   'The stage transcript modal should use a dedicated entry class instead of relying on the two-column dialogue history layout.',
 );
