@@ -25,7 +25,7 @@ export function PlayerLawyerTaskPanel({ activeRequest, error, loading, onOpenReq
   const paused = Boolean(simulation?.paused || simulation?.status === 'paused');
   const stageLabel = activeRequest ? getStageLabel(activeRequest.stage) : paused ? '案件已暂停' : '等待案件推进';
   const idleDescription = paused
-    ? '当前没有待填写任务。请点击“继续当前案件”恢复后端流程，或重置后重新选择案件。'
+    ? '当前没有待填写任务。请点击“继续当前案件”恢复案件流程，或重置后重新选择案件。'
     : status?.playerMode ? `模式：${status.playerMode}` : '等待系统推进';
   const actionLabel = isDocumentStage(activeRequest?.stage) ? '处理文书任务' : '输入当前角色回复';
   return (

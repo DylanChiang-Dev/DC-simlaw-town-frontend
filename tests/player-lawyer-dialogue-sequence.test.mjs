@@ -37,8 +37,8 @@ assert.match(
 
 assert.match(
   dialogueSource,
-  /dialogue-gate-notice[\s\S]*下一句已准备好[\s\S]*后端正在等待继续/,
-  'DialogueBox should visibly explain that the backend is waiting for the user to continue.',
+  /dialogue-gate-notice[\s\S]*下一句已准备好[\s\S]*点击“继续”/,
+  'DialogueBox should visibly explain that the next line is ready and waiting for the user to continue.',
 );
 
 assert.match(

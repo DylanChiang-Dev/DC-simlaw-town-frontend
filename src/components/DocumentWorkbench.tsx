@@ -65,7 +65,7 @@ export function DocumentWorkbench({ open, onClose, onConfirmed, request }: Props
           items.find((item) => item.skillId === preferred)?.skillId || items[0]?.skillId || '',
         );
       })
-      .catch((err) => setError(err instanceof Error ? err.message : '读取文书 Skill 失败'))
+      .catch((err) => setError(err instanceof Error ? err.message : '读取文书规则失败'))
       .finally(() => setLoading(false));
   }, [liveMode, open, request?.prompt, request?.requestId, stage]);
 
@@ -121,7 +121,7 @@ export function DocumentWorkbench({ open, onClose, onConfirmed, request }: Props
           <h2>{liveMode ? '文书任务' : '起诉状模板化输入'}</h2>
           {!liveMode ? (
             <>
-              <p>用户不需要从零写法律文书。系统把案件事实、争议焦点、证据目录和诉讼请求拆成可填写字段，再由 Skill 约束文书格式。</p>
+              <p>用户不需要从零写法律文书。系统把案件事实、争议焦点、证据目录和诉讼请求拆成可填写字段，再按专业文书规则整理格式。</p>
               <div className="document-fields">
                 <span>诉讼请求</span>
                 <span>事实与理由</span>
@@ -133,12 +133,12 @@ export function DocumentWorkbench({ open, onClose, onConfirmed, request }: Props
           ) : (
             <>
               <MarkdownText
-                fallback="系统会读取当前案件上下文，并用选中的文书 Skill 生成可编辑草稿。"
+                fallback="系统会读取当前案件上下文，并按选中的文书规则生成可编辑草稿。"
                 text={request?.contextSummary}
               />
               <div className="document-live-grid">
                 <label>
-                  <span>文书 Skill</span>
+                  <span>文书规则</span>
                   <select
                     disabled={loading}
                     onChange={(event) => setSelectedSkillId(event.target.value)}

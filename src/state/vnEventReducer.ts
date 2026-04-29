@@ -115,21 +115,21 @@ export type VnRuntimeEvent =
 
 const SYSTEM_SCENE: DialogueScene = {
   id: 'system-idle',
-  caseTitle: '等待后端案件事件',
+  caseTitle: '等待案件进展',
   playerSeat: '当前角色：系统运行',
   stageCode: 'SYSTEM',
   stageName: '系统运行',
   background: '/art/vn/bg-case-analysis-room.png',
   speaker: 'system',
-  text: '当前没有可展示的实时对话。页面正在等待后端返回明确的案件状态。',
+  text: '当前没有可展示的实时对话。页面正在等待案件状态恢复。',
   characters: [],
   actions: [],
   tech: {
-    agent: '等待后端同步',
+    agent: '等待案件同步',
     tools: [],
     skills: [],
     memory: '等待真实案件状态恢复',
-    pipeline: '等待后端事件',
+    pipeline: '等待案件进展',
   },
 };
 
@@ -193,11 +193,11 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
     case 'dialogue-update':
       return applyDialogueUpdate(state, event.payload || {});
     case 'dialogue-continue-sent':
-      return appendSystemLine(state, '已请求后端继续生成下一句，等待后端返回。');
+      return appendSystemLine(state, '已请求继续生成下一句，正在等待案件进展。');
     case 'dialogue-gate-waiting':
       return updateRuntimeStatus(state, {
         phase: 'waiting_dialogue_continue',
-        message: '后端正在等待继续下一句',
+        message: '下一句已准备好，等待你继续',
         detail: String(event.payload?.speaker_name || event.payload?.gate_id || ''),
         blocking: true,
         lastError: '',
@@ -206,12 +206,12 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
       return appendSystemLine(
         updateRuntimeStatus(state, {
           phase: 'dialogue_accepted',
-          message: '后端已收到继续请求',
+          message: '已收到继续请求',
           detail: '正在推进下一句对话',
           blocking: false,
           lastError: '',
         }),
-        '后端已收到继续请求，正在推进下一句对话。',
+        '已收到继续请求，正在推进下一句对话。',
       );
     case 'dialogue-gate-error':
       return appendErrorLine(
@@ -220,9 +220,9 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
           message: '继续失败',
           detail: '',
           blocking: true,
-          lastError: String(event.payload?.message || '后端没有接受继续请求'),
+          lastError: String(event.payload?.message || '系统暂时没有接受继续请求'),
         }),
-        `继续失败：${String(event.payload?.message || '后端没有接受继续请求')}`,
+        `继续失败：${String(event.payload?.message || '系统暂时没有接受继续请求')}`,
       );
     case 'runtime-progress':
       return applyRuntimeProgress(state, event.payload || {});
@@ -237,7 +237,7 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
     case 'step-gate-accepted':
       return updateRuntimeStatus(state, {
         phase: 'step_accepted',
-        message: String(event.payload?.message || '后端已收到继续请求'),
+        message: String(event.payload?.message || '已收到继续请求'),
         detail: String(event.payload?.detail || event.payload?.gate_id || ''),
         blocking: false,
         lastError: '',
@@ -249,9 +249,9 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
           message: '继续推进失败',
           detail: String(event.payload?.detail || ''),
           blocking: true,
-          lastError: String(event.payload?.message || event.payload?.error || '后端没有接受继续请求'),
+          lastError: String(event.payload?.message || event.payload?.error || '系统暂时没有接受继续请求'),
         }),
-        `继续推进失败：${String(event.payload?.message || event.payload?.error || '后端没有接受继续请求')}`,
+        `继续推进失败：${String(event.payload?.message || event.payload?.error || '系统暂时没有接受继续请求')}`,
       );
     case 'case-state-change':
       return appendSystemLine(state, getCaseStateMessage(event.payload || {}));
@@ -270,7 +270,7 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
         lastError: '',
       });
     case 'player-lawyer-input-submitted':
-      return appendSystemLine(state, '当前角色回复已提交，后端正在继续推进案件流程。');
+      return appendSystemLine(state, '当前角色回复已提交，案件流程正在继续。');
     case 'player-lawyer-document-draft-ready':
       return appendSystemLine(state, '文书草稿已生成，等待用户确认。');
     case 'player-lawyer-document-confirmed':
@@ -293,8 +293,8 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
       );
     case 'ws-unknown':
       return appendErrorLine(
-        appendDiagnostic(state, `未知后端事件：${String(event.payload?.type || 'unknown')}`),
-        `未知后端事件：${String(event.payload?.type || 'unknown')}`,
+        appendDiagnostic(state, `未知系统消息：${String(event.payload?.type || 'unknown')}`),
+        `未知系统消息：${String(event.payload?.type || 'unknown')}`,
       );
     default:
       return state;
@@ -304,7 +304,7 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
 function applyRuntimeProgress(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
   return updateRuntimeStatus(state, {
     phase: String(payload.phase || 'runtime'),
-    message: String(payload.message || '后端正在处理当前步骤'),
+    message: String(payload.message || '系统正在处理当前步骤'),
     detail: String(payload.detail || ''),
     blocking: Boolean(payload.blocking),
     lastEventAt: String(payload.occurred_at || ''),
@@ -345,14 +345,14 @@ function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unkn
 function applyScenarioStart(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
   const stageCode = normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
   const stageName = getStageName(stageCode);
-  const text = `当前阶段：${stageName}。系统正在等待后端生成下一轮对话。`;
+  const text = `当前阶段：${stageName}。系统正在生成下一轮对话。`;
   const scene = createSystemScene(state.scene, text);
   const withDiag = appendDiagnostic({ ...state, scene }, `进入阶段 ${stageCode}`);
   return appendSystemLine(withDiag, `进入阶段：${stageName}`);
 }
 
 function applyRuntimeIssue(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
-  const scene = createSystemScene(state.scene, String(payload.message || '后端运行异常，当前案件流程已暂停。'));
+  const scene = createSystemScene(state.scene, String(payload.message || '案件运行异常，当前案件流程已暂停。'));
   return appendHistory(
     appendDiagnostic({ ...state, scene }, `运行异常：${String(payload.code || 'UNKNOWN')}`),
     scene,

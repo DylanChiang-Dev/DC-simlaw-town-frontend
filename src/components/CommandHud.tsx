@@ -44,8 +44,8 @@ export function CommandHud({
         <h1>法律全流程仿真</h1>
       </div>
       <div className="hud-status-strip" aria-label="运行状态">
-        <StatusPill label={backendConfigured ? '后端模式' : '本地预览'} />
-        <StatusPill label={runtime.configured ? '后端已配置' : '内置数据'} />
+        <StatusPill label={backendConfigured ? '正式案件模式' : '本地预览'} />
+        <StatusPill label={runtime.configured ? '案件服务已连接' : '内置数据'} />
         <StatusPill label={connectionLabel} tone={backendConfigured ? (wsConnected ? 'ok' : 'warn') : 'neutral'} />
         <StatusPill label={caseState} tone={simulation?.paused ? 'warn' : undefined} />
         {lastError && <StatusPill label="运行错误" tone="error" />}

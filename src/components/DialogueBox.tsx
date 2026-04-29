@@ -129,8 +129,8 @@ export function DialogueBox({
                 <strong>下一句已准备好</strong>
                 <span>
                   {dialogueGate.pending
-                    ? '已请求后端继续，正在等待响应。'
-                    : `后端正在等待继续${dialogueGate.speakerName ? `：${dialogueGate.speakerName}` : ''}。点击“继续”或直接点击对话框推进。`}
+                    ? '已请求继续，正在等待响应。'
+                    : `下一句已准备好${dialogueGate.speakerName ? `：${dialogueGate.speakerName}` : ''}。点击“继续”或直接点击对话框推进。`}
                 </span>
               </div>
             )}
@@ -141,7 +141,7 @@ export function DialogueBox({
             )}
             {dialogueGate ? (
               <button disabled={dialogueGate.pending || !wsConnected} type="button" onClick={onContinueDialogue}>
-                {!wsConnected ? '实时未连接，正在重连' : dialogueGate.pending ? '等待后端响应' : '继续'}
+                {!wsConnected ? '实时未连接，正在重连' : dialogueGate.pending ? '等待响应' : '继续'}
               </button>
             ) : fallbackNotice?.action ? (
               <button className={fallbackNotice.action.kind === 'secondary' ? 'secondary-action' : undefined} type="button" onClick={() => void fallbackNotice.action?.run()}>
@@ -231,7 +231,7 @@ function getBackendFallbackNotice({
   if (runtimeError) {
     return {
       action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
-      message: `前端已经打开，但读取沙盒案件状态失败：${runtimeError}\n\n请先刷新状态；如果仍然失败，说明当前页面没有从后端拿到可继续的案件状态。`,
+      message: `页面已打开，但读取案件状态失败：${runtimeError}\n\n请先刷新状态；如果仍然失败，说明当前案件暂时无法继续。`,
       title: '案件状态读取失败',
       tone: 'error',
     };
@@ -240,8 +240,8 @@ function getBackendFallbackNotice({
   if (simulation?.lastError?.message) {
     return {
       action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
-      message: `后端返回了案件运行错误：${simulation.lastError.message}\n\n当前页面不会继续展示默认对话。请刷新状态；如果错误仍在，需要先处理后端运行问题。`,
-      title: '后端案件运行错误',
+      message: `案件运行出现错误：${simulation.lastError.message}\n\n当前页面不会继续展示默认对话。请刷新状态；如果错误仍在，需要先处理案件运行问题。`,
+      title: '案件运行错误',
       tone: 'error',
     };
   }
@@ -259,7 +259,7 @@ function getBackendFallbackNotice({
     const caseLabel = selectedCaseId || simulation.selectedCaseId || '当前案件';
     return {
       action: onResumeCurrentCase ? { label: '继续当前案件', run: onResumeCurrentCase } : undefined,
-      message: `${caseLabel} 已暂停，当前没有新的实时对话可展示。\n\n这不是新的默认案件，也不是让你从头判断。点击“继续当前案件”会请求后端从保存的案件状态恢复；如果你确认要重来，再使用右上角“重置”。`,
+      message: `${caseLabel} 已暂停，当前没有新的实时对话可展示。\n\n这不是新的默认案件，也不是让你从头判断。点击“继续当前案件”会从保存的案件状态恢复；如果你确认要重来，再使用右上角“重置”。`,
       title: '当前案件已暂停',
       tone: 'warn',
     };
@@ -268,8 +268,8 @@ function getBackendFallbackNotice({
   if (!simulation) {
     return {
       action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
-      message: '页面正在读取后端案件状态。读取完成前不会展示默认案件对话。',
-      title: '正在读取后端状态',
+      message: '页面正在读取案件状态。读取完成前不会展示默认案件对话。',
+      title: '正在读取案件状态',
       tone: 'idle',
     };
   }
@@ -286,8 +286,8 @@ function getBackendFallbackNotice({
   if (simulation.simulationRunning || simulation.status === 'running') {
     return {
       action: onRefreshRuntime ? { kind: 'secondary', label: '刷新状态', run: onRefreshRuntime } : undefined,
-      message: '后端显示案件正在运行，但前端还没有收到下一条实时对话。请稍等；如果状态长时间不变，请刷新状态。',
-      title: '等待后端返回下一条事件',
+      message: '案件正在运行，但页面还没有收到下一条实时对话。请稍等；如果状态长时间不变，请刷新状态。',
+      title: '等待下一条案件进展',
       tone: 'idle',
     };
   }

@@ -130,7 +130,7 @@ export class WebSocketService {
     if (!this.ws || this.ws.readyState === WebSocket.CLOSED) {
       void this.connect();
     }
-    getEventBus().emit('ws:error', { message: '实时连接未建立，消息没有发送到后端；系统正在尝试重连。' });
+    getEventBus().emit('ws:error', { message: '实时连接未建立，消息暂时没有送达；系统正在尝试重连。' });
     return false;
   }
 
@@ -147,7 +147,7 @@ export class WebSocketService {
       }
     }
 
-    getEventBus().emit('ws:error', { message: '实时连接未建立，消息没有发送到后端；系统正在尝试重连。' });
+    getEventBus().emit('ws:error', { message: '实时连接未建立，消息暂时没有送达；系统正在尝试重连。' });
     return false;
   }
 

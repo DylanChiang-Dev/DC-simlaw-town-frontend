@@ -115,7 +115,7 @@ function AppShell({ auth }: AppShellProps) {
       ));
       dispatchVnEvent({
         type: 'ws-error',
-        payload: { message: '后端超过 12 秒未响应继续请求，请刷新状态或重新点击继续。' },
+        payload: { message: '案件流程超过 12 秒还没有响应，请刷新状态或重新点击继续。' },
       });
     }, DIALOGUE_CONTINUE_TIMEOUT_MS);
     return () => clearTimeout(timer);
@@ -261,7 +261,7 @@ function AppShell({ auth }: AppShellProps) {
       || ''
     );
     if (!selectedSkillId) {
-      throw new Error('没有可用的文书 Skill');
+      throw new Error('没有可用的文书规则');
     }
     const draft = await createPlayerLawyerDocumentDraft({
       caseId: request.caseId,
@@ -397,7 +397,7 @@ function AppShell({ auth }: AppShellProps) {
           <section className="confirm-dialog">
             <div className="panel-kicker">Reset Case Run</div>
             <h2>确认重置模拟？</h2>
-            <p>重置会停止当前案件运行，并回到可重新选择案件的状态。已生成的后端状态会按当前重置接口处理。</p>
+            <p>重置会停止当前案件运行，并回到可重新选择案件的状态。已生成的案件进度会按当前重置规则处理。</p>
             <div className="confirm-dialog-actions">
               <button
                 className="secondary-action"

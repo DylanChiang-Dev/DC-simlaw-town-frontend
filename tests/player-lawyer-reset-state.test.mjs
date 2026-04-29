@@ -84,7 +84,7 @@ assert.match(
 
 assert.match(
   appSource,
-  /const DIALOGUE_CONTINUE_TIMEOUT_MS = 12000;[\s\S]*setTimeout\(\(\) => \{[\s\S]*type: 'ws-error'[\s\S]*后端超过 12 秒未响应继续请求/,
+  /const DIALOGUE_CONTINUE_TIMEOUT_MS = 12000;[\s\S]*setTimeout\(\(\) => \{[\s\S]*type: 'ws-error'[\s\S]*案件流程超过 12 秒还没有响应/,
   'If a continue request is pending too long, the frontend should surface a visible error instead of silently waiting.',
 );
 

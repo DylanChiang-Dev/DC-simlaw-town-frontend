@@ -33,7 +33,7 @@ export function LoginPanel({ onAuthenticated }: Props) {
         <form className="login-panel" onSubmit={handleSubmit}>
           <div className="panel-kicker">SimAilaw Town</div>
           <h1>进入法律全流程仿真</h1>
-          <p>登录后进入案件工作区。你将以当前案件角色参与咨询、文书起草、庭审与上诉，案件进度、用户任务、Agent 协作和文书结果会从后端同步。</p>
+          <p>登录后进入案件工作区。你将以当前案件角色参与咨询、文书起草、庭审与上诉，案件进度、用户任务、智能助手协作和文书结果会实时同步。</p>
           <label>
             <span>邮箱</span>
             <input
