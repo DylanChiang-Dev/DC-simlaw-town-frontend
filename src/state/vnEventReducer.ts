@@ -90,6 +90,7 @@ export type DialogueHistoryEntry = {
   stageName: string;
   text: string;
   timestamp: string;
+  turn?: number;
 };
 
 export type VnRuntimeEvent =
@@ -362,7 +363,7 @@ function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unkn
   if (isBackgroundDialogue(stageCode, scene.text)) {
     return appendBackground(state, scene);
   }
-  return appendHistory({ ...state, scene }, scene, 'dialogue');
+  return appendHistory({ ...state, scene }, scene, 'dialogue', readDialogueTurn(payload.turn));
 }
 
 function applyScenarioStart(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
@@ -404,6 +405,7 @@ function appendHistory(
   state: VnRuntimeState,
   scene: DialogueScene,
   kind: DialogueHistoryEntry['kind'],
+  turn?: number,
 ): VnRuntimeState {
   const text = scene.text.trim();
   if (!text) return state;
@@ -421,11 +423,18 @@ function appendHistory(
     stageName: scene.stageName,
     text,
     timestamp: new Date().toISOString(),
+    ...(typeof turn === 'number' ? { turn } : {}),
   };
   return {
     ...state,
     history: [...state.history, entry],
   };
+}
+
+function readDialogueTurn(value: unknown): number | undefined {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric < 0) return undefined;
+  return Math.floor(numeric);
 }
 
 function appendBackground(state: VnRuntimeState, scene: DialogueScene): VnRuntimeState {

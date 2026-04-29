@@ -624,6 +624,18 @@ h1 {
   color: #c9b28e;
 }
 
+.transcript-entry-marker {
+  width: fit-content;
+  max-width: 100%;
+  padding: 3px 7px;
+  border: 1px solid rgba(233, 188, 114, 0.26);
+  background: rgba(233, 188, 114, 0.1);
+  color: #ffe3a7;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
 .player-turn-preview {
   margin-top: 12px;
   padding: 12px 14px;
@@ -739,6 +751,8 @@ h1 {
 }
 
 .dialogue-records-list .dialogue-history-entry {
+  display: grid;
+  gap: 6px;
   padding: 10px;
   border: 1px solid rgba(255, 222, 176, 0.14);
   background: rgba(255, 241, 220, 0.05);
@@ -839,14 +853,19 @@ h1 {
 .case-timeline {
   min-width: 0;
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 6px;
+  overflow-x: auto;
 }
 
 .case-stage {
   position: relative;
   min-width: 0;
-  padding: 10px 12px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 34px 8px 9px;
   border: 1px solid rgba(255, 222, 176, 0.15);
   appearance: none;
   background: rgba(39, 25, 18, 0.78);
@@ -875,24 +894,41 @@ h1 {
   background: rgba(142, 63, 53, 0.28);
 }
 
+.case-stage-order {
+  flex: 0 0 auto;
+  min-width: 18px;
+  color: #c9b28e;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
 .case-stage strong {
   display: block;
+  flex: 0 0 auto;
   color: var(--gold);
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1;
 }
 
 .case-stage span {
   display: block;
-  margin-top: 4px;
-  padding-right: 34px;
+  min-width: 0;
+  margin-top: 0;
+  padding-right: 0;
+  overflow: hidden;
   color: #f6dec0;
-  font-size: 12px;
+  font-size: 11px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .case-stage-count {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
   min-width: 22px;
   padding: 2px 6px;
   border-radius: 999px;
@@ -1652,7 +1688,7 @@ h1 {
   }
 
   .case-timeline {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(8, minmax(108px, 1fr));
   }
 
   .document-live-grid {

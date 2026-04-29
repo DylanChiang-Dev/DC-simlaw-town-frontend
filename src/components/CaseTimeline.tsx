@@ -9,16 +9,17 @@ type Props = {
 };
 
 type TranscriptStageCode = 'PLC' | 'CD' | 'DLC' | 'DD' | 'CI' | 'AD' | 'AR' | 'CIA';
+type TranscriptStage = { code: TranscriptStageCode; label: string; order: number };
 
-const TRANSCRIPT_STAGES: { code: TranscriptStageCode; label: string }[] = [
-  { code: 'PLC', label: '原告咨询' },
-  { code: 'CD', label: '起诉状起草' },
-  { code: 'DLC', label: '被告咨询' },
-  { code: 'DD', label: '答辩状起草' },
-  { code: 'CI', label: '一审庭审' },
-  { code: 'AD', label: '上诉状起草' },
-  { code: 'AR', label: '上诉答辩状起草' },
-  { code: 'CIA', label: '二审庭审' },
+const TRANSCRIPT_STAGES: TranscriptStage[] = [
+  { order: 1, code: 'PLC', label: '原告咨询' },
+  { order: 2, code: 'CD', label: '起诉状起草' },
+  { order: 3, code: 'DLC', label: '被告咨询' },
+  { order: 4, code: 'DD', label: '答辩状起草' },
+  { order: 5, code: 'CI', label: '一审庭审' },
+  { order: 6, code: 'AD', label: '上诉状起草' },
+  { order: 7, code: 'AR', label: '上诉答辩状起草' },
+  { order: 8, code: 'CIA', label: '二审庭审' },
 ];
 
 const AUXILIARY_TRANSCRIPT_STAGES: Record<string, TranscriptStageCode> = {
@@ -38,6 +39,7 @@ export function CaseTimeline({ activeCode, backendMode = false, history = [] }: 
   const activeIndex = TRANSCRIPT_STAGES.findIndex((stage) => stage.code === activeLifecycleCode);
   const activeStage = TRANSCRIPT_STAGES.find((stage) => stage.code === activeTranscriptStage) || null;
   const activeStageEntries = activeStage ? transcriptGroups[activeStage.code] : [];
+  const activeStageItems = activeStage ? annotateTranscriptEntries(activeStageEntries, activeStage) : [];
 
   return (
     <>
@@ -57,6 +59,7 @@ export function CaseTimeline({ activeCode, backendMode = false, history = [] }: 
               onClick={() => setActiveTranscriptStage(stage.code)}
               type="button"
             >
+              <small className="case-stage-order">{formatStageOrder(stage.order)}</small>
               <strong>{stage.code}</strong>
               <span>{stage.label}</span>
               {backendMode && <b className="case-stage-count">{entries.length}</b>}
@@ -70,10 +73,11 @@ export function CaseTimeline({ activeCode, backendMode = false, history = [] }: 
             <div className="panel-kicker">{activeStage.code} Case Transcript</div>
             <h2>{activeStage.label}对话记录</h2>
             <div className="dialogue-records-list">
-              {activeStageEntries.map((entry) => (
-                <article className={`dialogue-history-entry ${entry.kind}`} key={entry.id}>
-                  <span>{entry.speakerName}</span>
-                  <MarkdownText text={entry.text} />
+              {activeStageItems.map((item) => (
+                <article className={`dialogue-history-entry ${item.entry.kind}`} key={item.entry.id}>
+                  <span className="transcript-entry-marker">{formatTranscriptMarker(item.meta)}</span>
+                  <span>{item.entry.speakerName}</span>
+                  <MarkdownText text={item.entry.text} />
                 </article>
               ))}
             </div>
@@ -87,6 +91,32 @@ export function CaseTimeline({ activeCode, backendMode = false, history = [] }: 
       )}
     </>
   );
+}
+
+function annotateTranscriptEntries(entries: DialogueHistoryEntry[], stage: TranscriptStage) {
+  return entries.map((entry, index) => ({
+    entry,
+    meta: {
+      stageLabel: stage.label,
+      stageOrder: stage.order,
+      turnNumber: getEntryTurnNumber(entry, index),
+    },
+  }));
+}
+
+function getEntryTurnNumber(entry: DialogueHistoryEntry, fallbackIndex: number): number {
+  if (typeof entry.turn === 'number' && Number.isFinite(entry.turn) && entry.turn >= 0) {
+    return entry.turn + 1;
+  }
+  return fallbackIndex + 1;
+}
+
+function formatTranscriptMarker(meta: { stageLabel: string; stageOrder: number; turnNumber: number }): string {
+  return `${formatStageOrder(meta.stageOrder)} · ${meta.stageLabel} · 第${formatStageOrder(meta.turnNumber)}轮`;
+}
+
+function formatStageOrder(value: number): string {
+  return String(value).padStart(2, '0');
 }
 
 function groupTranscriptByStage(history: DialogueHistoryEntry[]): Record<TranscriptStageCode, DialogueHistoryEntry[]> {
