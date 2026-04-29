@@ -350,19 +350,77 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
 function applyRuntimeProgress(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
   const phase = String(payload.phase || 'runtime');
   const message = String(payload.message || '系统正在处理当前步骤');
-  const nextState = updateRuntimeStatus(state, {
+  const nextState = applyRuntimeCapabilityDisplay(updateRuntimeStatus(state, {
     phase,
     message,
     detail: String(payload.detail || ''),
     blocking: Boolean(payload.blocking),
     lastEventAt: String(payload.occurred_at || ''),
     lastError: '',
-  });
+  }), payload);
+  if (phase === 'memory_checkpoint_complete') {
+    const summary = createMemoryCheckpointSummary(payload);
+    const stageCode = normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
+    const displayState = applyRuntimeCapabilityDisplay(nextState, { ...payload, memory: summary });
+    return appendSystemLine(displayState, summary, stageCode);
+  }
   if (phase === 'memory_checkpoint') {
     const stageCode = normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
     return appendSystemLine(nextState, message, stageCode);
   }
   return nextState;
+}
+
+function applyRuntimeCapabilityDisplay(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
+  const toolNames = readStringList(payload.tool_names);
+  const skillNames = readStringList(payload.skill_names);
+  const memory = String(payload.memory || payload.memory_summary || '').trim();
+  if (toolNames.length === 0 && skillNames.length === 0 && !memory) return state;
+  return {
+    ...state,
+    scene: {
+      ...state.scene,
+      tech: {
+        ...state.scene.tech,
+        tools: toolNames.length > 0 ? mergeRuntimeTags(state.scene.tech.tools, toolNames) : state.scene.tech.tools,
+        skills: skillNames.length > 0 ? mergeRuntimeTags(state.scene.tech.skills, skillNames) : state.scene.tech.skills,
+        memory: memory || state.scene.tech.memory,
+      },
+    },
+  };
+}
+
+function createMemoryCheckpointSummary(payload: Record<string, unknown>): string {
+  const events = Array.isArray(payload.memory_events)
+    ? payload.memory_events.filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+    : [];
+  if (events.length === 0) {
+    return String(payload.message || '长期记忆写回完成，未产生字段变更。');
+  }
+  const details = events.map((event) => {
+    const owner = String(event.owner_label || '长期记忆');
+    const agent = String(event.agent_name || event.agent_id || 'Agent');
+    const status = String(event.status || 'completed');
+    if (status === 'failed') return `${owner} ${agent}：写回失败`;
+    if (status === 'skipped') return `${owner} ${agent}：无需写回`;
+    const changedFields = readStringList(event.changed_fields);
+    const changedText = changedFields.length > 0
+      ? changedFields.slice(0, 5).join('、')
+      : '未产生字段变更';
+    return `${owner} ${agent}：${changedText}`;
+  });
+  return `长期记忆写回完成：${details.join('；')}`;
+}
+
+function readStringList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => String(item || '').trim())
+    .filter(Boolean);
+}
+
+function mergeRuntimeTags(existing: string[], incoming: string[]): string[] {
+  return Array.from(new Set([...existing, ...incoming])).slice(-8);
 }
 
 function updateRuntimeStatus(state: VnRuntimeState, patch: Partial<RuntimeStatus>): VnRuntimeState {

@@ -120,6 +120,24 @@ assert.match(
 );
 
 assert.match(
+  vnReducerSource,
+  /phase === 'memory_checkpoint_complete'[\s\S]*createMemoryCheckpointSummary\(payload\)[\s\S]*applyRuntimeCapabilityDisplay/,
+  'Completed memory checkpoint progress should enrich the visible capability ledger with a concrete write-back summary.',
+);
+
+assert.match(
+  vnReducerSource,
+  /function createMemoryCheckpointSummary\(payload: Record<string, unknown>\): string \{[\s\S]*memory_events[\s\S]*changed_fields[\s\S]*未产生字段变更/,
+  'The memory checkpoint summary should render changed memory fields and explicitly say when no stable field changed.',
+);
+
+assert.match(
+  vnReducerSource,
+  /function applyRuntimeCapabilityDisplay\([\s\S]*tool_names[\s\S]*skill_names[\s\S]*memory/,
+  'Runtime progress metadata should update visible tool, skill, and memory capability fields.',
+);
+
+assert.match(
   appSource,
   /if \(!playerDialogMayAutoOpen\) return;[\s\S]*setPlayerDialogOpen\(true\);/,
   'The auto-open effect must be gated by playerDialogMayAutoOpen.',

@@ -846,6 +846,8 @@ h1 {
   color: #d9c1a4;
   font-size: 12px;
   line-height: 1.52;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .background-consultation-list {
