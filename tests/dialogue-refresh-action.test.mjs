@@ -7,6 +7,8 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const appSource = readFileSync(join(root, 'src', 'App.tsx'), 'utf8');
 const commandHudSource = readFileSync(join(root, 'src', 'components', 'CommandHud.tsx'), 'utf8');
 const dialogueSource = readFileSync(join(root, 'src', 'components', 'DialogueBox.tsx'), 'utf8');
+const commandHudUsage = appSource.match(/<CommandHud[\s\S]*?\/>/)?.[0] || '';
+const casePickerUsage = appSource.match(/<CasePicker[\s\S]*?\/>/)?.[0] || '';
 
 assert.doesNotMatch(
   dialogueSource,
@@ -34,8 +36,32 @@ assert.doesNotMatch(
 
 assert.match(
   commandHudSource,
-  /<button className="hud-button" disabled=\{loading\} onClick=\{\(\) => void onRefresh\?\.\(\)\} type="button">\s*刷新\s*<\/button>/,
-  'CommandHud should keep the global refresh button for real sandbox status refreshes.',
+  /aria-label="操作"/,
+  'CommandHud should still render the top operation area.',
+);
+
+assert.doesNotMatch(
+  commandHudSource,
+  /onRefresh/,
+  'CommandHud should not expose a top-level refresh action because users expect refresh to recover dialogue state.',
+);
+
+assert.doesNotMatch(
+  commandHudSource,
+  />\s*刷新\s*</,
+  'CommandHud should not render the misleading top refresh button.',
+);
+
+assert.doesNotMatch(
+  commandHudUsage,
+  /onRefresh=/,
+  'App should not pass runtime.refresh into CommandHud after removing the top refresh button.',
+);
+
+assert.match(
+  casePickerUsage,
+  /onRefresh=\{runtime\.refresh\}/,
+  'CasePicker should keep its explicit case-list refresh action.',
 );
 
 assert.match(

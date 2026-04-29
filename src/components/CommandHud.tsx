@@ -7,7 +7,6 @@ type Props = {
   loading?: boolean;
   onLogout?: () => void;
   onOpenDocuments?: () => void;
-  onRefresh?: () => Promise<void>;
   onRestart?: () => Promise<void> | void;
   onResumeCurrentCase?: () => Promise<void>;
   runtimeError?: string;
@@ -22,7 +21,6 @@ export function CommandHud({
   loading = false,
   onLogout,
   onOpenDocuments,
-  onRefresh,
   onRestart,
   onResumeCurrentCase,
   runtimeError = '',
@@ -53,9 +51,6 @@ export function CommandHud({
       <div className="hud-actions" aria-label="操作">
         {backendConfigured && user && (
           <>
-            <button className="hud-button" disabled={loading} onClick={() => void onRefresh?.()} type="button">
-              刷新
-            </button>
             <button className="hud-button" disabled={loading} onClick={onOpenDocuments} type="button">
               文书
             </button>
