@@ -42,7 +42,9 @@ function getSceneCharacterPosition(
 ): 'left' | 'center' | 'right' {
   if (stageCode === 'RECEPTION') {
     if (key === 'client') return 'left';
+    if (key === 'defendant') return 'left';
     if (key === 'receptionist') return 'right';
   }
+  if (stageCode === 'CIA' && key === 'appealJudge') return 'center';
   return fallback;
 }

@@ -4,9 +4,36 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
+const runtimeSceneSource = readFileSync(join(root, 'src', 'data', 'runtimeScene.ts'), 'utf8');
 const reducerSource = readFileSync(join(root, 'src', 'state', 'vnEventReducer.ts'), 'utf8');
 const stageSource = readFileSync(join(root, 'src', 'components', 'VisualNovelStage.tsx'), 'utf8');
 const styleSource = readFileSync(join(root, 'src', 'styles.css'), 'utf8');
+
+[
+  'char-defendant-cheng-yujing-defensive.png',
+  'char-appeal-judge-neutral.png',
+  'char-court-clerk-neutral.png',
+  'char-judge-assistant-checking.png',
+  'char-traffic-officer-neutral.png',
+].forEach((asset) => {
+  assert.match(
+    runtimeSceneSource,
+    new RegExp(asset.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+    `${asset} should be embedded in the runtime character map.`,
+  );
+});
+
+assert.match(
+  reducerSource,
+  /value\.includes\('defendant'\)[\s\S]*return 'defendant';/,
+  'Defendant speaker payloads should use Cheng Yujing, not the defendant lawyer portrait.',
+);
+
+assert.match(
+  reducerSource,
+  /value\.includes\('appeal'\)[\s\S]*return 'appealJudge';/,
+  'Appeal judge payloads should use the generated second-instance judge portrait.',
+);
 
 assert.match(
   reducerSource,

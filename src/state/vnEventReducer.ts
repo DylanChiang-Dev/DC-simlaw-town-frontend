@@ -19,15 +19,17 @@ const BACKGROUND_BY_STAGE: Record<string, string> = {
   SYSTEM: '/art/vn/bg-case-analysis-room.png',
   RECEPTION: '/art/vn/bg-reception-desk.png',
   LC: '/art/vn/bg-law-office.png',
-  CD: '/art/vn/bg-case-analysis-room.png',
-  DD: '/art/vn/bg-case-analysis-room.png',
+  CD: '/art/vn/bg-document-desk.png',
+  DD: '/art/vn/bg-document-desk.png',
   TIA: '/art/vn/bg-case-analysis-room.png',
   CI: '/art/vn/bg-courtroom.png',
-  AD: '/art/vn/bg-case-analysis-room.png',
-  AR: '/art/vn/bg-case-analysis-room.png',
+  AD: '/art/vn/bg-document-desk.png',
+  AR: '/art/vn/bg-document-desk.png',
   TIAA: '/art/vn/bg-case-analysis-room.png',
-  CIA: '/art/vn/bg-courtroom.png',
-  FINAL_VERDICT: '/art/vn/bg-courtroom.png',
+  CIA: '/art/vn/bg-appeal-courtroom.png',
+  FINAL_VERDICT: '/art/vn/bg-appeal-courtroom.png',
+  EVIDENCE: '/art/vn/cg-case9-traffic-accident-overview.png',
+  TRAFFIC_ACCIDENT: '/art/vn/cg-case9-traffic-accident-overview.png',
 };
 
 const CASE_EVENT_MESSAGES: Record<string, string> = {
@@ -484,6 +486,15 @@ function createSystemScene(scene: DialogueScene, text: string): DialogueScene {
 
 function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text: string): CharacterKey {
   const value = `${payload.speaker_name || payload.speaker_id || ''}`.toLowerCase();
+  if (value.includes('reception') || value.includes('front_desk') || value.includes('前台') || value.includes('接待')) {
+    return 'receptionist';
+  }
+  if (
+    value.includes('defendant')
+    || value.includes('cheng')
+    || value.includes('程玉静')
+    || value.includes('被告')
+  ) return 'defendant';
   if (
     value.includes('client')
     || value.includes('plaintiff')
@@ -494,9 +505,38 @@ function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text:
   if (stageCode === 'RECEPTION' || isReceptionPayload(payload, text)) {
     return 'receptionist';
   }
-  if (value.includes('judge') || value.includes('法官') || value.includes('审判')) return 'judge';
-  if (value.includes('defendant') || value.includes('被告') || value.includes('程')) return 'opponentLawyer';
-  if (value.includes('lawyer') || value.includes('律师')) return 'playerLawyer';
+  if (
+    value.includes('clerk')
+    || value.includes('书记员')
+  ) return 'courtClerk';
+  if (
+    value.includes('assistant')
+    || value.includes('法官助理')
+  ) return 'judgeAssistant';
+  if (
+    value.includes('traffic')
+    || value.includes('accident')
+    || value.includes('交警')
+    || value.includes('事故认定')
+  ) return 'trafficOfficer';
+  if (
+    value.includes('appeal')
+    || value.includes('intermediate')
+    || value.includes('second')
+    || value.includes('二审')
+    || value.includes('海瑞')
+  ) return 'appealJudge';
+  if (value.includes('judge') || value.includes('法官') || value.includes('审判')) {
+    return stageCode === 'CIA' || stageCode === 'FINAL_VERDICT' ? 'appealJudge' : 'judge';
+  }
+  if (
+    value.includes('zhao')
+    || value.includes('赵雪')
+    || value.includes('opponent')
+    || value.includes('defense')
+    || value.includes('被告律师')
+  ) return 'opponentLawyer';
+  if (value.includes('lawyer') || value.includes('律师') || value.includes('李婷')) return 'playerLawyer';
   return 'playerLawyer';
 }
 
@@ -506,7 +546,7 @@ function getDialogueSpeakerLabel(
   speaker: CharacterKey,
   text: string,
 ): string {
-  if (stageCode === 'RECEPTION' || speaker === 'receptionist' || /推荐律师/.test(text)) {
+  if (speaker === 'receptionist' || /推荐律师/.test(text)) {
     return '律所前台';
   }
   return String(payload.speaker_name || payload.speaker_id || characters[speaker].name).trim() || characters[speaker].name;

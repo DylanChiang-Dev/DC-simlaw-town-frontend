@@ -35,6 +35,18 @@ assert.match(
 
 assert.match(
   reducerSource,
+  /CD:\s*'\/art\/vn\/bg-document-desk\.png'[\s\S]*DD:\s*'\/art\/vn\/bg-document-desk\.png'[\s\S]*AD:\s*'\/art\/vn\/bg-document-desk\.png'[\s\S]*AR:\s*'\/art\/vn\/bg-document-desk\.png'/,
+  'Document drafting stages should use the generated document desk background.',
+);
+
+assert.match(
+  reducerSource,
+  /CIA:\s*'\/art\/vn\/bg-appeal-courtroom\.png'[\s\S]*FINAL_VERDICT:\s*'\/art\/vn\/bg-appeal-courtroom\.png'/,
+  'Second-instance hearing and final verdict stages should use the generated appeal courtroom background.',
+);
+
+assert.match(
+  reducerSource,
   /const SYSTEM_SCENE: DialogueScene = \{[\s\S]*stageCode:\s*'SYSTEM'[\s\S]*speaker:\s*'system'[\s\S]*characters:\s*\[\]/,
   'The default backend idle scene should show no character portrait.',
 );
