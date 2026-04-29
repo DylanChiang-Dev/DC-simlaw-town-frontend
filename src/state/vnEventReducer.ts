@@ -348,14 +348,21 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
 }
 
 function applyRuntimeProgress(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
-  return updateRuntimeStatus(state, {
-    phase: String(payload.phase || 'runtime'),
-    message: String(payload.message || '系统正在处理当前步骤'),
+  const phase = String(payload.phase || 'runtime');
+  const message = String(payload.message || '系统正在处理当前步骤');
+  const nextState = updateRuntimeStatus(state, {
+    phase,
+    message,
     detail: String(payload.detail || ''),
     blocking: Boolean(payload.blocking),
     lastEventAt: String(payload.occurred_at || ''),
     lastError: '',
   });
+  if (phase === 'memory_checkpoint') {
+    const stageCode = normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
+    return appendSystemLine(nextState, message, stageCode);
+  }
+  return nextState;
 }
 
 function updateRuntimeStatus(state: VnRuntimeState, patch: Partial<RuntimeStatus>): VnRuntimeState {

@@ -114,6 +114,12 @@ assert.match(
 );
 
 assert.match(
+  vnReducerSource,
+  /function applyRuntimeProgress\(state: VnRuntimeState, payload: Record<string, unknown>\): VnRuntimeState \{[\s\S]*phase === 'memory_checkpoint'[\s\S]*return appendSystemLine\([\s\S]*message[\s\S]*stageCode[\s\S]*\);[\s\S]*\}/,
+  'Memory checkpoint progress should be visible as a system story line so stage transitions do not appear silently stuck.',
+);
+
+assert.match(
   appSource,
   /if \(!playerDialogMayAutoOpen\) return;[\s\S]*setPlayerDialogOpen\(true\);/,
   'The auto-open effect must be gated by playerDialogMayAutoOpen.',
