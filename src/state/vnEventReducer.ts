@@ -325,10 +325,11 @@ function updateRuntimeStatus(state: VnRuntimeState, patch: Partial<RuntimeStatus
 
 function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
   const text = String(payload.content || payload.dialogue_text || '收到新的案件对话。');
+  const fallbackStageCode = normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
+  const speaker = inferSpeaker(payload, fallbackStageCode, text);
   const stageCode = isReceptionPayload(payload, text)
     ? 'RECEPTION'
-    : normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
-  const speaker = inferSpeaker(payload, stageCode, text);
+    : inferStageCodeForDialogue(payload.scenario_type || payload.stage, fallbackStageCode, speaker, text);
   const scene = createSceneFromState(state.scene, {
     characters: inferCharacters(stageCode, speaker),
     speaker,
@@ -495,7 +496,18 @@ function createSystemScene(scene: DialogueScene, text: string): DialogueScene {
 }
 
 function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text: string): CharacterKey {
-  const value = `${payload.speaker_name || payload.speaker_id || ''}`.toLowerCase();
+  const speakerName = String(payload.speaker_name || '').trim();
+  if (speakerName.includes('刘正')) return 'judge';
+  if (speakerName.includes('海瑞')) return 'appealJudge';
+  if (speakerName.includes('书记员')) return 'courtClerk';
+  if (speakerName.includes('法官助理')) return 'judgeAssistant';
+  if (speakerName.includes('律所前台') || speakerName.includes('前台') || speakerName.includes('接待')) return 'receptionist';
+  if (speakerName.includes('程玉静')) return 'defendant';
+  if (speakerName.includes('刘玉田')) return 'client';
+  if (speakerName.includes('赵雪')) return 'opponentLawyer';
+  if (speakerName.includes('李婷')) return 'playerLawyer';
+
+  const value = `${payload.speaker_name || ''} ${payload.speaker_id || ''}`.toLowerCase();
   if (value.includes('reception') || value.includes('front_desk') || value.includes('前台') || value.includes('接待')) {
     return 'receptionist';
   }
@@ -548,6 +560,27 @@ function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text:
   ) return 'opponentLawyer';
   if (value.includes('lawyer') || value.includes('律师') || value.includes('李婷')) return 'playerLawyer';
   return 'playerLawyer';
+}
+
+function inferStageCodeForDialogue(
+  explicitStage: unknown,
+  fallbackStageCode: string,
+  speaker: CharacterKey,
+  text: string,
+): string {
+  const explicit = String(explicitStage || '').trim();
+  if (explicit) return normalizeStageCode(explicit);
+  if (
+    speaker === 'appealJudge'
+    || /上诉人|被上诉人|二审|中级法院|终审/.test(text)
+  ) return 'CIA';
+  if (
+    speaker === 'judge'
+    || speaker === 'courtClerk'
+    || speaker === 'judgeAssistant'
+    || /原告核对身份|被告核对身份|到庭参加诉讼|现在开庭|本庭|审判长|诉讼权利义务|申请回避|法庭/.test(text)
+  ) return 'CI';
+  return fallbackStageCode;
 }
 
 function getDialogueSpeakerLabel(

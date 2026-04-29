@@ -37,6 +37,30 @@ assert.match(
 
 assert.match(
   reducerSource,
+  /const speakerName = String\(payload\.speaker_name \|\| ''\)[\s\S]*speakerName\.includes\('刘正'\)[\s\S]*return 'judge'/,
+  'First-instance judge dialogue with only the Chinese speaker name 刘正 should render as the judge, not the player lawyer.',
+);
+
+assert.match(
+  reducerSource,
+  /speakerName\.includes\('海瑞'\)[\s\S]*return 'appealJudge'/,
+  'Second-instance judge dialogue with only the Chinese speaker name 海瑞 should render as the appeal judge.',
+);
+
+assert.match(
+  reducerSource,
+  /function inferStageCodeForDialogue[\s\S]*speaker === 'judge'[\s\S]*return 'CI'/,
+  'Court dialogue without an explicit stage should fall back to courtroom stages instead of inheriting a law-office scene.',
+);
+
+assert.match(
+  reducerSource,
+  /function inferStageCodeForDialogue[\s\S]*speaker === 'appealJudge'[\s\S]*return 'CIA'/,
+  'Appeal-court dialogue without an explicit stage should fall back to the second-instance courtroom scene.',
+);
+
+assert.match(
+  reducerSource,
   /function inferCharacters\(stageCode: string, speaker: CharacterKey\): CharacterKey\[\] \{\s*return \[speaker\];\s*\}/,
   'Dialogue scenes should expose only the current speaker as the visible character.',
 );
