@@ -151,6 +151,16 @@ export function createInitialVnRuntimeState(): VnRuntimeState {
   };
 }
 
+export function createSceneForHistoryEntry(scene: DialogueScene, entry: DialogueHistoryEntry): DialogueScene {
+  return createSceneFromState(scene, {
+    characters: entry.kind === 'dialogue' ? inferCharacters(entry.stageCode, entry.speaker) : [],
+    speaker: entry.speaker,
+    speakerLabel: entry.speakerName,
+    stageCode: entry.stageCode,
+    text: entry.text,
+  });
+}
+
 export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): VnRuntimeState {
   switch (event.type) {
     case 'runtime-reset':

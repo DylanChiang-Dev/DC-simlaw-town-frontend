@@ -18,7 +18,12 @@ import {
 import { getWebSocketService } from './services/webSocket';
 import { usePlayerLawyerRuntime } from './state/usePlayerLawyerRuntime';
 import { useSimulationRuntime } from './state/useSimulationRuntime';
-import { createInitialVnRuntimeState, vnEventReducer, type DialogueHistoryEntry } from './state/vnEventReducer';
+import {
+  createInitialVnRuntimeState,
+  createSceneForHistoryEntry,
+  vnEventReducer,
+  type DialogueHistoryEntry,
+} from './state/vnEventReducer';
 
 type AppShellProps = {
   auth: AuthGateState;
@@ -63,6 +68,9 @@ function AppShell({ auth }: AppShellProps) {
   const [vnRuntime, dispatchVnEvent] = useReducer(vnEventReducer, undefined, createInitialVnRuntimeState);
   const scene = vnRuntime.scene;
   const nextUnacknowledgedDialogueEntry = getNextUnacknowledgedDialogueEntry(vnRuntime.history, acknowledgedDialogueEntryId);
+  const displayedScene = nextUnacknowledgedDialogueEntry
+    ? createSceneForHistoryEntry(scene, nextUnacknowledgedDialogueEntry)
+    : scene;
   const playerDialogMayAutoOpen = !nextUnacknowledgedDialogueEntry;
   const heldDialogueEntryId = nextUnacknowledgedDialogueEntry?.id || '';
   const activePlayerRequest = playerLawyer.activeRequest
@@ -332,10 +340,10 @@ function AppShell({ auth }: AppShellProps) {
               status={playerLawyer.status}
             />
           )}
-          <TechLedger background={vnRuntime.background} scene={scene} />
+          <TechLedger background={vnRuntime.background} scene={displayedScene} />
         </div>
         <div className="story-surface">
-          <VisualNovelStage scene={scene} />
+          <VisualNovelStage scene={displayedScene} />
           <DialogueBox
             backendMode={auth.backendConfigured && Boolean(auth.user)}
             dialogueGate={dialogueGate}
@@ -348,7 +356,7 @@ function AppShell({ auth }: AppShellProps) {
             onRefreshRuntime={runtime.refresh}
             onResumeCurrentCase={runtime.activeCaseId ? handleStartSelectedCase : undefined}
             runtimeError={runtime.error}
-            scene={scene}
+            scene={displayedScene}
             selectedCaseId={runtime.selectedCaseId}
             simulation={runtime.simulation}
             wsConnected={vnRuntime.wsConnected}
@@ -378,7 +386,7 @@ function AppShell({ auth }: AppShellProps) {
         }}
         request={playerDialogOpen ? activePlayerRequest : null}
       />
-      <CaseTimeline activeCode={scene.stageCode} />
+      <CaseTimeline activeCode={displayedScene.stageCode} />
       <CaseDocumentsPanel
         caseId={runtime.selectedCaseId || playerLawyer.activeRequest?.caseId || ''}
         onClose={() => setDocumentsOpen(false)}

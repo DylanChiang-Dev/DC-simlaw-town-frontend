@@ -8,6 +8,7 @@ const reducerSource = readFileSync(join(root, 'src', 'state', 'vnEventReducer.ts
 const stageSource = readFileSync(join(root, 'src', 'components', 'VisualNovelStage.tsx'), 'utf8');
 const webSocketSource = readFileSync(join(root, 'src', 'services', 'webSocket.ts'), 'utf8');
 const dialogueSource = readFileSync(join(root, 'src', 'components', 'DialogueBox.tsx'), 'utf8');
+const appSource = readFileSync(join(root, 'src', 'App.tsx'), 'utf8');
 
 assert.match(
   reducerSource,
@@ -61,6 +62,18 @@ assert.match(
   dialogueSource,
   /function getVisibleCurrentEntry\(history: DialogueHistoryEntry\[\], heldDialogueEntryId = ''\): DialogueHistoryEntry \| null \{[\s\S]*const heldEntry = history\.find\(\(entry\) => entry\.id === heldDialogueEntryId\);[\s\S]*return heldEntry \|\| history\[history\.length - 1\] \|\| null;[\s\S]*\}/,
   'The main dialogue box should keep an unacknowledged reception character line visible, then show latest system progress after acknowledgement.',
+);
+
+assert.match(
+  reducerSource,
+  /export function createSceneForHistoryEntry\(scene: DialogueScene, entry: DialogueHistoryEntry\): DialogueScene \{[\s\S]*speaker: entry\.speaker[\s\S]*stageCode: entry\.stageCode[\s\S]*text: entry\.text/,
+  'Held dialogue entries should be able to restore the matching stage, speaker, and text for the VN stage.',
+);
+
+assert.match(
+  appSource,
+  /const displayedScene = nextUnacknowledgedDialogueEntry[\s\S]*createSceneForHistoryEntry\(scene, nextUnacknowledgedDialogueEntry\)[\s\S]*<VisualNovelStage scene=\{displayedScene\} \/>/,
+  'When a reception dialogue is held visible, the stage art should use that dialogue scene instead of the latest system scene.',
 );
 
 assert.match(
