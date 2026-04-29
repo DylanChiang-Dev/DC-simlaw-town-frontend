@@ -402,7 +402,7 @@ function appendHistory(
   };
   return {
     ...state,
-    history: [...state.history, entry].slice(-40),
+    history: [...state.history, entry],
   };
 }
 

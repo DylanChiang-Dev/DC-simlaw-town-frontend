@@ -25,6 +25,27 @@ type Props = {
   wsConnected?: boolean;
 };
 
+type TranscriptStageCode = 'LC' | 'CD' | 'DD' | 'CI' | 'AD' | 'CIA';
+
+const TRANSCRIPT_STAGES: { code: TranscriptStageCode; label: string }[] = [
+  { code: 'LC', label: '咨询' },
+  { code: 'CD', label: '起诉状' },
+  { code: 'DD', label: '答辩状' },
+  { code: 'CI', label: '一审' },
+  { code: 'AD', label: '上诉' },
+  { code: 'CIA', label: '二审' },
+];
+
+const AUXILIARY_TRANSCRIPT_STAGES: Record<string, TranscriptStageCode> = {
+  RECEPTION: 'LC',
+  TIA: 'CI',
+  AR: 'AD',
+  TIAA: 'CIA',
+  FINAL_VERDICT: 'CIA',
+};
+
+const DIRECT_TRANSCRIPT_STAGE_CODES = new Set<string>(TRANSCRIPT_STAGES.map((stage) => stage.code));
+
 export function DialogueBox({
   backendMode = false,
   dialogueGate = null,
@@ -40,12 +61,15 @@ export function DialogueBox({
   simulation = null,
   wsConnected = true,
 }: Props) {
-  const [recordsOpen, setRecordsOpen] = useState(false);
+  const [activeTranscriptStage, setActiveTranscriptStage] = useState<TranscriptStageCode | null>(null);
   const speaker = characters[scene.speaker];
   const transcript = backendMode ? history : [];
+  const transcriptGroups = groupTranscriptByStage(transcript);
+  const activeStage = TRANSCRIPT_STAGES.find((stage) => stage.code === activeTranscriptStage) || null;
+  const activeStageEntries = activeStage ? transcriptGroups[activeStage.code] : [];
   const currentEntry = getVisibleCurrentEntry(transcript, heldDialogueEntryId);
   const showTranscript = backendMode && Boolean(currentEntry);
-  const canOpenTranscript = backendMode && transcript.length > 1;
+  const showStageControls = backendMode;
   const fallbackNotice = backendMode && !showTranscript && !dialogueGate
     ? getBackendFallbackNotice({
       onRefreshRuntime,
@@ -70,7 +94,7 @@ export function DialogueBox({
         name: scene.speakerLabel || speaker.name,
         role: speaker.role,
       };
-  const showActions = Boolean(dialogueGate || canOpenTranscript || fallbackNotice?.action);
+  const showActions = Boolean(dialogueGate || showStageControls || fallbackNotice?.action);
   const canClickToContinue = Boolean(dialogueGate && !dialogueGate.pending && wsConnected && onContinueDialogue);
 
   function handleDialogueBoxClick(event: MouseEvent<HTMLElement>): void {
@@ -136,10 +160,24 @@ export function DialogueBox({
                 </span>
               </div>
             )}
-            {canOpenTranscript && (
-              <button className="secondary-action" type="button" onClick={() => setRecordsOpen(true)}>
-                查看全部记录
-              </button>
+            {showStageControls && (
+              <div className="transcript-stage-actions" aria-label="六阶段对话记录">
+                {TRANSCRIPT_STAGES.map((stage) => {
+                  const entries = transcriptGroups[stage.code];
+                  return (
+                    <button
+                      className="transcript-stage-action secondary-action"
+                      disabled={entries.length === 0}
+                      key={stage.code}
+                      onClick={() => setActiveTranscriptStage(stage.code)}
+                      type="button"
+                    >
+                      <span>{stage.label}</span>
+                      <b>{entries.length}</b>
+                    </button>
+                  );
+                })}
+              </div>
             )}
             {dialogueGate ? (
               <button disabled={dialogueGate.pending || !wsConnected} type="button" onClick={onContinueDialogue}>
@@ -153,13 +191,13 @@ export function DialogueBox({
           </>
         ) : null}
       </div>}
-      {recordsOpen && (
-        <div className="modal-layer" role="dialog" aria-modal="true" aria-label="全部对话记录">
+      {activeStage && (
+        <div className="modal-layer" role="dialog" aria-modal="true" aria-label={`${activeStage.label}对话记录`}>
           <section className="dialogue-records-dialog">
-            <div className="panel-kicker">Case Transcript</div>
-            <h2>全部对话记录</h2>
+            <div className="panel-kicker">{activeStage.code} Case Transcript</div>
+            <h2>{activeStage.label}对话记录</h2>
             <div className="dialogue-records-list">
-              {transcript.map((entry) => (
+              {activeStageEntries.map((entry) => (
                 <article className={`dialogue-history-entry ${entry.kind}`} key={entry.id}>
                   <span>{entry.speakerName}</span>
                   <MarkdownText text={entry.text} />
@@ -167,7 +205,7 @@ export function DialogueBox({
               ))}
             </div>
             <div className="dialogue-records-actions">
-              <button className="secondary-action" type="button" onClick={() => setRecordsOpen(false)}>
+              <button className="secondary-action" type="button" onClick={() => setActiveTranscriptStage(null)}>
                 关闭
               </button>
             </div>
@@ -176,6 +214,45 @@ export function DialogueBox({
       )}
     </section>
   );
+}
+
+function groupTranscriptByStage(history: DialogueHistoryEntry[]): Record<TranscriptStageCode, DialogueHistoryEntry[]> {
+  const groups = createEmptyTranscriptGroups();
+  let currentStage: TranscriptStageCode = 'LC';
+
+  for (const entry of history) {
+    if (entry.stageCode === 'SYSTEM') {
+      groups[currentStage].push(entry);
+      continue;
+    }
+
+    const mappedStage = getTranscriptStageCode(entry.stageCode);
+    if (mappedStage) {
+      currentStage = mappedStage;
+    }
+    groups[currentStage].push(entry);
+  }
+
+  return groups;
+}
+
+function createEmptyTranscriptGroups(): Record<TranscriptStageCode, DialogueHistoryEntry[]> {
+  return {
+    LC: [],
+    CD: [],
+    DD: [],
+    CI: [],
+    AD: [],
+    CIA: [],
+  };
+}
+
+function getTranscriptStageCode(stageCode: string): TranscriptStageCode | null {
+  const normalized = String(stageCode || '').toUpperCase();
+  if (DIRECT_TRANSCRIPT_STAGE_CODES.has(normalized)) {
+    return normalized as TranscriptStageCode;
+  }
+  return AUXILIARY_TRANSCRIPT_STAGES[normalized] || null;
 }
 
 function getVisibleCurrentEntry(history: DialogueHistoryEntry[], heldDialogueEntryId = ''): DialogueHistoryEntry | null {

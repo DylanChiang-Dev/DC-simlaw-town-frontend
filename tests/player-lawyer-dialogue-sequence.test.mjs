@@ -142,3 +142,9 @@ assert.match(
   /DEFENDANT_ARRIVED:\s*'被告已收到法院送达，正在前往律所咨询应对。'/,
   'The defendant arrival event should explain that the defendant is responding to service, not fall back to generic case progress text.',
 );
+
+assert.doesNotMatch(
+  vnReducerSource,
+  /history:\s*\[\.\.\.state\.history,\s*entry\]\.slice\(-40\)/,
+  'VN story history should keep the complete current-run transcript instead of truncating to the latest 40 entries.',
+);
