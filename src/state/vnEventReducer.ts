@@ -572,15 +572,23 @@ function inferStageCodeForDialogue(
   if (explicit) return normalizeStageCode(explicit);
   if (
     speaker === 'appealJudge'
-    || /上诉人|被上诉人|二审|中级法院|终审/.test(text)
   ) return 'CIA';
   if (
     speaker === 'judge'
     || speaker === 'courtClerk'
     || speaker === 'judgeAssistant'
-    || /原告核对身份|被告核对身份|到庭参加诉讼|现在开庭|本庭|审判长|诉讼权利义务|申请回避|法庭/.test(text)
   ) return 'CI';
+  if (isSecondInstanceCourtProcedureText(text)) return 'CIA';
+  if (isFirstInstanceCourtProcedureText(text)) return 'CI';
   return fallbackStageCode;
+}
+
+function isFirstInstanceCourtProcedureText(text: string): boolean {
+  return /原告核对身份|被告核对身份|请原告本人陈述姓名|请被告本人陈述姓名|现在开庭|本庭已依法告知|诉讼权利和诉讼义务|是否申请回避|法庭纪律/.test(text);
+}
+
+function isSecondInstanceCourtProcedureText(text: string): boolean {
+  return /上诉人核对身份|被上诉人核对身份|请上诉人本人陈述姓名|请被上诉人本人陈述姓名|二审现在开庭|二审庭审|中级法院开庭|终审判决/.test(text);
 }
 
 function getDialogueSpeakerLabel(

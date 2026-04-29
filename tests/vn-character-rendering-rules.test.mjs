@@ -61,6 +61,18 @@ assert.match(
 
 assert.match(
   reducerSource,
+  /function isFirstInstanceCourtProcedureText\(text: string\): boolean \{[\s\S]*原告核对身份[\s\S]*现在开庭[\s\S]*\}/,
+  'First-instance stage fallback should be limited to concrete court procedure lines.',
+);
+
+assert.doesNotMatch(
+  reducerSource,
+  /\|\|\s*\/[^/\n]*法庭[^/\n]*\/\.test\(text\)/,
+  'Lawyer consultation that merely mentions 法庭 must not be promoted to the courtroom scene.',
+);
+
+assert.match(
+  reducerSource,
   /function inferCharacters\(stageCode: string, speaker: CharacterKey\): CharacterKey\[\] \{\s*return \[speaker\];\s*\}/,
   'Dialogue scenes should expose only the current speaker as the visible character.',
 );
