@@ -838,6 +838,8 @@ h1 {
 .ledger-tags b {
   border-radius: 8px;
   color: #fff1dc;
+  line-height: 1.35;
+  white-space: normal;
   word-break: break-word;
 }
 

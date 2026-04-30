@@ -1,6 +1,7 @@
 import type { DialogueScene } from '../data/runtimeScene';
 import type { DialogueHistoryEntry } from '../state/vnEventReducer';
 import { MarkdownText } from './MarkdownText';
+import { formatRuntimeTechLabel } from './techDisplayNames';
 
 type Props = {
   background?: DialogueHistoryEntry[];
@@ -44,7 +45,7 @@ export function TechLedger({ background = [], scene }: Props) {
         <span>工具</span>
         <div className="ledger-tags">
           {hasTools
-            ? scene.tech.tools.map((tool) => <b key={tool}>{tool}</b>)
+            ? scene.tech.tools.map((tool) => <b key={tool}>{formatRuntimeTechLabel(tool)}</b>)
             : <em>等待工具调用</em>}
         </div>
       </div>
@@ -52,7 +53,7 @@ export function TechLedger({ background = [], scene }: Props) {
         <span>专业规则</span>
         <div className="ledger-tags">
           {hasSkills
-            ? scene.tech.skills.map((skill) => <b key={skill}>{skill}</b>)
+            ? scene.tech.skills.map((skill) => <b key={skill}>{formatRuntimeTechLabel(skill)}</b>)
             : <em>等待技能调用</em>}
         </div>
       </div>
