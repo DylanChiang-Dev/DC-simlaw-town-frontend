@@ -4,6 +4,11 @@ import { MarkdownText } from './MarkdownText';
 import type { SimulationStatus } from '../services/types';
 import type { DialogueHistoryEntry, RuntimeStatus } from '../state/vnEventReducer';
 
+const INLINE_RUNTIME_NOTICE_EXCLUDED_PHASES = new Set([
+  'scenario_start',
+  'scenario_end',
+]);
+
 type Props = {
   backendMode?: boolean;
   caseClosed?: boolean;
@@ -298,6 +303,7 @@ function getRuntimeProgressNotice(runtimeStatus?: RuntimeStatus): string {
   if (!runtimeStatus || runtimeStatus.blocking) return '';
   const phase = String(runtimeStatus.phase || '').trim();
   const message = String(runtimeStatus.message || '').trim();
+  if (INLINE_RUNTIME_NOTICE_EXCLUDED_PHASES.has(phase)) return '';
   if (!message || ['idle', 'connected', 'disconnected', 'ws_error'].includes(phase)) return '';
   return runtimeStatus.detail ? `${message} ${runtimeStatus.detail}` : message;
 }

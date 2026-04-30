@@ -102,6 +102,12 @@ assert.match(
   'DialogueBox should prefer the latest non-blocking runtime progress message before falling back to the generic Agent generation notice.',
 );
 
+assert.match(
+  dialogueSource,
+  /const INLINE_RUNTIME_NOTICE_EXCLUDED_PHASES = new Set\(\[[\s\S]*'scenario_start'[\s\S]*'scenario_end'[\s\S]*\]\);[\s\S]*INLINE_RUNTIME_NOTICE_EXCLUDED_PHASES\.has\(phase\)/,
+  'DialogueBox should not show technical scenario start/end runtime progress as the inline waiting notice.',
+);
+
 assert.doesNotMatch(
   dialogueSource,
   /if \(entry\.kind === 'dialogue' \|\| entry\.kind === 'error'\)/,
