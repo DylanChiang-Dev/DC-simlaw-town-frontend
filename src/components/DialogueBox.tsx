@@ -2,7 +2,7 @@ import { type KeyboardEvent, type MouseEvent } from 'react';
 import { characters, type DialogueScene } from '../data/runtimeScene';
 import { MarkdownText } from './MarkdownText';
 import type { SimulationStatus } from '../services/types';
-import type { DialogueHistoryEntry } from '../state/vnEventReducer';
+import type { DialogueHistoryEntry, RuntimeStatus } from '../state/vnEventReducer';
 
 type Props = {
   backendMode?: boolean;
@@ -14,6 +14,7 @@ type Props = {
   onResumeCurrentCase?: () => Promise<void>;
   scene: DialogueScene;
   runtimeError?: string;
+  runtimeStatus?: RuntimeStatus;
   selectedCaseId?: string;
   simulation?: SimulationStatus | null;
   wsConnected?: boolean;
@@ -28,6 +29,7 @@ export function DialogueBox({
   onAcknowledgeCurrentEntry,
   onResumeCurrentCase,
   runtimeError = '',
+  runtimeStatus,
   selectedCaseId = '',
   scene,
   simulation = null,
@@ -41,6 +43,7 @@ export function DialogueBox({
       onResumeCurrentCase,
       hasPendingUserTask,
       runtimeError,
+      runtimeStatus,
       selectedCaseId,
       simulation,
       wsConnected,
@@ -163,6 +166,7 @@ type BackendFallbackInput = {
   hasPendingUserTask: boolean;
   onResumeCurrentCase?: () => Promise<void>;
   runtimeError: string;
+  runtimeStatus?: RuntimeStatus;
   selectedCaseId: string;
   simulation: SimulationStatus | null;
   wsConnected: boolean;
@@ -188,6 +192,7 @@ function getBackendFallbackNotice({
   hasPendingUserTask,
   onResumeCurrentCase,
   runtimeError,
+  runtimeStatus,
   selectedCaseId,
   simulation,
   wsConnected,
@@ -258,9 +263,10 @@ function getBackendFallbackNotice({
   }
 
   if (simulation.simulationRunning || simulation.status === 'running') {
+    const runtimeProgressNotice = getRuntimeProgressNotice(runtimeStatus);
     return {
       blocking: false,
-      message: 'Agent 正在生成下一句...',
+      message: runtimeProgressNotice || 'Agent 正在生成下一句...',
       title: '正在等待 Agent 生成对话',
       tone: 'idle',
     };
@@ -272,4 +278,12 @@ function getBackendFallbackNotice({
     title: '没有可展示的案件事件',
     tone: 'idle',
   };
+}
+
+function getRuntimeProgressNotice(runtimeStatus?: RuntimeStatus): string {
+  if (!runtimeStatus || runtimeStatus.blocking) return '';
+  const phase = String(runtimeStatus.phase || '').trim();
+  const message = String(runtimeStatus.message || '').trim();
+  if (!message || ['idle', 'connected', 'disconnected', 'ws_error'].includes(phase)) return '';
+  return runtimeStatus.detail ? `${message} ${runtimeStatus.detail}` : message;
 }

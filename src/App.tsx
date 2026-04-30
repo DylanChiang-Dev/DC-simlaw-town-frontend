@@ -318,6 +318,7 @@ function AppShell({ auth }: AppShellProps) {
             }}
             onResumeCurrentCase={runtime.activeCaseId ? handleStartSelectedCase : undefined}
             runtimeError={runtime.error}
+            runtimeStatus={vnRuntime.runtimeStatus}
             scene={displayedScene}
             selectedCaseId={runtime.selectedCaseId}
             simulation={runtime.simulation}

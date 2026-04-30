@@ -68,6 +68,18 @@ assert.match(
 
 assert.match(
   dialogueSource,
+  /runtimeStatus\?: RuntimeStatus/,
+  'DialogueBox should accept the latest runtime progress so queue-drained waits can explain the backend step instead of looking stuck.',
+);
+
+assert.match(
+  appSource,
+  /runtimeStatus=\{vnRuntime\.runtimeStatus\}/,
+  'App should pass runtimeStatus into DialogueBox so lightweight backend progress appears under the retained dialogue line.',
+);
+
+assert.match(
+  dialogueSource,
   /const displayEntry = currentEntry \|\| \(!isBlockingNotice\(drainedQueueNotice\) \? lastAcknowledgedEntry : null\);/,
   'DialogueBox should keep showing the last acknowledged line while a non-blocking queue-drained notice is active.',
 );
@@ -82,6 +94,12 @@ assert.match(
   dialogueSource,
   /className=\{`dialogue-inline-status \$\{inlineNotice\.tone\}`\}/,
   'DialogueBox should render the waiting-for-agent state as a lightweight status strip instead of replacing dialogue content.',
+);
+
+assert.match(
+  dialogueSource,
+  /const runtimeProgressNotice = getRuntimeProgressNotice\(runtimeStatus\);[\s\S]*message: runtimeProgressNotice \|\| 'Agent 正在生成下一句\.\.\.'/,
+  'DialogueBox should prefer the latest non-blocking runtime progress message before falling back to the generic Agent generation notice.',
 );
 
 assert.doesNotMatch(
@@ -166,6 +184,18 @@ assert.match(
   vnReducerSource,
   /function applyRuntimeProgress\(state: VnRuntimeState, payload: Record<string, unknown>\): VnRuntimeState \{[\s\S]*phase === 'memory_checkpoint'[\s\S]*return appendSystemLine\([\s\S]*message[\s\S]*stageCode[\s\S]*\);[\s\S]*\}/,
   'Memory checkpoint progress should be visible as a system story line so stage transitions do not appear silently stuck.',
+);
+
+assert.match(
+  vnReducerSource,
+  /return updateRuntimePipeline\(nextState, payload\);/,
+  'Ordinary runtime progress such as AD→AR transition updates should refresh the visible pipeline state without appending a story entry.',
+);
+
+assert.match(
+  vnReducerSource,
+  /function updateRuntimePipeline\([\s\S]*payload: Record<string, unknown>[\s\S]*pipeline: message/,
+  'Runtime progress should be visible in the right-side pipeline ledger even when it is not promoted into the main story history.',
 );
 
 assert.match(

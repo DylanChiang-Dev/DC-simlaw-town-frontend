@@ -376,7 +376,7 @@ function applyRuntimeProgress(state: VnRuntimeState, payload: Record<string, unk
     const stageCode = normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
     return appendSystemLine(nextState, message, stageCode);
   }
-  return nextState;
+  return updateRuntimePipeline(nextState, payload);
 }
 
 function applyRuntimeCapabilityDisplay(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
@@ -393,6 +393,21 @@ function applyRuntimeCapabilityDisplay(state: VnRuntimeState, payload: Record<st
         tools: toolNames.length > 0 ? mergeRuntimeTags(state.scene.tech.tools, toolNames) : state.scene.tech.tools,
         skills: skillNames.length > 0 ? mergeRuntimeTags(state.scene.tech.skills, skillNames) : state.scene.tech.skills,
         memory: memory || state.scene.tech.memory,
+      },
+    },
+  };
+}
+
+function updateRuntimePipeline(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
+  const message = String(payload.message || '').trim();
+  if (!message) return state;
+  return {
+    ...state,
+    scene: {
+      ...state.scene,
+      tech: {
+        ...state.scene.tech,
+        pipeline: message,
       },
     },
   };
