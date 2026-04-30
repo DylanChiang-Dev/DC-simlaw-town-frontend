@@ -52,6 +52,24 @@ assert.match(
 );
 
 assert.match(
+  dialogSource,
+  /followupQuestion[\s\S]*handleDocumentFollowup[\s\S]*追问当事人/,
+  'The document-stage dialog should expose an independent client follow-up question flow.',
+);
+
+assert.match(
+  apiSource,
+  /sendPlayerLawyerDocumentFollowup[\s\S]*?\/api\/sandbox\/player-lawyer\/document-followup/,
+  'Frontend API should call the dedicated document-followup endpoint for document-stage questions.',
+);
+
+assert.match(
+  appSource,
+  /handleDocumentFollowup[\s\S]*sendPlayerLawyerDocumentFollowup[\s\S]*requestId:\s*request\.requestId/,
+  'App should send document follow-up questions against the active pending document request.',
+);
+
+assert.match(
   appSource,
   /createPlayerLawyerDocumentDraft[\s\S]*playerDraft:\s*input\.documentText/,
   'App should pass the current document editor text as the draft to document-assist.',

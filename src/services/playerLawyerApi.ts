@@ -4,6 +4,8 @@ import type {
   PlayerLawyerDocumentAssistInput,
   PlayerLawyerDocumentConfirmInput,
   PlayerLawyerDocumentDraft,
+  PlayerLawyerDocumentFollowup,
+  PlayerLawyerDocumentFollowupInput,
   PlayerLawyerManualDocumentConfirmInput,
   PlayerLawyerPolishInput,
   PlayerLawyerRequest,
@@ -252,4 +254,25 @@ export async function confirmManualPlayerLawyerDocument(input: PlayerLawyerManua
   });
   const payload = await readJsonResponse<{ draft?: PlayerLawyerDocumentDraftResponse }>(response);
   return mapDraft(payload.draft || {});
+}
+
+export async function sendPlayerLawyerDocumentFollowup(input: PlayerLawyerDocumentFollowupInput): Promise<PlayerLawyerDocumentFollowup> {
+  const response = await authenticatedFetch('/api/sandbox/player-lawyer/document-followup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      request_id: input.requestId,
+      message: input.message,
+    }),
+  });
+  const payload = await readJsonResponse<{
+    request?: PlayerLawyerRequestResponse;
+    question?: string;
+    answer?: string;
+  }>(response);
+  return {
+    request: mapRequest(payload.request || {}),
+    question: String(payload.question || ''),
+    answer: String(payload.answer || ''),
+  };
 }

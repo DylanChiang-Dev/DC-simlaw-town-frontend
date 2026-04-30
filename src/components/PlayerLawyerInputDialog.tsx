@@ -15,7 +15,8 @@ type Props = {
   loading: boolean;
   onClose: () => void;
   onDraftText: (input: { hintIds: string[] }) => Promise<string>;
-  onPolishDocument: (input: { documentText: string }) => Promise<string>;
+  onFollowupDocument: (input: { message: string }) => Promise<{ question: string; answer: string }>;
+  onPolishDocument: (input: { documentText: string; followupHistory: DocumentFollowupPair[] }) => Promise<string>;
   onPolishText: (input: { originalMessage: string; hintIds: string[] }) => Promise<string>;
   onSubmitDocument: (input: { documentText: string }) => Promise<void>;
   onSubmitText: (input: {
@@ -29,11 +30,17 @@ type Props = {
   request: PlayerLawyerRequest | null;
 };
 
+type DocumentFollowupPair = {
+  question: string;
+  answer: string;
+};
+
 export function PlayerLawyerInputDialog({
   documentSkill,
   loading,
   onClose,
   onDraftText,
+  onFollowupDocument,
   onPolishDocument,
   onPolishText,
   onSubmitDocument,
@@ -44,12 +51,16 @@ export function PlayerLawyerInputDialog({
   const [selectedHints, setSelectedHints] = useState<string[]>([]);
   const [polishedMessage, setPolishedMessage] = useState('');
   const [polishError, setPolishError] = useState('');
+  const [followupQuestion, setFollowupQuestion] = useState('');
+  const [followupHistory, setFollowupHistory] = useState<DocumentFollowupPair[]>([]);
 
   useEffect(() => {
     setMessage('');
     setSelectedHints([]);
     setPolishedMessage('');
     setPolishError('');
+    setFollowupQuestion('');
+    setFollowupHistory([]);
   }, [request?.requestId]);
 
   if (!request) return null;
@@ -111,10 +122,29 @@ export function PlayerLawyerInputDialog({
     if (!message.trim()) return;
     setPolishError('');
     try {
-      const next = (await onPolishDocument({ documentText: message.trim() })).trim();
+      const next = (await onPolishDocument({ documentText: message.trim(), followupHistory })).trim();
       if (next) setMessage(next);
     } catch (err) {
       setPolishError(err instanceof Error ? err.message : '智能体润色失败');
+    }
+  }
+
+  async function handleDocumentFollowup(): Promise<void> {
+    const question = followupQuestion.trim();
+    if (!question) return;
+    setPolishError('');
+    try {
+      const next = await onFollowupDocument({ message: question });
+      setFollowupHistory((current) => [
+        ...current,
+        {
+          question: next.question || question,
+          answer: next.answer || '当事人暂未补充更多信息。',
+        },
+      ]);
+      setFollowupQuestion('');
+    } catch (err) {
+      setPolishError(err instanceof Error ? err.message : '追问当事人失败');
     }
   }
 
@@ -254,6 +284,40 @@ export function PlayerLawyerInputDialog({
             placeholder={documentStage ? '请写入完整文书正文，或先套用参考模板后修改。' : '请写下你准备让当前角色表达的回复要点。'}
             value={message}
           />
+          {documentStage && (
+            <section className="document-followup-panel" aria-label="追问当事人">
+              <div className="document-followup-header">
+                <strong>追问当事人</strong>
+                <span>补齐事实、金额、证据或诉讼立场后再起草。</span>
+              </div>
+              <div className="document-followup-row">
+                <textarea
+                  disabled={loading}
+                  onChange={(event) => setFollowupQuestion(event.target.value)}
+                  placeholder="写下要向当事人追问的一个具体问题。"
+                  value={followupQuestion}
+                />
+                <button
+                  className="secondary-action"
+                  disabled={loading || !followupQuestion.trim()}
+                  onClick={handleDocumentFollowup}
+                  type="button"
+                >
+                  {loading ? '追问中' : '追问当事人'}
+                </button>
+              </div>
+              {followupHistory.length > 0 && (
+                <div className="document-followup-history" aria-label="追问记录">
+                  {followupHistory.map((item, index) => (
+                    <article key={`${index}-${item.question}`}>
+                      <strong>问：{item.question}</strong>
+                      <span>答：{item.answer}</span>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
           {!documentStage && (
             <div className="response-assist-actions">
               <button className="secondary-action" disabled={loading} onClick={handleAutoDraftSubmit} type="button">

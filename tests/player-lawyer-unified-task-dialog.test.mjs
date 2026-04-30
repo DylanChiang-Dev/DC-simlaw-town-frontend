@@ -20,6 +20,12 @@ assert.match(
 );
 
 assert.match(
+  dialogSource,
+  /document-followup-panel[\s\S]*追问当事人[\s\S]*followupQuestion[\s\S]*followupHistory/,
+  'Document-stage tasks should include an independent follow-up panel that does not reuse the document textarea.',
+);
+
+assert.match(
   appSource,
   /async function handleManualDocumentSubmit\([^)]*documentText[^)]*\)/,
   'Document manual submission should accept user-entered document text from the unified task dialog.',

@@ -16,6 +16,7 @@ import {
   confirmManualPlayerLawyerDocument,
   createPlayerLawyerDocumentDraft,
   fetchPlayerLawyerDocumentSkills,
+  sendPlayerLawyerDocumentFollowup,
 } from './services/playerLawyerApi';
 import { getWebSocketService } from './services/webSocket';
 import { usePlayerLawyerRuntime } from './state/usePlayerLawyerRuntime';
@@ -56,6 +57,7 @@ function AppShell({ auth }: AppShellProps) {
   const [closingSummaryOpen, setClosingSummaryOpen] = useState(false);
   const [closingSummaryEntryId, setClosingSummaryEntryId] = useState('');
   const [documentPolishLoading, setDocumentPolishLoading] = useState(false);
+  const [documentFollowupLoading, setDocumentFollowupLoading] = useState(false);
   const [documentSkills, setDocumentSkills] = useState<PlayerLawyerSkill[]>([]);
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const runtime = useSimulationRuntime(auth.backendConfigured && Boolean(auth.user));
@@ -265,7 +267,7 @@ function AppShell({ auth }: AppShellProps) {
     setPlayerDialogOpen(false);
   }
 
-  async function handleDocumentPolish(input: { documentText: string }): Promise<string> {
+  async function handleDocumentPolish(input: { documentText: string; followupHistory?: Array<{ question: string; answer: string }> }): Promise<string> {
     const request = playerLawyer.activeRequest;
     if (!request) {
       throw new Error('当前没有待处理的文书任务');
@@ -281,17 +283,44 @@ function AppShell({ auth }: AppShellProps) {
     }
     setDocumentPolishLoading(true);
     try {
+      const followupContext = (input.followupHistory || [])
+        .map((item, index) => `追问${index + 1}：${item.question}\n当事人回答${index + 1}：${item.answer}`)
+        .join('\n\n');
       const draft = await createPlayerLawyerDocumentDraft({
         caseId: request.caseId,
         documentType,
         skillId: documentSkill.skillId,
-        playerPrompt: `${String(request.prompt || '').trim()}\n\n请只润色当前草稿，不新增无来源事实、金额、日期、证据或主体信息。`,
+        playerPrompt: `${String(request.prompt || '').trim()}${followupContext ? `\n\n【文书阶段追问记录】\n${followupContext}` : ''}\n\n请只润色当前草稿，不新增无来源事实、金额、日期、证据或主体信息。`,
         playerDraft: input.documentText,
         requestId: request.requestId,
       });
       return draft.documentText;
     } finally {
       setDocumentPolishLoading(false);
+    }
+  }
+
+  async function handleDocumentFollowup(input: { message: string }): Promise<{ question: string; answer: string }> {
+    const request = playerLawyer.activeRequest;
+    if (!request) {
+      throw new Error('当前没有待处理的文书任务');
+    }
+    if (!STAGE_DOCUMENT_TYPES[String(request.stage || '').toUpperCase()]) {
+      throw new Error('当前任务不是可追问的文书阶段');
+    }
+    setDocumentFollowupLoading(true);
+    try {
+      const result = await sendPlayerLawyerDocumentFollowup({
+        requestId: request.requestId,
+        message: input.message.trim(),
+      });
+      await playerLawyer.refresh();
+      return {
+        question: result.question,
+        answer: result.answer,
+      };
+    } finally {
+      setDocumentFollowupLoading(false);
     }
   }
 
@@ -373,12 +402,13 @@ function AppShell({ auth }: AppShellProps) {
       </div>
       <PlayerLawyerInputDialog
         documentSkill={activeDocumentSkill}
-        loading={playerLawyer.actionLoading || documentPolishLoading}
+        loading={playerLawyer.actionLoading || documentPolishLoading || documentFollowupLoading}
         onClose={() => setPlayerDialogOpen(false)}
         onDraftText={async (input) => {
           const assist = await playerLawyer.draftTextReply(input);
           return assist.aiPolishedMessage;
         }}
+        onFollowupDocument={handleDocumentFollowup}
         onPolishDocument={handleDocumentPolish}
         onPolishText={async (input) => {
           const assist = await playerLawyer.polishTextReply(input);

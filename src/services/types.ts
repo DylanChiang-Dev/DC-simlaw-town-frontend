@@ -189,6 +189,17 @@ export type PlayerLawyerManualDocumentConfirmInput = {
   documentText: string;
 };
 
+export type PlayerLawyerDocumentFollowupInput = {
+  requestId: string;
+  message: string;
+};
+
+export type PlayerLawyerDocumentFollowup = {
+  request: PlayerLawyerRequest;
+  question: string;
+  answer: string;
+};
+
 export type CaseDocumentEntry = {
   caseId: string;
   documentKey: string;
