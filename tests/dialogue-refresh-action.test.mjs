@@ -78,8 +78,8 @@ assert.match(
 
 assert.match(
   dialogueSource,
-  /className=\{`dialogue-inline-status \$\{inlineNotice\.tone\}`\}/,
-  'The waiting-for-agent notice should render as an inline status strip rather than replacing the current dialogue body.',
+  /className=\{`dialogue-floating-status \$\{inlineNotice\.tone\}`\}/,
+  'The waiting-for-agent notice should render as a floating frosted capsule rather than replacing the current dialogue body.',
 );
 
 assert.doesNotMatch(

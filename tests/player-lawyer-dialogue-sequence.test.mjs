@@ -92,8 +92,14 @@ assert.match(
 
 assert.match(
   dialogueSource,
-  /className=\{`dialogue-inline-status \$\{inlineNotice\.tone\}`\}/,
-  'DialogueBox should render the waiting-for-agent state as a lightweight status strip instead of replacing dialogue content.',
+  /className=\{`dialogue-floating-status \$\{inlineNotice\.tone\}`\}/,
+  'DialogueBox should render the waiting-for-agent state as a floating frosted capsule above the dialogue box instead of replacing dialogue content.',
+);
+
+assert.doesNotMatch(
+  dialogueSource,
+  /dialogue-inline-status/,
+  'DialogueBox should no longer render the waiting-for-agent state as an inline strip inside the dialogue copy.',
 );
 
 assert.match(

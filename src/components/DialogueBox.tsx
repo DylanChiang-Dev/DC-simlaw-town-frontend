@@ -106,6 +106,17 @@ export function DialogueBox({
       onKeyDown={handleDialogueBoxKeyDown}
       tabIndex={canAcknowledgeCurrentEntry ? 0 : undefined}
     >
+      {inlineNotice ? (
+        <div className={`dialogue-floating-status ${inlineNotice.tone}`} role="status" aria-live="polite">
+          <span className="dialogue-floating-spinner" aria-hidden="true" />
+          <span>{inlineNotice.message}</span>
+          <span className="dialogue-floating-dots" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+        </div>
+      ) : null}
       <div className="speaker-plate">
         <strong>{speakerPlate.name}</strong>
         <span>{speakerPlate.role}</span>
@@ -116,11 +127,6 @@ export function DialogueBox({
             <article className={`dialogue-current-entry ${displayEntry?.kind || 'dialogue'}`} aria-label={currentEntry ? '当前对话' : '上一句对话'}>
               <MarkdownText text={displayEntry?.text || ''} />
             </article>
-            {inlineNotice ? (
-              <div className={`dialogue-inline-status ${inlineNotice.tone}`} role="status">
-                <span>{inlineNotice.message}</span>
-              </div>
-            ) : null}
           </>
         ) : fallbackNotice ? (
           <div className={`dialogue-runtime-notice ${fallbackNotice.tone}`} role={fallbackNotice.tone === 'error' ? 'alert' : 'status'}>
