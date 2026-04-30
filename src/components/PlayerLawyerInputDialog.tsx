@@ -15,6 +15,7 @@ type Props = {
   loading: boolean;
   onClose: () => void;
   onDraftText: (input: { hintIds: string[] }) => Promise<string>;
+  onPolishDocument: (input: { documentText: string }) => Promise<string>;
   onPolishText: (input: { originalMessage: string; hintIds: string[] }) => Promise<string>;
   onSubmitDocument: (input: { documentText: string }) => Promise<void>;
   onSubmitText: (input: {
@@ -33,6 +34,7 @@ export function PlayerLawyerInputDialog({
   loading,
   onClose,
   onDraftText,
+  onPolishDocument,
   onPolishText,
   onSubmitDocument,
   onSubmitText,
@@ -102,6 +104,17 @@ export function PlayerLawyerInputDialog({
       setPolishedMessage(next);
     } catch (err) {
       setPolishError(err instanceof Error ? err.message : 'AI 润色失败');
+    }
+  }
+
+  async function handleDocumentPolish(): Promise<void> {
+    if (!message.trim()) return;
+    setPolishError('');
+    try {
+      const next = (await onPolishDocument({ documentText: message.trim() })).trim();
+      if (next) setMessage(next);
+    } catch (err) {
+      setPolishError(err instanceof Error ? err.message : '智能体润色失败');
     }
   }
 
@@ -201,14 +214,24 @@ export function PlayerLawyerInputDialog({
                   <strong>参考模板</strong>
                   <span>{documentSkill?.templateTitle || '当前阶段文书模板'}</span>
                 </div>
-                <button
-                  className="secondary-action"
-                  disabled={loading || !documentSkill?.templateText}
-                  onClick={applyTemplate}
-                  type="button"
-                >
-                  套用模板
-                </button>
+                <div className="document-template-actions">
+                  <button
+                    className="secondary-action"
+                    disabled={loading || !documentSkill?.templateText}
+                    onClick={applyTemplate}
+                    type="button"
+                  >
+                    套用模板
+                  </button>
+                  <button
+                    className="secondary-action"
+                    disabled={loading || !message.trim()}
+                    onClick={handleDocumentPolish}
+                    type="button"
+                  >
+                    {loading ? '处理中' : '智能体润色'}
+                  </button>
+                </div>
               </div>
               {documentSkill?.templateText ? (
                 <pre>{documentSkill.templateText}</pre>

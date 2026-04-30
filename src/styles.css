@@ -1708,6 +1708,13 @@ h1 {
   font-size: 12px;
 }
 
+.document-template-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .document-template-reference pre {
   max-height: 210px;
   margin: 0;

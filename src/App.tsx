@@ -14,6 +14,7 @@ import { VisualNovelStage } from './components/VisualNovelStage';
 import { getEventBus } from './services/eventBus';
 import {
   confirmManualPlayerLawyerDocument,
+  createPlayerLawyerDocumentDraft,
   fetchPlayerLawyerDocumentSkills,
 } from './services/playerLawyerApi';
 import { getWebSocketService } from './services/webSocket';
@@ -54,6 +55,7 @@ function AppShell({ auth }: AppShellProps) {
   const [acknowledgedDialogueEntryId, setAcknowledgedDialogueEntryId] = useState('');
   const [closingSummaryOpen, setClosingSummaryOpen] = useState(false);
   const [closingSummaryEntryId, setClosingSummaryEntryId] = useState('');
+  const [documentPolishLoading, setDocumentPolishLoading] = useState(false);
   const [documentSkills, setDocumentSkills] = useState<PlayerLawyerSkill[]>([]);
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const runtime = useSimulationRuntime(auth.backendConfigured && Boolean(auth.user));
@@ -263,6 +265,36 @@ function AppShell({ auth }: AppShellProps) {
     setPlayerDialogOpen(false);
   }
 
+  async function handleDocumentPolish(input: { documentText: string }): Promise<string> {
+    const request = playerLawyer.activeRequest;
+    if (!request) {
+      throw new Error('当前没有待处理的文书任务');
+    }
+    const stage = String(request.stage || '').toUpperCase();
+    const documentType = STAGE_DOCUMENT_TYPES[stage];
+    if (!documentType) {
+      throw new Error('当前任务不是可润色的文书阶段');
+    }
+    const documentSkill = findDocumentSkillForStage(documentSkills, request.stage);
+    if (!documentSkill?.skillId) {
+      throw new Error('当前文书规则尚未读取完成，请稍后再试');
+    }
+    setDocumentPolishLoading(true);
+    try {
+      const draft = await createPlayerLawyerDocumentDraft({
+        caseId: request.caseId,
+        documentType,
+        skillId: documentSkill.skillId,
+        playerPrompt: `${String(request.prompt || '').trim()}\n\n请只润色当前草稿，不新增无来源事实、金额、日期、证据或主体信息。`,
+        playerDraft: input.documentText,
+        requestId: request.requestId,
+      });
+      return draft.documentText;
+    } finally {
+      setDocumentPolishLoading(false);
+    }
+  }
+
   return (
     <main className="app-shell">
       <CommandHud
@@ -341,12 +373,13 @@ function AppShell({ auth }: AppShellProps) {
       </div>
       <PlayerLawyerInputDialog
         documentSkill={activeDocumentSkill}
-        loading={playerLawyer.actionLoading}
+        loading={playerLawyer.actionLoading || documentPolishLoading}
         onClose={() => setPlayerDialogOpen(false)}
         onDraftText={async (input) => {
           const assist = await playerLawyer.draftTextReply(input);
           return assist.aiPolishedMessage;
         }}
+        onPolishDocument={handleDocumentPolish}
         onPolishText={async (input) => {
           const assist = await playerLawyer.polishTextReply(input);
           return assist.aiPolishedMessage;

@@ -46,6 +46,24 @@ assert.match(
 );
 
 assert.match(
+  dialogSource,
+  /onPolishDocument[\s\S]*handleDocumentPolish[\s\S]*智能体润色/,
+  'The document-stage dialog should expose intelligent document polish that fills the editor without submitting.',
+);
+
+assert.match(
+  appSource,
+  /createPlayerLawyerDocumentDraft[\s\S]*playerDraft:\s*input\.documentText/,
+  'App should pass the current document editor text as the draft to document-assist.',
+);
+
+assert.match(
+  appSource,
+  /createPlayerLawyerDocumentDraft[\s\S]*只润色当前草稿，不新增无来源事实/,
+  'App should reuse document-assist with a no-fabrication prompt for document polish.',
+);
+
+assert.match(
   apiSource,
   /confirmManualPlayerLawyerDocument[\s\S]*?\/api\/sandbox\/player-lawyer\/documents\/confirm-manual/,
   'Frontend API should call the manual document confirmation endpoint for user-authored documents.',

@@ -15,7 +15,7 @@ assert.doesNotMatch(
 
 assert.match(
   dialogSource,
-  /<form onSubmit=\{handleSubmit\}>[\s\S]*参考模板[\s\S]*<textarea[\s\S]*提交文书并继续/s,
+  /<form onSubmit=\{handleSubmit\}>[\s\S]*参考模板[\s\S]*套用模板[\s\S]*智能体润色[\s\S]*<textarea[\s\S]*提交文书并继续/s,
   'Document-stage tasks should use the same dialog form with a backend template, textarea, and submit action.',
 );
 
