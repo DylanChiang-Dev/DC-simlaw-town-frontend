@@ -1301,20 +1301,19 @@ h1 {
 .auth-shell {
   width: 100%;
   min-height: 100vh;
-  padding: 16px;
-  display: grid;
-  place-items: center;
-  background: #211711;
+  padding: 0;
+  background: #140d09;
 }
 
 .auth-stage {
   position: relative;
-  width: min(1120px, 100%);
-  min-height: min(720px, calc(100vh - 32px));
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  padding: clamp(24px, 5vw, 72px);
   overflow: hidden;
-  border: 1px solid rgba(233, 188, 114, 0.28);
   background: #1f1510;
-  box-shadow: 0 34px 100px rgba(0, 0, 0, 0.46);
 }
 
 .auth-background {
@@ -1329,20 +1328,23 @@ h1 {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(24, 13, 8, 0.82), rgba(24, 13, 8, 0.18)),
-    linear-gradient(180deg, rgba(24, 13, 8, 0.12), rgba(24, 13, 8, 0.58));
+    linear-gradient(90deg, rgba(18, 10, 7, 0.9) 0%, rgba(25, 14, 9, 0.72) 34%, rgba(25, 14, 9, 0.26) 62%, rgba(7, 10, 16, 0.34) 100%),
+    linear-gradient(180deg, rgba(11, 7, 5, 0.18), rgba(11, 7, 5, 0.72));
 }
 
 .login-panel,
 .auth-loading {
   position: relative;
   z-index: 2;
-  width: min(430px, calc(100% - 32px));
-  margin: 56px;
-  padding: 28px;
+  width: min(456px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: clamp(24px, 3vw, 34px);
   border: 1px solid rgba(255, 222, 176, 0.35);
-  background: linear-gradient(180deg, rgba(54, 34, 24, 0.94), rgba(31, 20, 15, 0.94));
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(53, 33, 24, 0.78), rgba(26, 16, 12, 0.76));
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.46);
+  backdrop-filter: blur(14px);
 }
 
 .login-panel h1,
@@ -2328,9 +2330,15 @@ h1 {
     overflow-wrap: anywhere;
   }
 
+  .auth-stage {
+    align-items: flex-start;
+    padding: 18px;
+  }
+
   .login-panel,
   .auth-loading {
-    margin: 18px;
+    width: 100%;
+    max-height: calc(100vh - 36px);
     padding: 22px;
   }
 

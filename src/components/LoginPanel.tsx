@@ -44,7 +44,7 @@ export function LoginPanel({ onAuthenticated }: Props) {
   return (
     <main className="auth-shell">
       <section className="auth-stage" aria-label="登录 SimAilaw Town">
-        <img className="auth-background" src="/art/vn/bg-law-office.png" alt="律所咨询室" />
+        <img className="auth-background" src="/art/vn/bg-login-law-office-v2.png" alt="夜间律所办公室" />
         <div className="auth-vignette" />
         <form className="login-panel" onSubmit={handleSubmit}>
           <div className="panel-kicker">SimAilaw Town</div>

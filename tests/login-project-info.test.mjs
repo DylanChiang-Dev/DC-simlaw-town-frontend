@@ -54,6 +54,12 @@ assert.match(
 
 assert.match(
   loginPanelSource,
+  /src="\/art\/vn\/bg-login-law-office-v2\.png"/,
+  'LoginPanel should use the newly generated full-screen login background.',
+);
+
+assert.match(
+  loginPanelSource,
   /className="login-project-card"[\s\S]*\{PROJECT_INFO_TITLE\}[\s\S]*\{PROJECT_INFO_COPY\}[\s\S]*\{PROJECT_SURVEY_LABEL\}/,
   'LoginPanel should render the project introduction and survey action.',
 );
@@ -68,6 +74,12 @@ assert.match(
   loginPanelSource,
   /忘记密码？[\s\S]*请跟开发者联系[\s\S]*PROJECT_CONTACT_EMAIL/,
   'LoginPanel should expose the legacy forgot-password contact notice.',
+);
+
+assert.doesNotMatch(
+  loginPanelSource,
+  /注册|创建账号|data-auth-mode="register"|auth-panel-tabs/,
+  'The v2 login panel should not restore the legacy register button or tab UI.',
 );
 
 assert.match(
@@ -92,6 +104,24 @@ assert.match(
   runtimeSource,
   /export function getSimulationSurveyUrl\(\): string \| null/,
   'Runtime config should export getSimulationSurveyUrl for login page actions.',
+);
+
+assert.doesNotMatch(
+  stylesSource,
+  /\.auth-stage\s*\{[\s\S]*width:\s*min\(1120px,\s*100%\)/,
+  'Auth stage should no longer be constrained to a centered 1120px stage.',
+);
+
+assert.match(
+  stylesSource,
+  /\.auth-stage\s*\{[\s\S]*width:\s*100%[\s\S]*min-height:\s*100vh/,
+  'Auth stage should fill the full browser viewport.',
+);
+
+assert.match(
+  stylesSource,
+  /\.auth-shell\s*\{[\s\S]*padding:\s*0/,
+  'Auth shell should not add an outer frame around the full-screen image.',
 );
 
 assert.match(
