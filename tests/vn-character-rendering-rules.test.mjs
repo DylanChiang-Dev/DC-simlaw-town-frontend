@@ -59,22 +59,34 @@ assert.match(
   'Second-instance judge dialogue with only the Chinese speaker name 海瑞 should render as the appeal judge.',
 );
 
-assert.match(
+assert.doesNotMatch(
   reducerSource,
   /function inferStageCodeForDialogue[\s\S]*speaker === 'judge'[\s\S]*return 'CI'/,
-  'Court dialogue without an explicit stage should fall back to courtroom stages instead of inheriting a law-office scene.',
+  'Character identity should not force the first-instance courtroom scene; backgrounds must come from stage codes.',
 );
 
-assert.match(
+assert.doesNotMatch(
   reducerSource,
   /function inferStageCodeForDialogue[\s\S]*speaker === 'appealJudge'[\s\S]*return 'CIA'/,
-  'Appeal-court dialogue without an explicit stage should fall back to the second-instance courtroom scene.',
+  'Character identity should not force the second-instance courtroom scene; backgrounds must come from stage codes.',
 );
 
 assert.match(
   reducerSource,
-  /function isFirstInstanceCourtProcedureText\(text: string\): boolean \{[\s\S]*原告核对身份[\s\S]*现在开庭[\s\S]*\}/,
-  'First-instance stage fallback should be limited to concrete court procedure lines.',
+  /function inferStageCodeForDialogue\([\s\S]*explicitStage: unknown,[\s\S]*fallbackStageCode: string,[\s\S]*\): string \{[\s\S]*if \(explicit\) return normalizeStageCode\(explicit\);[\s\S]*return fallbackStageCode;[\s\S]*\}/,
+  'Dialogue stage inference should prefer explicit stage codes and otherwise keep the current stage instead of deriving scenes from speakers.',
+);
+
+assert.doesNotMatch(
+  reducerSource,
+  /function isFirstInstanceCourtProcedureText\(text: string\): boolean/,
+  'Court procedure text should not decide the VN background; backend stage codes own the scene.',
+);
+
+assert.doesNotMatch(
+  reducerSource,
+  /function isSecondInstanceCourtProcedureText\(text: string\): boolean/,
+  'Second-instance court procedure text should not decide the VN background; backend stage codes own the scene.',
 );
 
 assert.doesNotMatch(

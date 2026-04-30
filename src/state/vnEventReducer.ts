@@ -448,7 +448,7 @@ function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unkn
   const speaker = inferSpeaker(payload, fallbackStageCode, text);
   const stageCode = isReceptionPayload(payload, text)
     ? 'RECEPTION'
-    : inferStageCodeForDialogue(payload.scenario_type || payload.stage, fallbackStageCode, speaker, text);
+    : inferStageCodeForDialogue(payload.scenario_type || payload.stage, fallbackStageCode);
   const scene = createSceneFromState(state.scene, {
     characters: inferCharacters(stageCode, speaker),
     speaker,
@@ -739,30 +739,10 @@ function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text:
 function inferStageCodeForDialogue(
   explicitStage: unknown,
   fallbackStageCode: string,
-  speaker: CharacterKey,
-  text: string,
 ): string {
   const explicit = String(explicitStage || '').trim();
   if (explicit) return normalizeStageCode(explicit);
-  if (
-    speaker === 'appealJudge'
-  ) return 'CIA';
-  if (
-    speaker === 'judge'
-    || speaker === 'courtClerk'
-    || speaker === 'judgeAssistant'
-  ) return 'CI';
-  if (isSecondInstanceCourtProcedureText(text)) return 'CIA';
-  if (isFirstInstanceCourtProcedureText(text)) return 'CI';
   return fallbackStageCode;
-}
-
-function isFirstInstanceCourtProcedureText(text: string): boolean {
-  return /原告核对身份|被告核对身份|请原告本人陈述姓名|请被告本人陈述姓名|现在开庭|本庭已依法告知|诉讼权利和诉讼义务|是否申请回避|法庭纪律/.test(text);
-}
-
-function isSecondInstanceCourtProcedureText(text: string): boolean {
-  return /上诉人核对身份|被上诉人核对身份|请上诉人本人陈述姓名|请被上诉人本人陈述姓名|二审现在开庭|二审庭审|中级法院开庭|终审判决/.test(text);
 }
 
 function getDialogueSpeakerLabel(
