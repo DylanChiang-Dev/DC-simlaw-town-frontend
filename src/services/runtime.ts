@@ -7,7 +7,10 @@ export type RuntimeMode = {
 type RuntimeConfig = {
   API_BASE_URL?: string;
   WS_URL?: string;
+  SURVEY_URL?: string;
 };
+
+const DEFAULT_SIMULATION_SURVEY_URL = 'https://v.wjx.cn/vm/wQgDTfJ.aspx';
 
 declare global {
   interface Window {
@@ -62,4 +65,11 @@ export function getWebSocketUrl(): string {
     throw new Error('Missing runtime configuration: WS_URL');
   }
   return wsUrl;
+}
+
+export function getSimulationSurveyUrl(): string | null {
+  const windowConfig = readWindowConfig();
+  const envValue = String(import.meta.env.VITE_SIMULATION_SURVEY_URL || '');
+  const value = String(windowConfig.SURVEY_URL || envValue || DEFAULT_SIMULATION_SURVEY_URL).trim();
+  return value ? normalizeUrl(value) : null;
 }

@@ -1359,6 +1359,76 @@ h1 {
   line-height: 1.7;
 }
 
+.login-project-card {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid rgba(255, 222, 176, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 241, 220, 0.07);
+}
+
+.login-project-title {
+  color: #fff1c7;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.login-project-card p {
+  margin: 0;
+  color: #d8c0a4;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.login-project-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px 12px;
+}
+
+.login-project-button,
+.login-secondary-link {
+  border: none;
+  background: none;
+  color: #f1c978;
+  cursor: pointer;
+  font: inherit;
+}
+
+.login-project-button {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(241, 201, 120, 0.32);
+  border-radius: 999px;
+  background: rgba(241, 201, 120, 0.1);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.login-project-button:hover,
+.login-project-button:focus-visible {
+  border-color: rgba(241, 201, 120, 0.62);
+  background: rgba(241, 201, 120, 0.16);
+}
+
+.login-project-actions a {
+  color: #e7c98d;
+  font-size: 12px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.login-project-actions a:hover,
+.login-project-actions a:focus-visible,
+.login-secondary-link:hover,
+.login-secondary-link:focus-visible {
+  color: #fff1c7;
+}
+
 .login-panel label {
   display: grid;
   gap: 7px;
@@ -1381,6 +1451,32 @@ h1 {
 .login-panel input:focus {
   outline: 2px solid rgba(233, 188, 114, 0.45);
   outline-offset: 1px;
+}
+
+.login-secondary-link {
+  justify-self: flex-start;
+  margin-top: 10px;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.login-forgot-notice {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 11px 12px;
+  border: 1px solid rgba(241, 201, 120, 0.26);
+  border-radius: 8px;
+  background: rgba(241, 201, 120, 0.08);
+  color: #dfc4a3;
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.login-forgot-notice b {
+  color: #f1c978;
 }
 
 .auth-error,
