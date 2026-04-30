@@ -13,14 +13,13 @@ import { TechLedger } from './components/TechLedger';
 import { VisualNovelStage } from './components/VisualNovelStage';
 import { getEventBus } from './services/eventBus';
 import {
-  confirmPlayerLawyerDocumentDraft,
-  createPlayerLawyerDocumentDraft,
+  confirmManualPlayerLawyerDocument,
   fetchPlayerLawyerDocumentSkills,
 } from './services/playerLawyerApi';
 import { getWebSocketService } from './services/webSocket';
 import { usePlayerLawyerRuntime } from './state/usePlayerLawyerRuntime';
 import { useSimulationRuntime } from './state/useSimulationRuntime';
-import type { SimulationStatus } from './services/types';
+import type { PlayerLawyerSkill, SimulationStatus } from './services/types';
 import {
   createInitialVnRuntimeState,
   createSceneForHistoryEntry,
@@ -47,13 +46,6 @@ const STAGE_DOCUMENT_TYPES: Record<string, string> = {
   AR: 'AR',
 };
 
-const STAGE_SKILL_IDS: Record<string, string> = {
-  CD: 'lawyer-complaint-drafting',
-  DD: 'lawyer-defense-drafting',
-  AD: 'lawyer-appeal-drafting',
-  AR: 'lawyer-appeal-response-drafting',
-};
-
 function AppShell({ auth }: AppShellProps) {
   const [documentsOpen, setDocumentsOpen] = useState(false);
   const [, setDialogueGate] = useState<DialogueGateState>(null);
@@ -62,6 +54,7 @@ function AppShell({ auth }: AppShellProps) {
   const [acknowledgedDialogueEntryId, setAcknowledgedDialogueEntryId] = useState('');
   const [closingSummaryOpen, setClosingSummaryOpen] = useState(false);
   const [closingSummaryEntryId, setClosingSummaryEntryId] = useState('');
+  const [documentSkills, setDocumentSkills] = useState<PlayerLawyerSkill[]>([]);
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const runtime = useSimulationRuntime(auth.backendConfigured && Boolean(auth.user));
   const playerLawyer = usePlayerLawyerRuntime(
@@ -92,6 +85,9 @@ function AppShell({ auth }: AppShellProps) {
     : false;
   const visiblePlayerRequest = activePlayerRequestReady && playerDialogMayAutoOpen ? activePlayerRequest : null;
   const showUserTaskPanel = Boolean(visiblePlayerRequest || playerLawyer.error);
+  const activeDocumentSkill = activePlayerRequest
+    ? findDocumentSkillForStage(documentSkills, activePlayerRequest.stage)
+    : null;
   const casePickerOpen = Boolean(
     auth.backendConfigured
     && auth.user
@@ -127,6 +123,21 @@ function AppShell({ auth }: AppShellProps) {
     setPlayerDialogOpen(true);
     setAutoOpenedPlayerRequestId(visiblePlayerRequest.requestId);
   }, [autoOpenedPlayerRequestId, playerDialogMayAutoOpen, visiblePlayerRequest?.requestId]);
+
+  useEffect(() => {
+    if (!activePlayerRequest || !isDocumentStage(activePlayerRequest.stage)) return;
+    let cancelled = false;
+    fetchPlayerLawyerDocumentSkills()
+      .then((skills) => {
+        if (!cancelled) setDocumentSkills(skills);
+      })
+      .catch(() => {
+        if (!cancelled) setDocumentSkills([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activePlayerRequest?.requestId, activePlayerRequest?.stage]);
 
   useEffect(() => {
     if (!auth.backendConfigured || !auth.user) {
@@ -227,7 +238,7 @@ function AppShell({ auth }: AppShellProps) {
     dispatchVnEvent({ type: 'runtime-reset' });
   }
 
-  async function handleAutoDocumentSubmit(input: { playerDraft?: string } = {}): Promise<void> {
+  async function handleManualDocumentSubmit(input: { documentText: string }): Promise<void> {
     const request = playerLawyer.activeRequest;
     if (!request) {
       throw new Error('当前没有待处理的文书任务');
@@ -235,38 +246,19 @@ function AppShell({ auth }: AppShellProps) {
     const stage = String(request.stage || '').toUpperCase();
     const documentType = STAGE_DOCUMENT_TYPES[stage];
     if (!documentType) {
-      throw new Error('当前任务不是可自动完成的文书阶段');
+      throw new Error('当前任务不是可提交的文书阶段');
     }
-    const skills = await fetchPlayerLawyerDocumentSkills();
-    const preferredSkillId = STAGE_SKILL_IDS[stage];
-    const selectedSkillId = (
-      skills.find((skill) => skill.skillId === preferredSkillId)?.skillId
-      || skills[0]?.skillId
-      || ''
-    );
-    if (!selectedSkillId) {
-      throw new Error('没有可用的文书规则');
-    }
-    const draft = await createPlayerLawyerDocumentDraft({
+    await confirmManualPlayerLawyerDocument({
       caseId: request.caseId,
       documentType,
-      skillId: selectedSkillId,
-      playerPrompt: request.prompt,
-      playerDraft: input.playerDraft || '',
+      documentText: input.documentText.trim(),
       requestId: request.requestId,
-    });
-    if (!draft.documentText.trim()) {
-      throw new Error('AI 生成的文书为空');
-    }
-    await confirmPlayerLawyerDocumentDraft({
-      draftId: draft.draftId,
-      documentText: draft.documentText.trim(),
     });
     await playerLawyer.refresh();
     setDialogueGate(null);
     dispatchVnEvent({
       type: 'player-lawyer-document-confirmed',
-      payload: { message: `${documentType} 文书已由 AI 生成并确认。` },
+      payload: { message: `${documentType} 文书已由用户提交并确认。` },
     });
     setPlayerDialogOpen(false);
   }
@@ -348,8 +340,8 @@ function AppShell({ auth }: AppShellProps) {
         </div>
       </div>
       <PlayerLawyerInputDialog
+        documentSkill={activeDocumentSkill}
         loading={playerLawyer.actionLoading}
-        onAutoDocumentSubmit={handleAutoDocumentSubmit}
         onClose={() => setPlayerDialogOpen(false)}
         onDraftText={async (input) => {
           const assist = await playerLawyer.draftTextReply(input);
@@ -359,6 +351,7 @@ function AppShell({ auth }: AppShellProps) {
           const assist = await playerLawyer.polishTextReply(input);
           return assist.aiPolishedMessage;
         }}
+        onSubmitDocument={handleManualDocumentSubmit}
         onSubmitText={async (input) => {
           await playerLawyer.submitTextReply(input);
           setDialogueGate(null);
@@ -521,6 +514,18 @@ function isOperationalContinueNotice(text: string): boolean {
 
 function isDocumentStage(stage?: string): boolean {
   return ['CD', 'DD', 'AD', 'AR'].includes(String(stage || '').toUpperCase());
+}
+
+function findDocumentSkillForStage(skills: PlayerLawyerSkill[], stage?: string): PlayerLawyerSkill | null {
+  const documentType = STAGE_DOCUMENT_TYPES[String(stage || '').toUpperCase()];
+  if (!documentType) return null;
+  const normalizedDocumentType = {
+    CD: 'complaint',
+    DD: 'defense',
+    AD: 'appeal',
+    AR: 'appeal_response',
+  }[documentType];
+  return skills.find((skill) => skill.documentType === normalizedDocumentType) || null;
 }
 
 function shouldClearDialogueGateAfterRuntimeProgress(payload?: Record<string, unknown>): boolean {

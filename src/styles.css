@@ -1673,6 +1673,66 @@ h1 {
   color: #f4d6a4;
 }
 
+.document-template-reference {
+  margin-top: 14px;
+  border: 1px solid rgba(233, 188, 114, 0.26);
+  border-radius: 8px;
+  background: rgba(19, 12, 8, 0.3);
+  overflow: hidden;
+}
+
+.document-template-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  border-bottom: 1px solid rgba(255, 222, 176, 0.14);
+  background: rgba(255, 241, 220, 0.06);
+}
+
+.document-template-header div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.document-template-header strong {
+  color: #ffe3a7;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.document-template-header span {
+  color: #cdb494;
+  font-size: 12px;
+}
+
+.document-template-reference pre {
+  max-height: 210px;
+  margin: 0;
+  overflow: auto;
+  padding: 13px 14px;
+  color: #fff2dc;
+  font: 12px/1.65 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  white-space: pre-wrap;
+}
+
+.document-template-reference p {
+  padding: 13px 14px;
+  color: #dcc3a7;
+  font-size: 12px;
+  line-height: 1.58;
+}
+
+.document-template-reference ul {
+  margin: 0;
+  padding: 0 14px 13px 30px;
+  color: #dcc3a7;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
 .response-assist-actions {
   margin-top: 10px;
   display: flex;

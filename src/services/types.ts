@@ -146,6 +146,9 @@ export type PlayerLawyerSkill = {
   name: string;
   description: string;
   path: string;
+  templateTitle: string;
+  templateText: string;
+  qualityCheck: string[];
 };
 
 export type PlayerLawyerDocumentDraft = {
@@ -176,6 +179,13 @@ export type PlayerLawyerDocumentAssistInput = {
 
 export type PlayerLawyerDocumentConfirmInput = {
   draftId: string;
+  documentText: string;
+};
+
+export type PlayerLawyerManualDocumentConfirmInput = {
+  requestId?: string;
+  caseId: string;
+  documentType: string;
   documentText: string;
 };
 

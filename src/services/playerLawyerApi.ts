@@ -4,6 +4,7 @@ import type {
   PlayerLawyerDocumentAssistInput,
   PlayerLawyerDocumentConfirmInput,
   PlayerLawyerDocumentDraft,
+  PlayerLawyerManualDocumentConfirmInput,
   PlayerLawyerPolishInput,
   PlayerLawyerRequest,
   PlayerLawyerResponseAssist,
@@ -33,6 +34,9 @@ type PlayerLawyerSkillResponse = {
   name?: string;
   description?: string;
   path?: string;
+  template_title?: string;
+  template_text?: string;
+  quality_check?: string[];
 };
 
 type PlayerLawyerDocumentDraftResponse = {
@@ -94,6 +98,11 @@ function mapSkill(payload: PlayerLawyerSkillResponse): PlayerLawyerSkill {
     name: String(payload.name || '').trim(),
     description: String(payload.description || '').trim(),
     path: String(payload.path || '').trim(),
+    templateTitle: String(payload.template_title || '').trim(),
+    templateText: String(payload.template_text || ''),
+    qualityCheck: Array.isArray(payload.quality_check)
+      ? payload.quality_check.map((item) => String(item || '').trim()).filter(Boolean)
+      : [],
   };
 }
 
@@ -225,6 +234,21 @@ export async function confirmPlayerLawyerDocumentDraft(input: PlayerLawyerDocume
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ document_text: input.documentText }),
+  });
+  const payload = await readJsonResponse<{ draft?: PlayerLawyerDocumentDraftResponse }>(response);
+  return mapDraft(payload.draft || {});
+}
+
+export async function confirmManualPlayerLawyerDocument(input: PlayerLawyerManualDocumentConfirmInput): Promise<PlayerLawyerDocumentDraft> {
+  const response = await authenticatedFetch('/api/sandbox/player-lawyer/documents/confirm-manual', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      request_id: input.requestId || '',
+      case_id: input.caseId,
+      document_type: input.documentType,
+      document_text: input.documentText,
+    }),
   });
   const payload = await readJsonResponse<{ draft?: PlayerLawyerDocumentDraftResponse }>(response);
   return mapDraft(payload.draft || {});

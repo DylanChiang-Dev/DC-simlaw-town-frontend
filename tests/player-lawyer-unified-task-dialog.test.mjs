@@ -15,20 +15,20 @@ assert.doesNotMatch(
 
 assert.match(
   dialogSource,
-  /<form onSubmit=\{handleSubmit\}>[\s\S]*<textarea[\s\S]*AI 生成文书并继续流程[\s\S]*提交文书并继续/s,
-  'Document-stage tasks should use the same dialog form with textarea, AI generation, and submit actions.',
+  /<form onSubmit=\{handleSubmit\}>[\s\S]*参考模板[\s\S]*<textarea[\s\S]*提交文书并继续/s,
+  'Document-stage tasks should use the same dialog form with a backend template, textarea, and submit action.',
 );
 
 assert.match(
   appSource,
-  /async function handleAutoDocumentSubmit\([^)]*playerDraft[^)]*\)/,
-  'Document auto-generation should accept user-entered draft content from the unified task dialog.',
+  /async function handleManualDocumentSubmit\([^)]*documentText[^)]*\)/,
+  'Document manual submission should accept user-entered document text from the unified task dialog.',
 );
 
 assert.match(
   appSource,
-  /playerDraft:\s*input\.playerDraft/,
-  'Document auto-generation should pass the dialog draft text into document-assist.',
+  /documentText:\s*input\.documentText/,
+  'Document manual submission should pass the dialog text into confirm-manual.',
 );
 
 assert.match(
