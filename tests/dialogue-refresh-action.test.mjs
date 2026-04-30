@@ -72,8 +72,14 @@ assert.match(
 
 assert.match(
   dialogueSource,
-  /案件正在运行，正在等待 Agent 生成下一句对话。生成完成后会自动进入前端阅读队列/,
-  'Running-without-dialogue notice should explain that the frontend is waiting for Agent generation instead of suggesting local refresh recovery.',
+  /message: 'Agent 正在生成下一句\.\.\.'/,
+  'Running-without-dialogue inline notice should be short and explain that Agent generation is in progress.',
+);
+
+assert.match(
+  dialogueSource,
+  /className=\{`dialogue-inline-status \$\{inlineNotice\.tone\}`\}/,
+  'The waiting-for-agent notice should render as an inline status strip rather than replacing the current dialogue body.',
 );
 
 assert.doesNotMatch(

@@ -571,6 +571,32 @@ h1 {
   background: rgba(96, 39, 30, 0.48);
 }
 
+.dialogue-inline-status {
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 10px;
+  padding: 7px 11px;
+  border: 1px solid rgba(233, 188, 114, 0.3);
+  border-radius: 999px;
+  background: rgba(37, 25, 19, 0.62);
+  color: #f4d6a4;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.dialogue-inline-status.warn {
+  border-color: rgba(255, 213, 128, 0.42);
+  background: rgba(86, 62, 34, 0.46);
+}
+
+.dialogue-inline-status.error {
+  border-color: rgba(255, 147, 120, 0.44);
+  background: rgba(96, 39, 30, 0.48);
+  color: #ffcabf;
+}
+
 .dialogue-history {
   max-height: clamp(150px, 24vh, 280px);
   margin-bottom: 12px;

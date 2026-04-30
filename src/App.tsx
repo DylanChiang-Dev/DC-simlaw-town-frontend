@@ -312,6 +312,7 @@ function AppShell({ auth }: AppShellProps) {
             hasPendingUserTask={Boolean(visiblePlayerRequest)}
             heldDialogueEntryId={heldDialogueEntryId}
             history={vnRuntime.history}
+            lastAcknowledgedEntry={latestAcknowledgedStoryEntry}
             onAcknowledgeCurrentEntry={(entry) => {
               setAcknowledgedDialogueEntryId(entry.id);
             }}

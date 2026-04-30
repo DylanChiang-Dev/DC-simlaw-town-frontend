@@ -44,8 +44,8 @@ assert.doesNotMatch(
 
 assert.match(
   dialogueSource,
-  /正在等待 Agent 生成下一句对话/,
-  'DialogueBox should show a neutral waiting-for-agent-generation notice when the story queue is drained.',
+  /Agent 正在生成下一句\.\.\./,
+  'DialogueBox should show a neutral inline waiting-for-agent-generation notice when the story queue is drained.',
 );
 
 assert.doesNotMatch(
@@ -62,20 +62,26 @@ assert.match(
 
 assert.match(
   dialogueSource,
-  /function getVisibleCurrentEntry\(history: DialogueHistoryEntry\[\], heldDialogueEntryId = ''\): DialogueHistoryEntry \| null \{[\s\S]*if \(!heldDialogueEntryId\) return null;[\s\S]*return history\.find\(\(entry\) => entry\.id === heldDialogueEntryId\) \|\| null;[\s\S]*\}/,
-  'DialogueBox should only show the App-held unacknowledged story entry, then fall through to the waiting notice when the queue is drained.',
-);
-
-assert.doesNotMatch(
-  dialogueSource,
-  /history\[history\.length - 1\]/,
-  'DialogueBox must not keep showing the last acknowledged history entry after the user has drained the story queue.',
+  /lastAcknowledgedEntry\?: DialogueHistoryEntry \| null/,
+  'DialogueBox should accept the last acknowledged story entry so the queue-drained waiting state does not replace the previous line.',
 );
 
 assert.match(
   dialogueSource,
-  /const fallbackNotice = backendMode && !showTranscript[\s\S]*hasPendingUserTask,[\s\S]*simulation,[\s\S]*wsConnected,[\s\S]*\}/,
-  'DialogueBox should choose a fallback notice after the readable queue is empty, including user-task context.',
+  /const displayEntry = currentEntry \|\| \(!isBlockingNotice\(drainedQueueNotice\) \? lastAcknowledgedEntry : null\);/,
+  'DialogueBox should keep showing the last acknowledged line while a non-blocking queue-drained notice is active.',
+);
+
+assert.match(
+  dialogueSource,
+  /const inlineNotice = showTranscript && !currentEntry && drainedQueueNotice && !isBlockingNotice\(drainedQueueNotice\)[\s\S]*\? drainedQueueNotice[\s\S]*: null;/,
+  'DialogueBox should render the drained queue notice as a non-blocking inline status when a previous story line is retained.',
+);
+
+assert.match(
+  dialogueSource,
+  /className=\{`dialogue-inline-status \$\{inlineNotice\.tone\}`\}/,
+  'DialogueBox should render the waiting-for-agent state as a lightweight status strip instead of replacing dialogue content.',
 );
 
 assert.doesNotMatch(
@@ -124,6 +130,12 @@ assert.match(
   appSource,
   /hasPendingUserTask=\{Boolean\(visiblePlayerRequest\)\}/,
   'App should tell DialogueBox when the drained queue is waiting on a visible player task instead of Agent generation.',
+);
+
+assert.match(
+  appSource,
+  /lastAcknowledgedEntry=\{latestAcknowledgedStoryEntry\}/,
+  'App should pass the latest acknowledged story entry so the dialogue box can retain it while waiting for the next generated line.',
 );
 
 assert.match(
