@@ -62,8 +62,20 @@ assert.match(
 
 assert.match(
   dialogueSource,
-  /function getVisibleCurrentEntry\(history: DialogueHistoryEntry\[\], heldDialogueEntryId = ''\): DialogueHistoryEntry \| null \{[\s\S]*const heldEntry = history\.find\(\(entry\) => entry\.id === heldDialogueEntryId\);[\s\S]*return heldEntry \|\| history\[history\.length - 1\] \|\| null;/,
-  'DialogueBox should keep an unacknowledged role line visible until the user confirms it, then fall through to the latest system progress line.',
+  /function getVisibleCurrentEntry\(history: DialogueHistoryEntry\[\], heldDialogueEntryId = ''\): DialogueHistoryEntry \| null \{[\s\S]*if \(!heldDialogueEntryId\) return null;[\s\S]*return history\.find\(\(entry\) => entry\.id === heldDialogueEntryId\) \|\| null;[\s\S]*\}/,
+  'DialogueBox should only show the App-held unacknowledged story entry, then fall through to the waiting notice when the queue is drained.',
+);
+
+assert.doesNotMatch(
+  dialogueSource,
+  /history\[history\.length - 1\]/,
+  'DialogueBox must not keep showing the last acknowledged history entry after the user has drained the story queue.',
+);
+
+assert.match(
+  dialogueSource,
+  /const fallbackNotice = backendMode && !showTranscript[\s\S]*hasPendingUserTask,[\s\S]*simulation,[\s\S]*wsConnected,[\s\S]*\}/,
+  'DialogueBox should choose a fallback notice after the readable queue is empty, including user-task context.',
 );
 
 assert.doesNotMatch(
@@ -106,6 +118,12 @@ assert.match(
   appSource,
   /const visiblePlayerRequest = activePlayerRequestReady && playerDialogMayAutoOpen \? activePlayerRequest : null;/,
   'The task panel and modal should use a display-ready request instead of the raw pending request or unconfirmed story state.',
+);
+
+assert.match(
+  appSource,
+  /hasPendingUserTask=\{Boolean\(visiblePlayerRequest\)\}/,
+  'App should tell DialogueBox when the drained queue is waiting on a visible player task instead of Agent generation.',
 );
 
 assert.match(

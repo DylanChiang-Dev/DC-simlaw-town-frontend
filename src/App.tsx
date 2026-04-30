@@ -309,6 +309,7 @@ function AppShell({ auth }: AppShellProps) {
           <VisualNovelStage scene={displayedScene} />
           <DialogueBox
             backendMode={auth.backendConfigured && Boolean(auth.user)}
+            hasPendingUserTask={Boolean(visiblePlayerRequest)}
             heldDialogueEntryId={heldDialogueEntryId}
             history={vnRuntime.history}
             onAcknowledgeCurrentEntry={(entry) => {

@@ -6,6 +6,7 @@ import type { DialogueHistoryEntry } from '../state/vnEventReducer';
 
 type Props = {
   backendMode?: boolean;
+  hasPendingUserTask?: boolean;
   heldDialogueEntryId?: string;
   history?: DialogueHistoryEntry[];
   onAcknowledgeCurrentEntry?: (entry: DialogueHistoryEntry) => void;
@@ -19,6 +20,7 @@ type Props = {
 
 export function DialogueBox({
   backendMode = false,
+  hasPendingUserTask = false,
   heldDialogueEntryId = '',
   history = [],
   onAcknowledgeCurrentEntry,
@@ -36,6 +38,7 @@ export function DialogueBox({
   const fallbackNotice = backendMode && !showTranscript
     ? getBackendFallbackNotice({
       onResumeCurrentCase,
+      hasPendingUserTask,
       runtimeError,
       selectedCaseId,
       simulation,
@@ -119,8 +122,8 @@ export function DialogueBox({
 }
 
 function getVisibleCurrentEntry(history: DialogueHistoryEntry[], heldDialogueEntryId = ''): DialogueHistoryEntry | null {
-  const heldEntry = history.find((entry) => entry.id === heldDialogueEntryId);
-  return heldEntry || history[history.length - 1] || null;
+  if (!heldDialogueEntryId) return null;
+  return history.find((entry) => entry.id === heldDialogueEntryId) || null;
 }
 
 function getEntryRole(entry: DialogueHistoryEntry): string {
@@ -143,6 +146,7 @@ function getFallbackRole(notice: BackendFallbackNotice): string {
 }
 
 type BackendFallbackInput = {
+  hasPendingUserTask: boolean;
   onResumeCurrentCase?: () => Promise<void>;
   runtimeError: string;
   selectedCaseId: string;
@@ -162,6 +166,7 @@ type BackendFallbackNotice = {
 };
 
 function getBackendFallbackNotice({
+  hasPendingUserTask,
   onResumeCurrentCase,
   runtimeError,
   selectedCaseId,
@@ -199,6 +204,14 @@ function getBackendFallbackNotice({
       message: `${caseLabel} 已暂停，当前没有新的实时对话可展示。\n\n这不是新的默认案件，也不是让你从头判断。点击“继续当前案件”会从保存的案件状态恢复；如果你确认要重来，再使用右上角“重置”。`,
       title: '当前案件已暂停',
       tone: 'warn',
+    };
+  }
+
+  if (hasPendingUserTask) {
+    return {
+      message: '当前流程正在等待你处理用户任务。请在任务面板或弹出的输入窗口中继续处理；提交后案件会自动回到对白队列。',
+      title: '等待用户处理任务',
+      tone: 'idle',
     };
   }
 

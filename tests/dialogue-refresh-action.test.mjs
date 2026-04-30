@@ -72,6 +72,12 @@ assert.match(
 
 assert.match(
   dialogueSource,
-  /案件正在运行，但页面还没有收到下一条实时对话。系统会继续等待实时连接推送/,
-  'Running-without-dialogue notice should explain waiting for realtime events instead of suggesting local refresh recovery.',
+  /案件正在运行，正在等待 Agent 生成下一句对话。生成完成后会自动进入前端阅读队列/,
+  'Running-without-dialogue notice should explain that the frontend is waiting for Agent generation instead of suggesting local refresh recovery.',
+);
+
+assert.doesNotMatch(
+  dialogueSource,
+  /下一句已准备好|点击“继续”|onContinueDialogue/,
+  'The waiting-for-agent notice should not restore a visible continue prompt or manual dialogue continue control.',
 );

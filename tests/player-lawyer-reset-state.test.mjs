@@ -120,8 +120,14 @@ assert.match(
 
 assert.doesNotMatch(
   dialogueSource,
-  /player-turn-preview|当前用户任务要求|轮到用户处理当前角色任务|等待用户处理|onOpenPlayerInput|pendingRequest \?/,
+  /player-turn-preview|当前用户任务要求|轮到用户处理当前角色任务|onOpenPlayerInput|pendingRequest \?/,
   'Pending user tasks should not be rendered as persistent main dialogue content.',
+);
+
+assert.match(
+  dialogueSource,
+  /if \(hasPendingUserTask\) \{[\s\S]*title: '等待用户处理任务'[\s\S]*\}/,
+  'DialogueBox may show a transient drained-queue fallback when a visible player task is waiting.',
 );
 
 const disconnectedCase = vnReducerSource.match(/case 'ws-disconnected':([\s\S]*?)case 'dialogue-update':/)?.[1] || '';
