@@ -72,7 +72,7 @@ assert.match(
 
 assert.match(
   dialogueSource,
-  /message: 'Agent 正在生成下一句\.\.\.'/,
+  /message: runtimeProgressNotice \|\| 'Agent 正在生成下一句\.\.\.'/,
   'Running-without-dialogue inline notice should be short and explain that Agent generation is in progress.',
 );
 

@@ -2,6 +2,7 @@ import { useEffect, useReducer, useState } from 'react';
 import { AuthGate, type AuthGateState } from './components/AuthGate';
 import { BuildVersionBadge } from './components/BuildVersionBadge';
 import { CasePicker } from './components/CasePicker';
+import { CaseClosingSummaryDialog } from './components/CaseClosingSummaryDialog';
 import { CaseDocumentsPanel } from './components/CaseDocumentsPanel';
 import { CaseTimeline } from './components/CaseTimeline';
 import { CommandHud } from './components/CommandHud';
@@ -19,6 +20,7 @@ import {
 import { getWebSocketService } from './services/webSocket';
 import { usePlayerLawyerRuntime } from './state/usePlayerLawyerRuntime';
 import { useSimulationRuntime } from './state/useSimulationRuntime';
+import type { SimulationStatus } from './services/types';
 import {
   createInitialVnRuntimeState,
   createSceneForHistoryEntry,
@@ -58,6 +60,8 @@ function AppShell({ auth }: AppShellProps) {
   const [playerDialogOpen, setPlayerDialogOpen] = useState(false);
   const [autoOpenedPlayerRequestId, setAutoOpenedPlayerRequestId] = useState('');
   const [acknowledgedDialogueEntryId, setAcknowledgedDialogueEntryId] = useState('');
+  const [closingSummaryOpen, setClosingSummaryOpen] = useState(false);
+  const [closingSummaryEntryId, setClosingSummaryEntryId] = useState('');
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const runtime = useSimulationRuntime(auth.backendConfigured && Boolean(auth.user));
   const playerLawyer = usePlayerLawyerRuntime(
@@ -72,6 +76,7 @@ function AppShell({ auth }: AppShellProps) {
     : scene;
   const playerDialogMayAutoOpen = !nextUnacknowledgedStoryEntry;
   const latestAcknowledgedStoryEntry = getLatestAcknowledgedStoryEntry(vnRuntime.history, acknowledgedDialogueEntryId);
+  const caseClosed = isCaseClosed(vnRuntime.history, runtime.simulation);
   const heldDialogueEntryId = nextUnacknowledgedStoryEntry?.id || '';
   const activePlayerRequest = playerLawyer.activeRequest
     && runtime.activeCaseId
@@ -97,12 +102,23 @@ function AppShell({ auth }: AppShellProps) {
 
   useEffect(() => {
     if (!runtime.activeCaseId) {
+      if (caseClosed) return;
       setDialogueGate(null);
       setPlayerDialogOpen(false);
       setAutoOpenedPlayerRequestId('');
       setAcknowledgedDialogueEntryId('');
+      setClosingSummaryOpen(false);
+      setClosingSummaryEntryId('');
     }
-  }, [runtime.activeCaseId]);
+  }, [caseClosed, runtime.activeCaseId]);
+
+  useEffect(() => {
+    if (!shouldOpenClosingSummary(latestAcknowledgedStoryEntry, caseClosed)) return;
+    const entryId = latestAcknowledgedStoryEntry?.id || '';
+    if (!entryId || closingSummaryEntryId === entryId) return;
+    setClosingSummaryOpen(true);
+    setClosingSummaryEntryId(entryId);
+  }, [caseClosed, closingSummaryEntryId, latestAcknowledgedStoryEntry]);
 
   useEffect(() => {
     if (!visiblePlayerRequest?.requestId) return;
@@ -195,6 +211,8 @@ function AppShell({ auth }: AppShellProps) {
     setPlayerDialogOpen(false);
     setAutoOpenedPlayerRequestId('');
     setAcknowledgedDialogueEntryId('');
+    setClosingSummaryOpen(false);
+    setClosingSummaryEntryId('');
     await runtime.startSelectedCase(caseId);
   }
 
@@ -203,6 +221,8 @@ function AppShell({ auth }: AppShellProps) {
     setPlayerDialogOpen(false);
     setAutoOpenedPlayerRequestId('');
     setAcknowledgedDialogueEntryId('');
+    setClosingSummaryOpen(false);
+    setClosingSummaryEntryId('');
     await runtime.restart();
     dispatchVnEvent({ type: 'runtime-reset' });
   }
@@ -309,6 +329,7 @@ function AppShell({ auth }: AppShellProps) {
           <VisualNovelStage scene={displayedScene} />
           <DialogueBox
             backendMode={auth.backendConfigured && Boolean(auth.user)}
+            caseClosed={caseClosed}
             hasPendingUserTask={Boolean(visiblePlayerRequest)}
             heldDialogueEntryId={heldDialogueEntryId}
             history={vnRuntime.history}
@@ -359,6 +380,11 @@ function AppShell({ auth }: AppShellProps) {
         caseId={runtime.selectedCaseId || playerLawyer.activeRequest?.caseId || ''}
         onClose={() => setDocumentsOpen(false)}
         open={documentsOpen}
+      />
+      <CaseClosingSummaryDialog
+        open={closingSummaryOpen}
+        caseId={runtime.selectedCaseId || runtime.activeCaseId}
+        onClose={() => setClosingSummaryOpen(false)}
       />
       {restartConfirmOpen && (
         <div className="modal-layer" role="dialog" aria-modal="true" aria-label="确认重置模拟">
@@ -463,6 +489,29 @@ function normalizeDialogueText(text: string): string {
 function isNarrativeSystemEntry(entry: DialogueHistoryEntry): boolean {
   if (entry.kind !== 'system') return false;
   return !isOperationalContinueNotice(entry.text);
+}
+
+function isCaseClosed(
+  history: DialogueHistoryEntry[],
+  simulation: SimulationStatus | null,
+): boolean {
+  return history.some(isCaseClosedEntry)
+    || simulation?.status === 'completed'
+    || simulation?.status === 'closed';
+}
+
+function isCaseClosedEntry(entry: DialogueHistoryEntry): boolean {
+  return entry.kind === 'system' && entry.text.includes('本案已结案');
+}
+
+function shouldOpenClosingSummary(
+  acknowledgedEntry: DialogueHistoryEntry | null,
+  caseClosed: boolean,
+): boolean {
+  return Boolean(caseClosed
+    && acknowledgedEntry
+    && isCaseClosedEntry(acknowledgedEntry)
+  );
 }
 
 function isOperationalContinueNotice(text: string): boolean {

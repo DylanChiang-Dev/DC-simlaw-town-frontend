@@ -6,6 +6,7 @@ import type { DialogueHistoryEntry, RuntimeStatus } from '../state/vnEventReduce
 
 type Props = {
   backendMode?: boolean;
+  caseClosed?: boolean;
   hasPendingUserTask?: boolean;
   heldDialogueEntryId?: string;
   history?: DialogueHistoryEntry[];
@@ -22,6 +23,7 @@ type Props = {
 
 export function DialogueBox({
   backendMode = false,
+  caseClosed = false,
   hasPendingUserTask = false,
   heldDialogueEntryId = '',
   history = [],
@@ -41,6 +43,7 @@ export function DialogueBox({
   const drainedQueueNotice = backendMode && !currentEntry
     ? getBackendFallbackNotice({
       onResumeCurrentCase,
+      caseClosed,
       hasPendingUserTask,
       runtimeError,
       runtimeStatus,
@@ -52,7 +55,7 @@ export function DialogueBox({
   const displayEntry = currentEntry || (!isBlockingNotice(drainedQueueNotice) ? lastAcknowledgedEntry : null);
   const showTranscript = backendMode && Boolean(displayEntry);
   const fallbackNotice = backendMode && !showTranscript ? drainedQueueNotice : null;
-  const inlineNotice = showTranscript && !currentEntry && drainedQueueNotice && !isBlockingNotice(drainedQueueNotice)
+  const inlineNotice = showTranscript && !currentEntry && drainedQueueNotice && !isBlockingNotice(drainedQueueNotice) && drainedQueueNotice.message
     ? drainedQueueNotice
     : null;
   const speakerPlate = displayEntry
@@ -163,6 +166,7 @@ function getFallbackRole(notice: BackendFallbackNotice): string {
 }
 
 type BackendFallbackInput = {
+  caseClosed: boolean;
   hasPendingUserTask: boolean;
   onResumeCurrentCase?: () => Promise<void>;
   runtimeError: string;
@@ -189,6 +193,7 @@ function isBlockingNotice(notice: BackendFallbackNotice | null): boolean {
 }
 
 function getBackendFallbackNotice({
+  caseClosed,
   hasPendingUserTask,
   onResumeCurrentCase,
   runtimeError,
@@ -212,6 +217,15 @@ function getBackendFallbackNotice({
       message: `案件运行出现错误：${simulation.lastError.message}\n\n当前页面不会继续展示默认对话。请先处理案件运行问题；确认需要重来时再使用右上角“重置”。`,
       title: '案件运行错误',
       tone: 'error',
+    };
+  }
+
+  if (caseClosed) {
+    return {
+      blocking: false,
+      message: '',
+      title: '案件已结案',
+      tone: 'idle',
     };
   }
 

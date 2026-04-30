@@ -189,3 +189,47 @@ export type CaseDocumentEntry = {
   available: boolean;
   downloadUrl: string;
 };
+
+export type CaseClosingEvaluationDimension = {
+  label: string;
+  score: number;
+  maxScore: number;
+};
+
+export type CaseClosingEvaluation = {
+  overallScore: number;
+  summary: string;
+  dimensions: CaseClosingEvaluationDimension[];
+  strengths: string[];
+  improvements: string[];
+  generatedAt: string;
+};
+
+export type CaseClosingPlayerTurn = {
+  requestId: string;
+  stage: string;
+  role: string;
+  speakerLabel: string;
+  prompt: string;
+  contextSummary: string;
+  finalMessage: string;
+  userOriginalMessage: string;
+  createdAt: string;
+  resolvedAt: string;
+};
+
+export type CaseClosingSummary = {
+  caseId: string;
+  case: {
+    title: string;
+    plaintiffName: string;
+    defendantName: string;
+    trainingCategory: string;
+    difficulty: string;
+  };
+  documents: CaseDocumentEntry[];
+  documentCount: number;
+  playerTurns: CaseClosingPlayerTurn[];
+  playerTurnCount: number;
+  evaluation: CaseClosingEvaluation | null;
+};
