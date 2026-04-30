@@ -985,9 +985,14 @@ h1 {
   font-weight: 800;
   line-height: 1.2;
   pointer-events: none;
+  backdrop-filter: blur(10px);
+}
+
+.build-version-line {
+  display: block;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  backdrop-filter: blur(10px);
 }
 
 .modal-layer {
