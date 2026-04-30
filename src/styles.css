@@ -989,10 +989,31 @@ h1 {
 }
 
 .build-version-line {
-  display: block;
+  display: grid;
+  grid-template-columns: 2em minmax(4.6em, auto) 1fr;
+  column-gap: 6px;
+  align-items: baseline;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.build-version-label {
+  color: rgba(255, 241, 220, 0.66);
+  text-align: justify;
+  text-align-last: justify;
+}
+
+.build-version-number {
+  color: rgba(255, 241, 220, 0.84);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.build-version-time {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .modal-layer {

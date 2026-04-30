@@ -73,18 +73,24 @@ assert.match(
 
 assert.match(
   badgeSource,
-  /前端 \{APP_VERSION_LABEL\}/,
-  'The version badge should label the frontend version explicitly.',
+  /import \{ APP_VERSION, APP_VERSION_TIME \} from '\.\.\/generated\/buildInfo';/,
+  'The version badge should render frontend version and timestamp in separate aligned columns.',
 );
 
 assert.match(
   badgeSource,
-  /后端 \{backendVersionLabel \|\| '后端版本不可用'\}/,
-  'The version badge should show the backend version when available and a fallback when unavailable.',
+  /backend_version\?: string;[\s\S]*backend_version_time\?: string/,
+  'The version badge should read backend version and timestamp separately from /api/status.',
 );
 
 assert.match(
   stylesSource,
-  /\.build-version-line\s*\{[\s\S]*display:\s*block[\s\S]*white-space:\s*nowrap/,
-  'Each version line should be stable and avoid wrapping inside the fixed badge.',
+  /\.build-version-line\s*\{[\s\S]*display:\s*grid[\s\S]*grid-template-columns:\s*2em minmax\(4\.6em,\s*auto\) 1fr[\s\S]*column-gap:\s*6px/,
+  'Each version line should use a three-column grid so frontend/backend version text aligns.',
+);
+
+assert.match(
+  stylesSource,
+  /\.build-version-number\s*\{[\s\S]*text-align:\s*left[\s\S]*white-space:\s*nowrap/,
+  'Version numbers should align in their own non-wrapping column.',
 );
