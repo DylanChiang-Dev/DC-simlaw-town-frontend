@@ -76,10 +76,22 @@ assert.match(
   'LoginPanel should expose the legacy forgot-password contact notice.',
 );
 
+assert.match(
+  loginPanelSource,
+  /AuthMode = 'login' \| 'register'[\s\S]*注册[\s\S]*确认密码[\s\S]*注册并进入案件/,
+  'LoginPanel should provide a register mode with confirm-password validation and a register submit button.',
+);
+
+assert.match(
+  loginPanelSource,
+  /register\(email\.trim\(\), password\)/,
+  'Register mode should call the frontend register API wrapper.',
+);
+
 assert.doesNotMatch(
   loginPanelSource,
-  /注册|创建账号|data-auth-mode="register"|auth-panel-tabs/,
-  'The v2 login panel should not restore the legacy register button or tab UI.',
+  /auth-panel-tabs/,
+  'The v2 login panel should not restore the legacy auth-panel-tabs DOM structure.',
 );
 
 assert.match(
@@ -122,6 +134,18 @@ assert.match(
   stylesSource,
   /\.auth-shell\s*\{[\s\S]*padding:\s*0/,
   'Auth shell should not add an outer frame around the full-screen image.',
+);
+
+assert.match(
+  stylesSource,
+  /\.auth-stage\s*\{[\s\S]*padding-inline-start:\s*clamp\(56px,\s*8vw,\s*132px\)/,
+  'The full-screen login panel should sit slightly farther right on desktop.',
+);
+
+assert.match(
+  stylesSource,
+  /\.login-mode-switch\s*\{[\s\S]*grid-template-columns:\s*1fr 1fr/,
+  'Login and register actions should share a compact two-button mode switch.',
 );
 
 assert.match(

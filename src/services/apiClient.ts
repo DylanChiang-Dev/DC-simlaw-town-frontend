@@ -90,8 +90,8 @@ export async function buildAuthenticatedWebSocketUrl(url: string = getWebSocketU
   return `${url}${separator}token=${encodeURIComponent(token)}`;
 }
 
-export async function login(email: string, password: string) {
-  const response = await fetch(buildApiUrl('/api/auth/login'), {
+async function authenticate(path: '/api/auth/login' | '/api/auth/register', email: string, password: string) {
+  const response = await fetch(buildApiUrl(path), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -106,6 +106,14 @@ export async function login(email: string, password: string) {
     throw new Error('登录响应缺少会话信息');
   }
   return session;
+}
+
+export async function login(email: string, password: string) {
+  return await authenticate('/api/auth/login', email, password);
+}
+
+export async function register(email: string, password: string) {
+  return await authenticate('/api/auth/register', email, password);
 }
 
 export async function fetchCurrentUser() {
