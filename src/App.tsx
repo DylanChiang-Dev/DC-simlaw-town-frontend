@@ -431,6 +431,7 @@ function AppShell({ auth }: AppShellProps) {
         activeEntry={nextUnacknowledgedStoryEntry}
         backendMode={auth.backendConfigured && Boolean(auth.user)}
         history={vnRuntime.history}
+        playerPlaintiffPerspective={playerLawyer.status?.enabled && playerLawyer.status?.playerMode === 'plaintiff'}
       />
       <CaseDocumentsPanel
         caseId={runtime.selectedCaseId || playerLawyer.activeRequest?.caseId || ''}

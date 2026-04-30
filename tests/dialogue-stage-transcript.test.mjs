@@ -24,6 +24,30 @@ assert.match(
 
 assert.match(
   timelineSource,
+  /const PLAYER_PLAINTIFF_BASE_STAGES[\s\S]*code:\s*'PLC'[\s\S]*code:\s*'CD'[\s\S]*code:\s*'CI'[\s\S]*code:\s*'CIA'/,
+  'Player plaintiff perspective should use a compact first-person lifecycle without opponent pretrial stages.',
+);
+
+assert.match(
+  timelineSource,
+  /function resolvePlayerPlaintiffAppealStage[\s\S]*activeCode[\s\S]*AR[\s\S]*AD/,
+  'Player plaintiff lifecycle should dynamically choose AD or AR as the current-side appeal document stage.',
+);
+
+assert.match(
+  timelineSource,
+  /playerPlaintiffPerspective[\s\S]*getVisibleTranscriptStages/,
+  'CaseTimeline should switch visible stages when player plaintiff mode is active.',
+);
+
+assert.match(
+  appSource,
+  /playerPlaintiffPerspective=\{playerLawyer\.status\?\.enabled && playerLawyer\.status\?\.playerMode === 'plaintiff'\}/,
+  'App should enable first-person lifecycle only when the backend reports player plaintiff mode.',
+);
+
+assert.match(
+  timelineSource,
   /const TRANSCRIPT_STAGES[\s\S]*order:\s*1[\s\S]*code:\s*'PLC'[\s\S]*order:\s*2[\s\S]*code:\s*'CD'[\s\S]*order:\s*8[\s\S]*code:\s*'CIA'/,
   'Each visible lifecycle stage should have a stable 01-08 order number for user-facing references.',
 );

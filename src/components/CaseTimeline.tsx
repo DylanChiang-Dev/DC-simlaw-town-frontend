@@ -7,6 +7,7 @@ type Props = {
   activeEntry?: DialogueHistoryEntry | null;
   backendMode?: boolean;
   history?: DialogueHistoryEntry[];
+  playerPlaintiffPerspective?: boolean;
 };
 
 type TranscriptStageCode = 'PLC' | 'CD' | 'DLC' | 'DD' | 'CI' | 'AD' | 'AR' | 'CIA';
@@ -23,6 +24,13 @@ const TRANSCRIPT_STAGES: TranscriptStage[] = [
   { order: 8, code: 'CIA', label: '二审庭审' },
 ];
 
+const PLAYER_PLAINTIFF_BASE_STAGES: TranscriptStage[] = [
+  { order: 1, code: 'PLC', label: '原告咨询' },
+  { order: 2, code: 'CD', label: '起诉状起草' },
+  { order: 3, code: 'CI', label: '一审庭审' },
+  { order: 5, code: 'CIA', label: '二审庭审' },
+];
+
 const AUXILIARY_TRANSCRIPT_STAGES: Record<string, TranscriptStageCode> = {
   LC: 'PLC',
   RECEPTION: 'PLC',
@@ -33,20 +41,27 @@ const AUXILIARY_TRANSCRIPT_STAGES: Record<string, TranscriptStageCode> = {
 
 const DIRECT_TRANSCRIPT_STAGE_CODES = new Set<string>(TRANSCRIPT_STAGES.map((stage) => stage.code));
 
-export function CaseTimeline({ activeCode, activeEntry = null, backendMode = false, history = [] }: Props) {
+export function CaseTimeline({
+  activeCode,
+  activeEntry = null,
+  backendMode = false,
+  history = [],
+  playerPlaintiffPerspective = false,
+}: Props) {
   const [activeTranscriptStage, setActiveTranscriptStage] = useState<TranscriptStageCode | null>(null);
   const timelineHistory = backendMode ? history : [];
   const transcriptGroups = groupTranscriptByStage(timelineHistory);
   const activeLifecycleCode = resolveActiveLifecycleCode(activeCode, timelineHistory, activeEntry);
-  const activeIndex = TRANSCRIPT_STAGES.findIndex((stage) => stage.code === activeLifecycleCode);
-  const activeStage = TRANSCRIPT_STAGES.find((stage) => stage.code === activeTranscriptStage) || null;
+  const visibleTranscriptStages = getVisibleTranscriptStages(playerPlaintiffPerspective, activeLifecycleCode, timelineHistory);
+  const activeIndex = visibleTranscriptStages.findIndex((stage) => stage.code === activeLifecycleCode);
+  const activeStage = visibleTranscriptStages.find((stage) => stage.code === activeTranscriptStage) || null;
   const activeStageEntries = activeStage ? transcriptGroups[activeStage.code] : [];
   const activeStageItems = activeStage ? annotateTranscriptEntries(activeStageEntries, activeStage) : [];
 
   return (
     <>
       <nav className="case-timeline" aria-label="案件生命周期">
-        {TRANSCRIPT_STAGES.map((stage, index) => {
+        {visibleTranscriptStages.map((stage, index) => {
           const entries = transcriptGroups[stage.code];
           const status = stage.code === activeLifecycleCode
           ? 'active'
@@ -93,6 +108,38 @@ export function CaseTimeline({ activeCode, activeEntry = null, backendMode = fal
       )}
     </>
   );
+}
+
+function getVisibleTranscriptStages(
+  playerPlaintiffPerspective: boolean,
+  activeCode: TranscriptStageCode | string,
+  history: DialogueHistoryEntry[],
+): TranscriptStage[] {
+  if (!playerPlaintiffPerspective) {
+    return TRANSCRIPT_STAGES;
+  }
+  const appealStage = resolvePlayerPlaintiffAppealStage(activeCode, history);
+  const appealTranscriptStage = TRANSCRIPT_STAGES.find((stage) => stage.code === appealStage) || TRANSCRIPT_STAGES[5];
+  return [
+    PLAYER_PLAINTIFF_BASE_STAGES[0],
+    PLAYER_PLAINTIFF_BASE_STAGES[1],
+    PLAYER_PLAINTIFF_BASE_STAGES[2],
+    { ...appealTranscriptStage, order: 4 },
+    PLAYER_PLAINTIFF_BASE_STAGES[3],
+  ];
+}
+
+function resolvePlayerPlaintiffAppealStage(
+  activeCode: TranscriptStageCode | string,
+  history: DialogueHistoryEntry[],
+): TranscriptStageCode {
+  const normalized = String(activeCode || '').toUpperCase();
+  if (normalized === 'AR') return 'AR';
+  if (normalized === 'AD') return 'AD';
+  const hasAppealResponse = history.some((entry) => entry.stageCode === 'AR');
+  const hasAppealDraft = history.some((entry) => entry.stageCode === 'AD');
+  if (hasAppealResponse && !hasAppealDraft) return 'AR';
+  return 'AD';
 }
 
 function annotateTranscriptEntries(entries: DialogueHistoryEntry[], stage: TranscriptStage) {
