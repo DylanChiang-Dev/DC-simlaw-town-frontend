@@ -92,11 +92,17 @@ export function CaseTimeline({
             <div className="dialogue-records-list">
               {activeStageItems.map((item) => {
                 const generationMeta = formatTranscriptGenerationMeta(item.entry);
+                const evaluationMarker = formatTranscriptEvaluationMarker(item.entry);
                 return (
                   <article className={`dialogue-history-entry stage-transcript-entry ${item.entry.kind}`} key={item.entry.id}>
                     <span className="transcript-entry-marker">{formatTranscriptMarker(item.meta)}</span>
                     <span>{item.entry.speakerName}</span>
                     <MarkdownText text={item.entry.text} />
+                    {evaluationMarker ? (
+                      <span className="stage-transcript-evaluation-marker" title={evaluationMarker.reason}>
+                        {evaluationMarker.label}
+                      </span>
+                    ) : null}
                     {generationMeta ? <span className="stage-transcript-generation-meta">{generationMeta}</span> : null}
                   </article>
                 );
@@ -174,6 +180,16 @@ function formatTranscriptGenerationMeta(entry: DialogueHistoryEntry): string {
     formatTranscriptGenerationTokens(entry.generationTotalTokens),
   ].filter(Boolean);
   return parts.join(' · ');
+}
+
+function formatTranscriptEvaluationMarker(entry: DialogueHistoryEntry): { label: string; reason: string } | null {
+  if (!entry.playerResponsibility) return null;
+  const label = String(entry.evaluationMarkerLabel || '').trim();
+  if (!label) return null;
+  return {
+    label,
+    reason: String(entry.evaluationMarkerReason || label).trim(),
+  };
 }
 
 function formatTranscriptGenerationDuration(seconds: number | undefined): string {

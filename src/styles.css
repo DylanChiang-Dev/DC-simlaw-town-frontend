@@ -515,7 +515,9 @@ h1 {
 }
 
 .dialogue-current-entry {
+  position: relative;
   min-width: 0;
+  padding-top: 2px;
 }
 
 .dialogue-current-entry .markdown-text {
@@ -548,6 +550,27 @@ h1 {
 
 .dialogue-generation-meta {
   margin-top: 8px;
+}
+
+.dialogue-evaluation-marker,
+.stage-transcript-evaluation-marker {
+  width: fit-content;
+  max-width: 100%;
+  padding: 2px 7px;
+  border: 1px solid rgba(142, 190, 214, 0.38);
+  border-radius: 999px;
+  background: rgba(142, 190, 214, 0.12);
+  color: rgba(224, 241, 248, 0.82);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.dialogue-evaluation-marker {
+  position: absolute;
+  top: -2px;
+  right: 0;
 }
 
 .dialogue-runtime-notice {
@@ -864,6 +887,10 @@ h1 {
 }
 
 .dialogue-records-list .stage-transcript-generation-meta {
+  grid-column: 3;
+}
+
+.dialogue-records-list .stage-transcript-evaluation-marker {
   grid-column: 3;
 }
 

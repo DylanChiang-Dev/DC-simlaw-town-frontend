@@ -117,6 +117,9 @@ export type DialogueHistoryEntry = {
   timestamp: string;
   generationDurationSeconds?: number;
   generationTotalTokens?: number;
+  playerResponsibility?: boolean;
+  evaluationMarkerLabel?: string;
+  evaluationMarkerReason?: string;
   turn?: number;
 };
 
@@ -483,6 +486,9 @@ function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unkn
     readDialogueTurn(payload.turn),
     readGenerationDurationSeconds(payload.generation_duration_seconds),
     readGenerationTotalTokens(payload.generation_total_tokens),
+    readPlayerResponsibility(payload.player_responsibility),
+    readEvaluationMarkerLabel(payload.evaluation_marker_label),
+    readEvaluationMarkerReason(payload.evaluation_marker_reason),
   );
 }
 
@@ -529,6 +535,9 @@ function appendHistory(
   turn?: number,
   generationDurationSeconds?: number,
   generationTotalTokens?: number,
+  playerResponsibility?: boolean,
+  evaluationMarkerLabel?: string,
+  evaluationMarkerReason?: string,
 ): VnRuntimeState {
   const text = scene.text.trim();
   if (!text) return state;
@@ -548,6 +557,9 @@ function appendHistory(
     timestamp: new Date().toISOString(),
     ...(typeof generationDurationSeconds === 'number' ? { generationDurationSeconds } : {}),
     ...(typeof generationTotalTokens === 'number' ? { generationTotalTokens } : {}),
+    ...(playerResponsibility ? { playerResponsibility: true } : {}),
+    ...(evaluationMarkerLabel ? { evaluationMarkerLabel } : {}),
+    ...(evaluationMarkerReason ? { evaluationMarkerReason } : {}),
     ...(typeof turn === 'number' ? { turn } : {}),
   };
   return {
@@ -572,6 +584,20 @@ function readGenerationTotalTokens(value: unknown): number | undefined {
   const numeric = Number(value);
   if (!Number.isFinite(numeric) || numeric <= 0) return undefined;
   return Math.floor(numeric);
+}
+
+function readPlayerResponsibility(value: unknown): boolean | undefined {
+  return value === true ? true : undefined;
+}
+
+function readEvaluationMarkerLabel(value: unknown): string | undefined {
+  const label = String(value || '').trim();
+  return label || undefined;
+}
+
+function readEvaluationMarkerReason(value: unknown): string | undefined {
+  const reason = String(value || '').trim();
+  return reason || undefined;
 }
 
 function appendBackground(state: VnRuntimeState, scene: DialogueScene): VnRuntimeState {

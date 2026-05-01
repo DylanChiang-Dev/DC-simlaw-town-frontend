@@ -23,6 +23,18 @@ assert.match(
 
 assert.match(
   vnReducerSource,
+  /playerResponsibility\?: boolean;/,
+  'Dialogue history entries should preserve optional player-responsibility markers.',
+);
+
+assert.match(
+  vnReducerSource,
+  /evaluationMarkerLabel\?: string;/,
+  'Dialogue history entries should preserve optional evaluation marker labels.',
+);
+
+assert.match(
+  vnReducerSource,
   /readGenerationDurationSeconds\(payload\.generation_duration_seconds\)/,
   'VN reducer should read generation_duration_seconds from dialogue_update payloads.',
 );
@@ -31,6 +43,18 @@ assert.match(
   vnReducerSource,
   /readGenerationTotalTokens\(payload\.generation_total_tokens\)/,
   'VN reducer should read generation_total_tokens from dialogue_update payloads.',
+);
+
+assert.match(
+  vnReducerSource,
+  /readPlayerResponsibility\(payload\.player_responsibility\)/,
+  'VN reducer should read player_responsibility from dialogue_update payloads.',
+);
+
+assert.match(
+  vnReducerSource,
+  /readEvaluationMarkerLabel\(payload\.evaluation_marker_label\)/,
+  'VN reducer should read evaluation_marker_label from dialogue_update payloads.',
 );
 
 assert.match(
@@ -52,13 +76,31 @@ assert.match(
 );
 
 assert.match(
+  dialogueSource,
+  /const evaluationMarker = displayEntry \? formatEvaluationMarker\(displayEntry\) : null;[\s\S]*<span className="dialogue-evaluation-marker"/,
+  'DialogueBox should render a compact evaluation marker on marked player-responsibility dialogue.',
+);
+
+assert.match(
   timelineSource,
   /const generationMeta = formatTranscriptGenerationMeta\(item\.entry\);[\s\S]*<span className="stage-transcript-generation-meta">\{generationMeta\}<\/span>/,
   'Stage transcript records should render generation metadata for copied dialogue history.',
 );
 
 assert.match(
+  timelineSource,
+  /const evaluationMarker = formatTranscriptEvaluationMarker\(item\.entry\);[\s\S]*<span className="stage-transcript-evaluation-marker"/,
+  'Stage transcript records should render evaluation markers for copied dialogue history.',
+);
+
+assert.match(
   stylesSource,
   /\.dialogue-generation-meta,\s*\.stage-transcript-generation-meta\s*\{[\s\S]*font-variant-numeric:\s*tabular-nums[\s\S]*font-size:\s*12px/,
   'Generation metadata should use quiet small text with stable numeric alignment in both dialogue views.',
+);
+
+assert.match(
+  stylesSource,
+  /\.dialogue-evaluation-marker,\s*\.stage-transcript-evaluation-marker\s*\{[\s\S]*font-size:\s*12px[\s\S]*border:/,
+  'Evaluation markers should use compact, quiet badge styling in both dialogue views.',
 );

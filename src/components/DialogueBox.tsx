@@ -80,6 +80,7 @@ export function DialogueBox({
   const showActions = Boolean(fallbackNotice?.action);
   const canAcknowledgeCurrentEntry = currentEntry?.id === heldDialogueEntryId;
   const generationMeta = displayEntry ? formatGenerationMeta(displayEntry) : '';
+  const evaluationMarker = displayEntry ? formatEvaluationMarker(displayEntry) : null;
 
   function handleDialogueBoxClick(event: MouseEvent<HTMLElement>): void {
     const target = event.target as HTMLElement;
@@ -126,6 +127,11 @@ export function DialogueBox({
         {showTranscript ? (
           <>
             <article className={`dialogue-current-entry ${displayEntry?.kind || 'dialogue'}`} aria-label={currentEntry ? '当前对话' : '上一句对话'}>
+              {evaluationMarker ? (
+                <span className="dialogue-evaluation-marker" title={evaluationMarker.reason}>
+                  {evaluationMarker.label}
+                </span>
+              ) : null}
               <MarkdownText text={displayEntry?.text || ''} />
               {generationMeta ? (
                 <span className="dialogue-generation-meta">
@@ -169,6 +175,16 @@ function formatGenerationMeta(entry: DialogueHistoryEntry): string {
     formatGenerationTokens(entry.generationTotalTokens),
   ].filter(Boolean);
   return parts.join(' · ');
+}
+
+function formatEvaluationMarker(entry: DialogueHistoryEntry): { label: string; reason: string } | null {
+  if (!entry.playerResponsibility) return null;
+  const label = String(entry.evaluationMarkerLabel || '').trim();
+  if (!label) return null;
+  return {
+    label,
+    reason: String(entry.evaluationMarkerReason || label).trim(),
+  };
 }
 
 function formatGenerationDuration(seconds: number | undefined): string {
