@@ -115,6 +115,7 @@ export type DialogueHistoryEntry = {
   stageName: string;
   text: string;
   timestamp: string;
+  generationDurationSeconds?: number;
   turn?: number;
 };
 
@@ -474,7 +475,13 @@ function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unkn
   if (isBackgroundDialogue(stageCode, scene.text)) {
     return appendBackground(state, scene);
   }
-  return appendHistory({ ...state, scene }, scene, 'dialogue', readDialogueTurn(payload.turn));
+  return appendHistory(
+    { ...state, scene },
+    scene,
+    'dialogue',
+    readDialogueTurn(payload.turn),
+    readGenerationDurationSeconds(payload.generation_duration_seconds),
+  );
 }
 
 function applyScenarioStart(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
@@ -518,6 +525,7 @@ function appendHistory(
   scene: DialogueScene,
   kind: DialogueHistoryEntry['kind'],
   turn?: number,
+  generationDurationSeconds?: number,
 ): VnRuntimeState {
   const text = scene.text.trim();
   if (!text) return state;
@@ -535,6 +543,7 @@ function appendHistory(
     stageName: scene.stageName,
     text,
     timestamp: new Date().toISOString(),
+    ...(typeof generationDurationSeconds === 'number' ? { generationDurationSeconds } : {}),
     ...(typeof turn === 'number' ? { turn } : {}),
   };
   return {
@@ -547,6 +556,12 @@ function readDialogueTurn(value: unknown): number | undefined {
   const numeric = Number(value);
   if (!Number.isFinite(numeric) || numeric < 0) return undefined;
   return Math.floor(numeric);
+}
+
+function readGenerationDurationSeconds(value: unknown): number | undefined {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) return undefined;
+  return numeric;
 }
 
 function appendBackground(state: VnRuntimeState, scene: DialogueScene): VnRuntimeState {

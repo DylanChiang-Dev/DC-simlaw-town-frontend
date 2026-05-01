@@ -126,6 +126,11 @@ export function DialogueBox({
           <>
             <article className={`dialogue-current-entry ${displayEntry?.kind || 'dialogue'}`} aria-label={currentEntry ? '当前对话' : '上一句对话'}>
               <MarkdownText text={displayEntry?.text || ''} />
+              {displayEntry?.generationDurationSeconds ? (
+                <span className="dialogue-generation-duration">
+                  {formatGenerationDuration(displayEntry.generationDurationSeconds)}
+                </span>
+              ) : null}
             </article>
           </>
         ) : fallbackNotice ? (
@@ -155,6 +160,20 @@ export function DialogueBox({
 function getVisibleCurrentEntry(history: DialogueHistoryEntry[], heldDialogueEntryId = ''): DialogueHistoryEntry | null {
   if (!heldDialogueEntryId) return null;
   return history.find((entry) => entry.id === heldDialogueEntryId) || null;
+}
+
+function formatGenerationDuration(seconds: number): string {
+  const safeSeconds = Math.max(0, Number(seconds) || 0);
+  if (safeSeconds < 10) {
+    const rounded = Math.round(safeSeconds * 10) / 10;
+    return `耗时 ${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)}秒`;
+  }
+  if (safeSeconds < 60) {
+    return `耗时 ${Math.round(safeSeconds)}秒`;
+  }
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainingSeconds = String(Math.round(safeSeconds % 60)).padStart(2, '0');
+  return `耗时 ${minutes}分${remainingSeconds}秒`;
 }
 
 function getEntryRole(entry: DialogueHistoryEntry): string {

@@ -102,7 +102,7 @@ assert.match(
 
 assert.match(
   vnReducerSource,
-  /return appendHistory\(\{ \.\.\.state, scene \}, scene, 'dialogue', readDialogueTurn\(payload\.turn\)\);/,
+  /return appendHistory\([\s\S]*\{ \.\.\.state, scene \}[\s\S]*scene[\s\S]*'dialogue'[\s\S]*readDialogueTurn\(payload\.turn\)/,
   'VN reducer should store the dialogue turn on history entries.',
 );
 
