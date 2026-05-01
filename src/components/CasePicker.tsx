@@ -1,3 +1,4 @@
+import { getCaseArtProfile } from '../data/caseArt';
 import type { SandboxCaseSummary } from '../services/types';
 
 type Props = {
@@ -35,6 +36,7 @@ export function CasePicker({
         <div className="case-list">
           {cases.map((item) => {
             const active = item.caseId === selectedCaseId;
+            const art = getCaseArtProfile(item.caseId);
             return (
               <button
                 className={`case-card ${active ? 'active' : ''}`}
@@ -43,6 +45,7 @@ export function CasePicker({
                 onClick={() => onSelect(item.caseId)}
                 type="button"
               >
+                <img className="case-card-preview" src={art.caseCg} alt={`${item.title}案件预览`} />
                 <strong>{item.title}</strong>
                 <span>{item.plaintiffName} 诉 {item.defendantName}</span>
                 <small>{item.trainingCategory || item.rawCaseCause} / {item.difficulty}</small>

@@ -1,4 +1,5 @@
 import { characters, type CharacterKey, type DialogueScene } from '../data/runtimeScene';
+import { getCaseArtProfile } from '../data/caseArt';
 
 const STAGE_LABELS: Record<string, string> = {
   SYSTEM: '系统运行',
@@ -120,6 +121,7 @@ export type DialogueHistoryEntry = {
   playerResponsibility?: boolean;
   evaluationMarkerLabel?: string;
   evaluationMarkerReason?: string;
+  caseId?: string;
   turn?: number;
 };
 
@@ -191,6 +193,7 @@ export function createSceneForHistoryEntry(scene: DialogueScene, entry: Dialogue
     characters: entry.kind === 'dialogue' ? inferCharacters(entry.stageCode, entry.speaker) : [],
     speaker: entry.speaker,
     speakerLabel: entry.speakerName,
+    caseId: entry.caseId,
     stageCode: entry.stageCode,
     text: entry.text,
   });
@@ -464,6 +467,7 @@ function updateRuntimeStatus(state: VnRuntimeState, patch: Partial<RuntimeStatus
 
 function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
   const text = String(payload.content || payload.dialogue_text || '收到新的案件对话。');
+  const caseId = String(payload.case_id || payload.caseId || state.scene.caseId || '').trim();
   const fallbackStageCode = normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
   const speaker = inferSpeaker(payload, fallbackStageCode, text);
   const stageCode = isReceptionPayload(payload, text)
@@ -473,6 +477,7 @@ function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unkn
     characters: inferCharacters(stageCode, speaker),
     speaker,
     speakerLabel: getDialogueSpeakerLabel(payload, stageCode, speaker, text),
+    caseId,
     stageCode,
     text,
   });
@@ -489,6 +494,7 @@ function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unkn
     readPlayerResponsibility(payload.player_responsibility),
     readEvaluationMarkerLabel(payload.evaluation_marker_label),
     readEvaluationMarkerReason(payload.evaluation_marker_reason),
+    caseId,
   );
 }
 
@@ -538,6 +544,7 @@ function appendHistory(
   playerResponsibility?: boolean,
   evaluationMarkerLabel?: string,
   evaluationMarkerReason?: string,
+  caseId?: string,
 ): VnRuntimeState {
   const text = scene.text.trim();
   if (!text) return state;
@@ -560,6 +567,7 @@ function appendHistory(
     ...(playerResponsibility ? { playerResponsibility: true } : {}),
     ...(evaluationMarkerLabel ? { evaluationMarkerLabel } : {}),
     ...(evaluationMarkerReason ? { evaluationMarkerReason } : {}),
+    ...(caseId ? { caseId } : {}),
     ...(typeof turn === 'number' ? { turn } : {}),
   };
   return {
@@ -686,7 +694,7 @@ function inferStageCodeFromCaseState(value: unknown): string {
 
 function createSceneFromState(
   scene: DialogueScene,
-  overrides: Partial<Pick<DialogueScene, 'characters' | 'speaker' | 'speakerLabel' | 'stageCode' | 'text'>>,
+  overrides: Partial<Pick<DialogueScene, 'caseId' | 'characters' | 'speaker' | 'speakerLabel' | 'stageCode' | 'text'>>,
 ): DialogueScene {
   const stageCode = overrides.stageCode || scene.stageCode;
   const stageName = getStageName(stageCode);
@@ -697,6 +705,7 @@ function createSceneFromState(
   return {
     ...scene,
     background: BACKGROUND_BY_STAGE[stageCode] || scene.background,
+    caseId: overrides.caseId ?? scene.caseId,
     characters: overrides.characters || scene.characters,
     id: `live-${stageCode.toLowerCase()}`,
     speaker,
@@ -723,6 +732,19 @@ function createSystemScene(scene: DialogueScene, text: string, stageCode = 'SYST
 
 function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text: string): CharacterKey {
   const speakerName = String(payload.speaker_name || '').trim();
+  if (speakerName.includes('吴建')) return 'case1Plaintiff';
+  if (speakerName.includes('蓝宣博')) return 'case1Defendant';
+  if (speakerName.includes('连杰')) return 'case3Plaintiff';
+  if (speakerName.includes('皇甫超')) return 'case3Defendant';
+  if (speakerName.includes('马新华')) return 'case5Plaintiff';
+  if (speakerName.includes('魏承辉')) return 'case5Defendant';
+  if (speakerName.includes('张国明')) return 'case6Plaintiff';
+  if (speakerName.includes('张晶俊')) return 'case6Defendant';
+  if (speakerName.includes('胡引弟')) return 'case7Plaintiff';
+  if (speakerName.includes('周思贵')) return 'case7Defendant';
+  if (speakerName.includes('张明')) return 'lawyerZhangMing';
+  if (speakerName.includes('王小明')) return 'lawyerWangXiaoming';
+  if (speakerName.includes('陈刚')) return 'lawyerChenGang';
   if (speakerName.includes('刘正')) return 'judge';
   if (speakerName.includes('海瑞')) return 'appealJudge';
   if (speakerName.includes('书记员')) return 'courtClerk';
@@ -734,6 +756,7 @@ function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text:
   if (speakerName.includes('李婷')) return 'playerLawyer';
 
   const value = `${payload.speaker_name || ''} ${payload.speaker_id || ''}`.toLowerCase();
+  const caseArt = getCaseArtProfile(payload.case_id || payload.caseId || '');
   if (value.includes('reception') || value.includes('front_desk') || value.includes('前台') || value.includes('接待')) {
     return 'receptionist';
   }
@@ -742,7 +765,7 @@ function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text:
     || value.includes('plaintiff lawyer')
     || value.includes('lawyer_b01')
     || value.includes('原告律师')
-  ) return 'playerLawyer';
+  ) return caseArt.plaintiffLawyerKey;
   if (
     value.includes('defendant_lawyer')
     || value.includes('defense_lawyer')
@@ -750,20 +773,20 @@ function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text:
     || value.includes('defense lawyer')
     || value.includes('lawyer_b02')
     || value.includes('被告律师')
-  ) return 'opponentLawyer';
+  ) return caseArt.defendantLawyerKey;
   if (
     value.includes('defendant')
     || value.includes('cheng')
     || value.includes('程玉静')
     || value.includes('被告')
-  ) return 'defendant';
+  ) return caseArt.defendantKey;
   if (
     value.includes('client')
     || value.includes('plaintiff')
     || value.includes('case_')
     || value.includes('当事人')
     || value.includes('刘玉田')
-  ) return 'client';
+  ) return caseArt.plaintiffKey;
   if (stageCode === 'RECEPTION' || isReceptionPayload(payload, text)) {
     return 'receptionist';
   }
@@ -798,7 +821,7 @@ function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text:
     || value.includes('defense')
     || value.includes('被告律师')
   ) return 'opponentLawyer';
-  if (value.includes('lawyer') || value.includes('律师') || value.includes('李婷')) return 'playerLawyer';
+  if (value.includes('lawyer') || value.includes('律师') || value.includes('李婷')) return caseArt.plaintiffLawyerKey;
   return 'playerLawyer';
 }
 

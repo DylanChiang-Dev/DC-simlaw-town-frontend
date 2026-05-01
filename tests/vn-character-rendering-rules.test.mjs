@@ -23,10 +23,60 @@ const styleSource = readFileSync(join(root, 'src', 'styles.css'), 'utf8');
   );
 });
 
+[
+  'char-case1-plaintiff-wu-jian-concerned.png',
+  'char-case1-defendant-lan-xuanbo-defensive.png',
+  'char-case3-plaintiff-lian-jie-firm.png',
+  'char-case3-defendant-huangfu-chao-guarded.png',
+  'char-case5-plaintiff-ma-xinhua-composed.png',
+  'char-case5-defendant-wei-chenghui-anxious.png',
+  'char-case6-plaintiff-zhang-guoming-firm.png',
+  'char-case6-defendant-zhang-jingjun-guarded.png',
+  'char-case7-plaintiff-hu-yindi-worried.png',
+  'char-case7-defendant-zhou-sigui-anxious.png',
+  'char-lawyer-zhang-ming-neutral.png',
+  'char-lawyer-wang-xiaoming-neutral.png',
+  'char-lawyer-chen-gang-serious.png',
+].forEach((asset) => {
+  assert.match(
+    runtimeSceneSource,
+    new RegExp(asset.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+    `${asset} should be embedded in the runtime character map.`,
+  );
+});
+
+[
+  ['吴建', 'case1Plaintiff'],
+  ['蓝宣博', 'case1Defendant'],
+  ['连杰', 'case3Plaintiff'],
+  ['皇甫超', 'case3Defendant'],
+  ['马新华', 'case5Plaintiff'],
+  ['魏承辉', 'case5Defendant'],
+  ['张国明', 'case6Plaintiff'],
+  ['张晶俊', 'case6Defendant'],
+  ['胡引弟', 'case7Plaintiff'],
+  ['周思贵', 'case7Defendant'],
+  ['张明', 'lawyerZhangMing'],
+  ['王小明', 'lawyerWangXiaoming'],
+  ['陈刚', 'lawyerChenGang'],
+].forEach(([speakerName, characterKey]) => {
+  assert.match(
+    reducerSource,
+    new RegExp(`speakerName\\.includes\\('${speakerName}'\\)[\\s\\S]*return '${characterKey}'`),
+    `${speakerName} dialogue should resolve to ${characterKey}.`,
+  );
+});
+
 assert.match(
   reducerSource,
-  /value\.includes\('defendant'\)[\s\S]*return 'defendant';/,
-  'Defendant speaker payloads should use Cheng Yujing, not the defendant lawyer portrait.',
+  /const caseArt = getCaseArtProfile\(payload\.case_id \|\| payload\.caseId \|\| ''\);[\s\S]*return caseArt\.defendantKey;[\s\S]*return caseArt\.plaintiffKey;/,
+  'VN reducer should use case_id as a fallback for case-specific plaintiff and defendant portraits.',
+);
+
+assert.match(
+  reducerSource,
+  /value\.includes\('defendant'\)[\s\S]*return caseArt\.defendantKey;/,
+  'Defendant speaker payloads should use the case defendant portrait, not the defendant lawyer portrait.',
 );
 
 assert.match(
@@ -37,14 +87,14 @@ assert.match(
 
 assert.match(
   reducerSource,
-  /value\.includes\('plaintiff_lawyer'\)[\s\S]*return 'playerLawyer';[\s\S]*value\.includes\('plaintiff'\)[\s\S]*return 'client';/,
-  'Plaintiff lawyer speaker ids should resolve to the player lawyer before generic plaintiff/client matching.',
+  /value\.includes\('plaintiff_lawyer'\)[\s\S]*return caseArt\.plaintiffLawyerKey;[\s\S]*value\.includes\('plaintiff'\)[\s\S]*return caseArt\.plaintiffKey;/,
+  'Plaintiff lawyer speaker ids should resolve to the case plaintiff lawyer before generic plaintiff/client matching.',
 );
 
 assert.match(
   reducerSource,
-  /value\.includes\('defendant_lawyer'\)[\s\S]*return 'opponentLawyer';[\s\S]*value\.includes\('defendant'\)[\s\S]*return 'defendant';/,
-  'Defendant lawyer speaker ids should resolve to Zhao Xue before generic defendant/client matching.',
+  /value\.includes\('defendant_lawyer'\)[\s\S]*return caseArt\.defendantLawyerKey;[\s\S]*value\.includes\('defendant'\)[\s\S]*return caseArt\.defendantKey;/,
+  'Defendant lawyer speaker ids should resolve to the case defendant lawyer before generic defendant/client matching.',
 );
 
 assert.match(

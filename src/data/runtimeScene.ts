@@ -9,7 +9,20 @@ export type CharacterKey =
   | 'opponentLawyer'
   | 'courtClerk'
   | 'judgeAssistant'
-  | 'trafficOfficer';
+  | 'trafficOfficer'
+  | 'case1Plaintiff'
+  | 'case1Defendant'
+  | 'case3Plaintiff'
+  | 'case3Defendant'
+  | 'case5Plaintiff'
+  | 'case5Defendant'
+  | 'case6Plaintiff'
+  | 'case6Defendant'
+  | 'case7Plaintiff'
+  | 'case7Defendant'
+  | 'lawyerZhangMing'
+  | 'lawyerWangXiaoming'
+  | 'lawyerChenGang';
 
 export type Character = {
   key: CharacterKey;
@@ -22,6 +35,7 @@ export type Character = {
 export type DialogueScene = {
   id: string;
   caseTitle: string;
+  caseId?: string;
   playerSeat: string;
   stageCode: string;
   stageName: string;
@@ -123,6 +137,97 @@ export const characters: Record<CharacterKey, Character> = {
     role: '交通事故证据来源',
     portrait: '/art/vn/char-traffic-officer-neutral.png',
     position: 'center',
+  },
+  case1Plaintiff: {
+    key: 'case1Plaintiff',
+    name: '吴建',
+    role: '原告当事人',
+    portrait: '/art/vn/char-case1-plaintiff-wu-jian-concerned.png',
+    position: 'right',
+  },
+  case1Defendant: {
+    key: 'case1Defendant',
+    name: '蓝宣博',
+    role: '被告当事人',
+    portrait: '/art/vn/char-case1-defendant-lan-xuanbo-defensive.png',
+    position: 'left',
+  },
+  case3Plaintiff: {
+    key: 'case3Plaintiff',
+    name: '连杰',
+    role: '原告当事人',
+    portrait: '/art/vn/char-case3-plaintiff-lian-jie-firm.png',
+    position: 'right',
+  },
+  case3Defendant: {
+    key: 'case3Defendant',
+    name: '皇甫超',
+    role: '被告当事人',
+    portrait: '/art/vn/char-case3-defendant-huangfu-chao-guarded.png',
+    position: 'left',
+  },
+  case5Plaintiff: {
+    key: 'case5Plaintiff',
+    name: '马新华',
+    role: '原告当事人',
+    portrait: '/art/vn/char-case5-plaintiff-ma-xinhua-composed.png',
+    position: 'right',
+  },
+  case5Defendant: {
+    key: 'case5Defendant',
+    name: '魏承辉',
+    role: '被告当事人',
+    portrait: '/art/vn/char-case5-defendant-wei-chenghui-anxious.png',
+    position: 'left',
+  },
+  case6Plaintiff: {
+    key: 'case6Plaintiff',
+    name: '张国明',
+    role: '原告当事人',
+    portrait: '/art/vn/char-case6-plaintiff-zhang-guoming-firm.png',
+    position: 'right',
+  },
+  case6Defendant: {
+    key: 'case6Defendant',
+    name: '张晶俊',
+    role: '被告当事人',
+    portrait: '/art/vn/char-case6-defendant-zhang-jingjun-guarded.png',
+    position: 'left',
+  },
+  case7Plaintiff: {
+    key: 'case7Plaintiff',
+    name: '胡引弟',
+    role: '原告当事人',
+    portrait: '/art/vn/char-case7-plaintiff-hu-yindi-worried.png',
+    position: 'right',
+  },
+  case7Defendant: {
+    key: 'case7Defendant',
+    name: '周思贵',
+    role: '被告当事人',
+    portrait: '/art/vn/char-case7-defendant-zhou-sigui-anxious.png',
+    position: 'left',
+  },
+  lawyerZhangMing: {
+    key: 'lawyerZhangMing',
+    name: '张明',
+    role: '金杜律师 / 民商事律师',
+    portrait: '/art/vn/char-lawyer-zhang-ming-neutral.png',
+    position: 'left',
+  },
+  lawyerWangXiaoming: {
+    key: 'lawyerWangXiaoming',
+    name: '王小明',
+    role: '金杜律师 / 民商事律师',
+    portrait: '/art/vn/char-lawyer-wang-xiaoming-neutral.png',
+    position: 'left',
+  },
+  lawyerChenGang: {
+    key: 'lawyerChenGang',
+    name: '陈刚',
+    role: '金杜律师 / 刑事辩护律师',
+    portrait: '/art/vn/char-lawyer-chen-gang-serious.png',
+    position: 'left',
   },
 };
 

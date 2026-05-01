@@ -1,6 +1,6 @@
 {
   "name": "simlaw-town-frontend-v2",
-  "version": "2.1.33",
+  "version": "2.1.34",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,6 +9,8 @@
     "version:bump": "node scripts/bump-version.mjs",
     "test:build-version": "node tests/build-version-badge.test.mjs",
     "test:login-project-info": "node tests/login-project-info.test.mjs",
+    "test:case-art-assets": "node tests/case-art-assets.test.mjs",
+    "test:case-picker-art": "node tests/case-picker-art.test.mjs",
     "test:dialogue-refresh-action": "node tests/dialogue-refresh-action.test.mjs",
     "test:auto-draft": "node tests/player-lawyer-auto-draft.test.mjs",
     "test:focus-regression": "node tests/player-lawyer-focus-regression.test.mjs",

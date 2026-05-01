@@ -54,8 +54,8 @@ assert.match(
 
 assert.match(
   loginPanelSource,
-  /src="\/art\/vn\/bg-login-law-office-v2\.png"/,
-  'LoginPanel should use the newly generated full-screen login background.',
+  /src="\/art\/vn\/bg-login-law-office-v3\.png"/,
+  'LoginPanel should use the dedicated v3 full-screen login CG background.',
 );
 
 assert.match(
