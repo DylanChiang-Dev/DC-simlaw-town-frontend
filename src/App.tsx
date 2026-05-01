@@ -62,7 +62,7 @@ function AppShell({ auth }: AppShellProps) {
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const runtime = useSimulationRuntime(auth.backendConfigured && Boolean(auth.user));
   const playerLawyer = usePlayerLawyerRuntime(
-    auth.backendConfigured && Boolean(auth.user) && Boolean(runtime.activeCaseId),
+    auth.backendConfigured && Boolean(auth.user),
     runtime.activeCaseId,
   );
   const [vnRuntime, dispatchVnEvent] = useReducer(vnEventReducer, undefined, createInitialVnRuntimeState);

@@ -12,8 +12,8 @@ const vnReducerSource = readFileSync(join(root, 'src', 'state', 'vnEventReducer.
 
 assert.match(
   appSource,
-  /usePlayerLawyerRuntime\(\s*auth\.backendConfigured && Boolean\(auth\.user\) && Boolean\(runtime\.activeCaseId\),\s*runtime\.activeCaseId,\s*\)/,
-  'Player-lawyer requests should only be polled while a real active case is running or paused.',
+  /usePlayerLawyerRuntime\(\s*auth\.backendConfigured && Boolean\(auth\.user\),\s*runtime\.activeCaseId,\s*\)/,
+  'Player-lawyer mode status should refresh after login even before a real active case is running or paused.',
 );
 
 assert.doesNotMatch(

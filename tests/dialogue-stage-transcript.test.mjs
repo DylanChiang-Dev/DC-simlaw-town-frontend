@@ -47,6 +47,12 @@ assert.match(
 );
 
 assert.match(
+  appSource,
+  /usePlayerLawyerRuntime\(\s*auth\.backendConfigured && Boolean\(auth\.user\),\s*runtime\.activeCaseId,\s*\)/,
+  'App should fetch player-lawyer mode status as soon as the user is connected, so the lifecycle perspective does not wait for an active case.',
+);
+
+assert.match(
   timelineSource,
   /const TRANSCRIPT_STAGES[\s\S]*order:\s*1[\s\S]*code:\s*'PLC'[\s\S]*order:\s*2[\s\S]*code:\s*'CD'[\s\S]*order:\s*8[\s\S]*code:\s*'CIA'/,
   'Each visible lifecycle stage should have a stable 01-08 order number for user-facing references.',
