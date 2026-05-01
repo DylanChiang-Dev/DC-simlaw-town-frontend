@@ -536,14 +536,18 @@ h1 {
   color: #ffb6a8;
 }
 
-.dialogue-generation-duration {
+.dialogue-generation-meta,
+.stage-transcript-generation-meta {
   display: block;
-  margin-top: 8px;
   color: rgba(244, 214, 164, 0.68);
   font-size: 12px;
   font-weight: 750;
   font-variant-numeric: tabular-nums;
   line-height: 1.3;
+}
+
+.dialogue-generation-meta {
+  margin-top: 8px;
 }
 
 .dialogue-runtime-notice {
@@ -857,6 +861,10 @@ h1 {
 .dialogue-records-list .stage-transcript-entry .markdown-text {
   grid-column: 3;
   min-width: 0;
+}
+
+.dialogue-records-list .stage-transcript-generation-meta {
+  grid-column: 3;
 }
 
 .dialogue-records-actions {

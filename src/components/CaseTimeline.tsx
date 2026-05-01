@@ -90,13 +90,17 @@ export function CaseTimeline({
             <div className="panel-kicker">{activeStage.code} Case Transcript</div>
             <h2>{activeStage.label}对话记录</h2>
             <div className="dialogue-records-list">
-              {activeStageItems.map((item) => (
-                <article className={`dialogue-history-entry stage-transcript-entry ${item.entry.kind}`} key={item.entry.id}>
-                  <span className="transcript-entry-marker">{formatTranscriptMarker(item.meta)}</span>
-                  <span>{item.entry.speakerName}</span>
-                  <MarkdownText text={item.entry.text} />
-                </article>
-              ))}
+              {activeStageItems.map((item) => {
+                const generationMeta = formatTranscriptGenerationMeta(item.entry);
+                return (
+                  <article className={`dialogue-history-entry stage-transcript-entry ${item.entry.kind}`} key={item.entry.id}>
+                    <span className="transcript-entry-marker">{formatTranscriptMarker(item.meta)}</span>
+                    <span>{item.entry.speakerName}</span>
+                    <MarkdownText text={item.entry.text} />
+                    {generationMeta ? <span className="stage-transcript-generation-meta">{generationMeta}</span> : null}
+                  </article>
+                );
+              })}
             </div>
             <div className="dialogue-records-actions">
               <button className="secondary-action" type="button" onClick={() => setActiveTranscriptStage(null)}>
@@ -162,6 +166,35 @@ function getEntryTurnNumber(entry: DialogueHistoryEntry, fallbackIndex: number):
 
 function formatTranscriptMarker(meta: { stageLabel: string; stageOrder: number; turnNumber: number }): string {
   return `${formatStageOrder(meta.stageOrder)} · ${meta.stageLabel} · 第${formatStageOrder(meta.turnNumber)}轮`;
+}
+
+function formatTranscriptGenerationMeta(entry: DialogueHistoryEntry): string {
+  const parts = [
+    formatTranscriptGenerationDuration(entry.generationDurationSeconds),
+    formatTranscriptGenerationTokens(entry.generationTotalTokens),
+  ].filter(Boolean);
+  return parts.join(' · ');
+}
+
+function formatTranscriptGenerationDuration(seconds: number | undefined): string {
+  const safeSeconds = Math.max(0, Number(seconds) || 0);
+  if (safeSeconds <= 0) return '';
+  if (safeSeconds < 10) {
+    const rounded = Math.round(safeSeconds * 10) / 10;
+    return `耗时 ${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)}秒`;
+  }
+  if (safeSeconds < 60) {
+    return `耗时 ${Math.round(safeSeconds)}秒`;
+  }
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainingSeconds = String(Math.round(safeSeconds % 60)).padStart(2, '0');
+  return `耗时 ${minutes}分${remainingSeconds}秒`;
+}
+
+function formatTranscriptGenerationTokens(tokens: number | undefined): string {
+  const safeTokens = Math.floor(Number(tokens) || 0);
+  if (safeTokens <= 0) return '';
+  return `${safeTokens.toLocaleString('en-US')} tokens`;
 }
 
 function formatStageOrder(value: number): string {

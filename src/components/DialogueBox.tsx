@@ -79,6 +79,7 @@ export function DialogueBox({
       };
   const showActions = Boolean(fallbackNotice?.action);
   const canAcknowledgeCurrentEntry = currentEntry?.id === heldDialogueEntryId;
+  const generationMeta = displayEntry ? formatGenerationMeta(displayEntry) : '';
 
   function handleDialogueBoxClick(event: MouseEvent<HTMLElement>): void {
     const target = event.target as HTMLElement;
@@ -126,9 +127,9 @@ export function DialogueBox({
           <>
             <article className={`dialogue-current-entry ${displayEntry?.kind || 'dialogue'}`} aria-label={currentEntry ? '当前对话' : '上一句对话'}>
               <MarkdownText text={displayEntry?.text || ''} />
-              {displayEntry?.generationDurationSeconds ? (
-                <span className="dialogue-generation-duration">
-                  {formatGenerationDuration(displayEntry.generationDurationSeconds)}
+              {generationMeta ? (
+                <span className="dialogue-generation-meta">
+                  {generationMeta}
                 </span>
               ) : null}
             </article>
@@ -162,8 +163,17 @@ function getVisibleCurrentEntry(history: DialogueHistoryEntry[], heldDialogueEnt
   return history.find((entry) => entry.id === heldDialogueEntryId) || null;
 }
 
-function formatGenerationDuration(seconds: number): string {
+function formatGenerationMeta(entry: DialogueHistoryEntry): string {
+  const parts = [
+    formatGenerationDuration(entry.generationDurationSeconds),
+    formatGenerationTokens(entry.generationTotalTokens),
+  ].filter(Boolean);
+  return parts.join(' · ');
+}
+
+function formatGenerationDuration(seconds: number | undefined): string {
   const safeSeconds = Math.max(0, Number(seconds) || 0);
+  if (safeSeconds <= 0) return '';
   if (safeSeconds < 10) {
     const rounded = Math.round(safeSeconds * 10) / 10;
     return `耗时 ${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)}秒`;
@@ -174,6 +184,12 @@ function formatGenerationDuration(seconds: number): string {
   const minutes = Math.floor(safeSeconds / 60);
   const remainingSeconds = String(Math.round(safeSeconds % 60)).padStart(2, '0');
   return `耗时 ${minutes}分${remainingSeconds}秒`;
+}
+
+function formatGenerationTokens(tokens: number | undefined): string {
+  const safeTokens = Math.floor(Number(tokens) || 0);
+  if (safeTokens <= 0) return '';
+  return `${safeTokens.toLocaleString('en-US')} tokens`;
 }
 
 function getEntryRole(entry: DialogueHistoryEntry): string {
