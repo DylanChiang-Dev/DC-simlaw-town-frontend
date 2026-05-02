@@ -77,8 +77,14 @@ assert.match(
 
 assert.match(
   dialogueSource,
-  /const evaluationMarker = displayEntry \? formatEvaluationMarker\(displayEntry\) : null;[\s\S]*<span className="dialogue-evaluation-marker"/,
-  'DialogueBox should render a compact evaluation marker on marked player-responsibility dialogue.',
+  /<div className="speaker-plate">[\s\S]*<span>\{speakerPlate\.role\}<\/span>[\s\S]*\{evaluationMarker \? \([\s\S]*<span className="dialogue-evaluation-marker"/,
+  'DialogueBox should render the player-responsibility marker in the left speaker plate after the role label.',
+);
+
+assert.doesNotMatch(
+  dialogueSource,
+  /<article className=\{`dialogue-current-entry[\s\S]*<span className="dialogue-evaluation-marker"/,
+  'DialogueBox should not pin the player-responsibility marker inside the dialogue body.',
 );
 
 assert.match(

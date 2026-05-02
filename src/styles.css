@@ -577,9 +577,11 @@ h1 {
 }
 
 .dialogue-evaluation-marker {
-  position: absolute;
-  top: -2px;
-  right: 0;
+  flex: 0 0 auto;
+  margin-left: -4px;
+  border-color: rgba(224, 241, 248, 0.42);
+  background: rgba(255, 247, 232, 0.12);
+  color: rgba(255, 247, 232, 0.9);
 }
 
 .dialogue-runtime-notice {

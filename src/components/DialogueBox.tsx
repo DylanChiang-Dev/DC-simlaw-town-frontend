@@ -122,16 +122,16 @@ export function DialogueBox({
       <div className="speaker-plate">
         <strong>{speakerPlate.name}</strong>
         <span>{speakerPlate.role}</span>
+        {evaluationMarker ? (
+          <span className="dialogue-evaluation-marker" title={evaluationMarker.reason}>
+            {evaluationMarker.label}
+          </span>
+        ) : null}
       </div>
       <div className="dialogue-scroll-region">
         {showTranscript ? (
           <>
             <article className={`dialogue-current-entry ${displayEntry?.kind || 'dialogue'}`} aria-label={currentEntry ? '当前对话' : '上一句对话'}>
-              {evaluationMarker ? (
-                <span className="dialogue-evaluation-marker" title={evaluationMarker.reason}>
-                  {evaluationMarker.label}
-                </span>
-              ) : null}
               <MarkdownText text={displayEntry?.text || ''} />
               {generationMeta ? (
                 <span className="dialogue-generation-meta">
