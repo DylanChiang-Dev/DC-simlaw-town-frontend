@@ -55,6 +55,24 @@ assert.match(
   'TownRadar should render color-only actor dots on the map.',
 );
 
+assert.match(
+  componentSource,
+  /const actorLayouts = getActorLayouts\(radar\.visibleActors,\s*destination\.locationId\);/,
+  'TownRadar should compute per-actor layouts so same-room dots do not overlap.',
+);
+
+assert.match(
+  componentSource,
+  /function groupActorPositionKey\(actor: RadarActor,[\s\S]*actor\.locationId \|\| fallbackLocationId[\s\S]*actor\.nodeId \|\| 'main'/,
+  'TownRadar should group actor dots by location and internal room before spreading them.',
+);
+
+assert.match(
+  componentSource,
+  /function getActorOffset\(index: number,\s*total: number\)[\s\S]*offsetX:\s*-2\.8[\s\S]*offsetX:\s*2\.8/,
+  'TownRadar should place two actors in the same room side by side instead of directly overlapping.',
+);
+
 assert.doesNotMatch(
   componentSource,
   /formatActorLabel/,

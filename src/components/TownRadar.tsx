@@ -3,6 +3,7 @@ import {
   LAWFIRM_INTERNAL_NODES,
   TOWN_RADAR_LOCATIONS,
   getStageRadarDestination,
+  type LawfirmInternalNodeId,
   type RadarActor,
   type TownRadarLocationId,
 } from '../data/townRadarModel';
@@ -16,6 +17,7 @@ type Props = {
 
 export function TownRadar({ radar, scene }: Props) {
   const destination = getStageRadarDestination(scene.stageCode);
+  const actorLayouts = getActorLayouts(radar.visibleActors, destination.locationId);
   const recentCapabilities = [...scene.tech.activeTools, ...scene.tech.activeSkills]
     .filter(Boolean)
     .slice(0, 2)
@@ -55,12 +57,12 @@ export function TownRadar({ radar, scene }: Props) {
           <path d="M78 38 C72 52 70 64 72 72" />
           <path d="M34 78 C46 70 58 70 66 78" />
         </svg>
-        {radar.visibleActors.map((actor) => (
+        {actorLayouts.map(({ actor, style }) => (
           <span
             aria-hidden="true"
             className={`town-radar-actor town-radar-actor-dot ${actor.kind} ${actor.active ? 'active' : ''} ${actor.moving ? 'moving' : ''}`}
             key={actor.id}
-            style={getActorStyle(actor.locationId || destination.locationId)}
+            style={style}
             title={actor.label}
           />
         ))}
@@ -83,10 +85,71 @@ export function TownRadar({ radar, scene }: Props) {
   );
 }
 
-function getActorStyle(locationId: TownRadarLocationId) {
+function getActorLayouts(actors: RadarActor[], fallbackLocationId: TownRadarLocationId) {
+  const totals = new Map<string, number>();
+  const indexes = new Map<string, number>();
+
+  actors.forEach((actor) => {
+    const key = groupActorPositionKey(actor, fallbackLocationId);
+    totals.set(key, (totals.get(key) || 0) + 1);
+  });
+
+  return actors.map((actor) => {
+    const key = groupActorPositionKey(actor, fallbackLocationId);
+    const index = indexes.get(key) || 0;
+    indexes.set(key, index + 1);
+
+    return {
+      actor,
+      style: getActorStyle(actor.locationId || fallbackLocationId, actor.nodeId, getActorOffset(index, totals.get(key) || 1)),
+    };
+  });
+}
+
+function groupActorPositionKey(actor: RadarActor, fallbackLocationId: TownRadarLocationId) {
+  return `${actor.locationId || fallbackLocationId}:${actor.nodeId || 'main'}`;
+}
+
+function getActorStyle(
+  locationId: TownRadarLocationId,
+  nodeId?: LawfirmInternalNodeId,
+  offset: { offsetX: number; offsetY: number } = { offsetX: 0, offsetY: 0 },
+) {
   const location = TOWN_RADAR_LOCATIONS.find((item) => item.id === locationId) || TOWN_RADAR_LOCATIONS[0];
+  const nodeOffset = getLawfirmNodeOffset(locationId, nodeId);
   return {
-    left: `${location.x}%`,
-    top: `${location.y + 15}%`,
+    left: `${location.x + nodeOffset.offsetX + offset.offsetX}%`,
+    top: `${location.y + nodeOffset.offsetY + offset.offsetY}%`,
   };
+}
+
+function getLawfirmNodeOffset(locationId: TownRadarLocationId, nodeId?: LawfirmInternalNodeId) {
+  if (locationId !== 'lawfirmA' && locationId !== 'lawfirmB') return { offsetX: 0, offsetY: 15 };
+  if (nodeId === 'frontDesk') return { offsetX: -5, offsetY: 6 };
+  if (nodeId === 'consultationRoom') return { offsetX: 0, offsetY: 10 };
+  if (nodeId === 'workstation') return { offsetX: 0, offsetY: 17 };
+  return { offsetX: 0, offsetY: 15 };
+}
+
+function getActorOffset(index: number, total: number) {
+  if (total <= 1) return { offsetX: 0, offsetY: 0 };
+  const layouts = [
+    [
+      { offsetX: -2.8, offsetY: 0 },
+      { offsetX: 2.8, offsetY: 0 },
+    ],
+    [
+      { offsetX: -3.1, offsetY: -1.8 },
+      { offsetX: 3.1, offsetY: -1.8 },
+      { offsetX: 0, offsetY: 2.2 },
+    ],
+    [
+      { offsetX: -3.1, offsetY: -2.2 },
+      { offsetX: 3.1, offsetY: -2.2 },
+      { offsetX: -3.1, offsetY: 2.2 },
+      { offsetX: 3.1, offsetY: 2.2 },
+    ],
+  ];
+  const layout = layouts[Math.min(total, 4) - 2];
+  return layout[index % layout.length];
 }
