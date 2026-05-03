@@ -108,8 +108,20 @@ assert.match(
 
 assert.match(
   stylesSource,
-  /\.case-timeline\s*\{[\s\S]*grid-template-columns:\s*repeat\(8,\s*minmax\(0,\s*1fr\)\)/,
-  'The eight lifecycle stages should fit into one compact desktop row.',
+  /\.case-timeline\s*\{[\s\S]*display:\s*flex[\s\S]*flex-wrap:\s*wrap[\s\S]*align-items:\s*stretch/,
+  'The lifecycle stages should use a wrapping flex row so labels can adapt to their content width.',
+);
+
+assert.match(
+  stylesSource,
+  /\.case-stage\s*\{[\s\S]*flex:\s*1\s+1\s+clamp\(118px,\s*12vw,\s*178px\)[\s\S]*max-width:\s*210px/,
+  'Lifecycle stage controls should have adaptive content-aware widths instead of equal eighth-width columns.',
+);
+
+assert.doesNotMatch(
+  stylesSource,
+  /\.case-timeline\s*\{[^}]*grid-template-columns:\s*repeat\(8,/,
+  'The lifecycle rail should not force every stage into the same fixed eighth-width track.',
 );
 
 assert.match(
@@ -120,8 +132,8 @@ assert.match(
 
 assert.doesNotMatch(
   stylesSource,
-  /\.case-timeline\s*\{[\s\S]*grid-template-columns:\s*repeat\(2,\s*1fr\)/,
-  'Responsive timeline styles should not collapse the lifecycle rail into two rows.',
+  /\.case-timeline\s*\{[^}]*grid-template-columns:/,
+  'Responsive timeline styles should not switch the lifecycle rail back to a fixed grid.',
 );
 
 assert.match(
