@@ -120,6 +120,24 @@ assert.match(
 );
 
 assert.match(
+  apiSource,
+  /\/api\/sandbox\/cases\/\$\{encodeURIComponent\(normalizedCaseId\)\}\/player-run-report\.md/,
+  'Frontend API should request the player run Markdown report endpoint.',
+);
+
+assert.match(
+  summarySource,
+  /导出复盘 Markdown/,
+  'Closing summary dialog should expose a Markdown review report export action.',
+);
+
+assert.match(
+  summarySource,
+  /downloadPlayerRunReportMarkdown/,
+  'Closing summary dialog should call the Markdown report download helper.',
+);
+
+assert.match(
   typesSource,
   /export type CaseClosingEvaluation/,
   'Frontend types should include the closing evaluation payload.',

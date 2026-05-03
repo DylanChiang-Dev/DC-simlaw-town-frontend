@@ -173,3 +173,23 @@ export async function generateCaseClosingEvaluation(caseId: string): Promise<Cas
   }
   return evaluation;
 }
+
+export async function downloadPlayerRunReportMarkdown(caseId: string): Promise<void> {
+  const normalizedCaseId = String(caseId || '').trim();
+  const response = await authenticatedFetch(`/api/sandbox/cases/${encodeURIComponent(normalizedCaseId)}/player-run-report.md`, {
+    method: 'GET',
+  });
+  if (!response.ok) {
+    const payload = await readJsonResponse<{ detail?: string }>(response).catch(() => ({ detail: '' }));
+    throw new Error(payload.detail || '下载复盘报告失败');
+  }
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `${normalizedCaseId || 'case'}-player-run-report.md`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.URL.revokeObjectURL(url);
+}

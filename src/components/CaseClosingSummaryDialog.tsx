@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { downloadCaseDocument } from '../services/caseDocumentsApi';
-import { fetchCaseClosingSummary, generateCaseClosingEvaluation } from '../services/caseClosingApi';
+import { downloadPlayerRunReportMarkdown, fetchCaseClosingSummary, generateCaseClosingEvaluation } from '../services/caseClosingApi';
 import type { CaseClosingEvaluation, CaseClosingSummary } from '../services/types';
 import { MarkdownText } from './MarkdownText';
 
@@ -19,6 +19,8 @@ export function CaseClosingSummaryDialog({ caseId, onClose, open }: Props) {
   const [evaluationError, setEvaluationError] = useState('');
   const [loading, setLoading] = useState(false);
   const [evaluationLoading, setEvaluationLoading] = useState(false);
+  const [reportError, setReportError] = useState('');
+  const [reportLoading, setReportLoading] = useState(false);
 
   useEffect(() => {
     if (!open || !caseId) return;
@@ -57,6 +59,19 @@ export function CaseClosingSummaryDialog({ caseId, onClose, open }: Props) {
       setEvaluationError(err instanceof Error ? err.message : '评价生成失败');
     } finally {
       setEvaluationLoading(false);
+    }
+  }
+
+  async function handleDownloadReport(): Promise<void> {
+    if (!caseId) return;
+    setReportLoading(true);
+    setReportError('');
+    try {
+      await downloadPlayerRunReportMarkdown(caseId);
+    } catch (err) {
+      setReportError(err instanceof Error ? err.message : '下载复盘报告失败');
+    } finally {
+      setReportLoading(false);
     }
   }
 
@@ -142,7 +157,16 @@ export function CaseClosingSummaryDialog({ caseId, onClose, open }: Props) {
           )}
         </section>
 
+        {reportError ? <div className="document-error" role="alert">{reportError}</div> : null}
         <div className="confirm-dialog-actions">
+          <button
+            className="secondary-action"
+            disabled={reportLoading || loading || !summary}
+            onClick={() => void handleDownloadReport()}
+            type="button"
+          >
+            {reportLoading ? '导出中' : '导出复盘 Markdown'}
+          </button>
           <button className="primary-action" type="button" onClick={onClose}>关闭</button>
         </div>
       </section>
