@@ -14,6 +14,15 @@ type Props = {
 
 type AuthMode = 'login' | 'register';
 
+const LOGIN_CASE_MEMORY_IMAGES = [
+  '/art/vn/cg-case1-hair-salon-rent-evidence.png',
+  '/art/vn/cg-case3-swimming-pool-loan-evidence.png',
+  '/art/vn/cg-case5-car-purchase-evidence.png',
+  '/art/vn/cg-case6-fabric-iou-evidence.png',
+  '/art/vn/cg-case7-shanghai-traffic-accident-overview.png',
+  '/art/vn/cg-case9-traffic-accident-overview.png',
+];
+
 export function LoginPanel({ onAuthenticated }: Props) {
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
@@ -69,6 +78,22 @@ export function LoginPanel({ onAuthenticated }: Props) {
           <div aria-hidden="true" className="auth-cg-case-lines" />
           <div aria-hidden="true" className="auth-cg-dust" />
           <div aria-hidden="true" className="auth-cg-screen-glow" />
+          <img
+            aria-hidden="true"
+            className="auth-art-layer"
+            src="/art/vn/login-layer-legal-evidence-v2.png"
+            alt=""
+          />
+          <div aria-hidden="true" className="auth-case-memory-wall">
+            {LOGIN_CASE_MEMORY_IMAGES.map((imageSrc, index) => (
+              <img
+                alt=""
+                className={`auth-case-polaroid case-memory-${index + 1}`}
+                key={imageSrc}
+                src={imageSrc}
+              />
+            ))}
+          </div>
         </div>
         <div className="auth-vignette" />
         <form className="login-panel" onSubmit={handleSubmit}>

@@ -1395,7 +1395,9 @@ h1 {
 .auth-cg-light-sweep,
 .auth-cg-case-lines,
 .auth-cg-dust,
-.auth-cg-screen-glow {
+.auth-cg-screen-glow,
+.auth-art-layer,
+.auth-case-memory-wall {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -1441,6 +1443,85 @@ h1 {
   opacity: 0.74;
   mix-blend-mode: screen;
   animation: loginScreenGlow 9s ease-in-out infinite alternate;
+}
+
+.auth-art-layer {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.82;
+  filter: drop-shadow(0 22px 34px rgba(15, 8, 4, 0.38)) saturate(1.05);
+  transform-origin: 70% 58%;
+  animation: loginArtLayerFloat 12s ease-in-out infinite alternate;
+  z-index: 1;
+}
+
+.auth-case-memory-wall {
+  z-index: 0;
+  opacity: 0.86;
+  mask-image: linear-gradient(90deg, transparent 0%, transparent 37%, rgba(0, 0, 0, 0.56) 50%, #000 100%);
+}
+
+.auth-case-polaroid {
+  position: absolute;
+  width: clamp(118px, 10vw, 188px);
+  --case-memory-rotate: 0deg;
+  aspect-ratio: 16 / 10;
+  border: 3px solid rgba(255, 239, 204, 0.88);
+  border-bottom-width: 14px;
+  border-radius: 3px;
+  object-fit: cover;
+  box-shadow: 0 18px 34px rgba(14, 7, 4, 0.34);
+  opacity: 0.72;
+  transform: translate3d(0, 0, 0) rotate(var(--case-memory-rotate));
+  transform-origin: center;
+  animation: loginCaseMemoryFloat 14s ease-in-out infinite alternate;
+}
+
+.auth-case-polaroid::selection {
+  background: transparent;
+}
+
+.case-memory-1 {
+  top: 14%;
+  right: 26%;
+  --case-memory-rotate: -8deg;
+  animation-delay: -2s;
+}
+
+.case-memory-2 {
+  top: 27%;
+  right: 8%;
+  --case-memory-rotate: 7deg;
+  animation-delay: -7s;
+}
+
+.case-memory-3 {
+  top: 51%;
+  right: 20%;
+  --case-memory-rotate: 4deg;
+  animation-delay: -4s;
+}
+
+.case-memory-4 {
+  top: 66%;
+  right: 5%;
+  --case-memory-rotate: -6deg;
+  animation-delay: -9s;
+}
+
+.case-memory-5 {
+  top: 42%;
+  right: 37%;
+  --case-memory-rotate: -11deg;
+  animation-delay: -12s;
+}
+
+.case-memory-6 {
+  top: 73%;
+  right: 31%;
+  --case-memory-rotate: 9deg;
+  animation-delay: -5s;
 }
 
 .auth-vignette {
@@ -1517,6 +1598,30 @@ h1 {
   }
 }
 
+@keyframes loginArtLayerFloat {
+  0% {
+    opacity: 0.72;
+    transform: translate3d(0.8%, 0.8%, 0) scale(1.01);
+  }
+
+  100% {
+    opacity: 0.9;
+    transform: translate3d(-0.8%, -0.6%, 0) scale(1.035);
+  }
+}
+
+@keyframes loginCaseMemoryFloat {
+  0% {
+    filter: saturate(0.88) brightness(0.82);
+    transform: translate3d(0, 0, 0) rotate(var(--case-memory-rotate));
+  }
+
+  100% {
+    filter: saturate(1.05) brightness(1.04);
+    transform: translate3d(0, -9px, 0) rotate(calc(var(--case-memory-rotate) + 1.5deg));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .auth-background {
     animation: none;
@@ -1540,6 +1645,14 @@ h1 {
   }
 
   .auth-cg-screen-glow {
+    animation: none;
+  }
+
+  .auth-art-layer {
+    animation: none;
+  }
+
+  .auth-case-polaroid {
     animation: none;
   }
 }

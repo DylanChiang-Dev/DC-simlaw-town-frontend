@@ -66,6 +66,18 @@ assert.match(
 
 assert.match(
   loginPanelSource,
+  /LOGIN_CASE_MEMORY_IMAGES[\s\S]*cg-case1-hair-salon-rent-evidence\.png[\s\S]*cg-case3-swimming-pool-loan-evidence\.png[\s\S]*cg-case5-car-purchase-evidence\.png[\s\S]*cg-case6-fabric-iou-evidence\.png[\s\S]*cg-case7-shanghai-traffic-accident-overview\.png[\s\S]*cg-case9-traffic-accident-overview\.png/,
+  'LoginPanel should reuse six case CGs as animated login case-memory fragments.',
+);
+
+assert.match(
+  loginPanelSource,
+  /className="auth-art-layer"[\s\S]*src="\/art\/vn\/login-layer-legal-evidence-v2\.png"[\s\S]*className="auth-case-memory-wall"[\s\S]*LOGIN_CASE_MEMORY_IMAGES\.map/,
+  'LoginPanel should add a generated legal evidence foreground layer and a dynamic case-memory wall.',
+);
+
+assert.match(
+  loginPanelSource,
   /aria-hidden="true"[\s\S]*auth-cg-light-sweep[\s\S]*aria-hidden="true"[\s\S]*auth-cg-case-lines[\s\S]*aria-hidden="true"[\s\S]*auth-cg-dust[\s\S]*aria-hidden="true"[\s\S]*auth-cg-screen-glow/,
   'Decorative login CG animation layers should be hidden from assistive technology.',
 );
@@ -174,7 +186,25 @@ assert.match(
 
 assert.match(
   stylesSource,
-  /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*\.auth-background[\s\S]*animation:\s*none[\s\S]*\.auth-cg-light-sweep[\s\S]*animation:\s*none[\s\S]*\.auth-cg-case-lines[\s\S]*animation:\s*none[\s\S]*\.auth-cg-dust[\s\S]*animation:\s*none[\s\S]*\.auth-cg-screen-glow[\s\S]*animation:\s*none/,
+  /\.auth-art-layer\s*\{[\s\S]*object-fit:\s*cover[\s\S]*animation:\s*loginArtLayerFloat/,
+  'The generated legal evidence layer should be rendered as an animated foreground art layer.',
+);
+
+assert.match(
+  stylesSource,
+  /\.auth-case-memory-wall\s*\{[\s\S]*position:\s*absolute[\s\S]*\.auth-case-polaroid\s*\{[\s\S]*animation:\s*loginCaseMemoryFloat/,
+  'The login page should animate case CG fragments as a case-memory wall.',
+);
+
+assert.match(
+  stylesSource,
+  /@keyframes loginArtLayerFloat[\s\S]*@keyframes loginCaseMemoryFloat/,
+  'The login page should define dedicated keyframes for foreground art and case-memory fragments.',
+);
+
+assert.match(
+  stylesSource,
+  /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*\.auth-background[\s\S]*animation:\s*none[\s\S]*\.auth-cg-light-sweep[\s\S]*animation:\s*none[\s\S]*\.auth-cg-case-lines[\s\S]*animation:\s*none[\s\S]*\.auth-cg-dust[\s\S]*animation:\s*none[\s\S]*\.auth-cg-screen-glow[\s\S]*animation:\s*none[\s\S]*\.auth-art-layer[\s\S]*animation:\s*none[\s\S]*\.auth-case-polaroid[\s\S]*animation:\s*none/,
   'The login CG motion should respect prefers-reduced-motion by disabling looping animations.',
 );
 
