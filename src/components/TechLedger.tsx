@@ -139,9 +139,11 @@ function RuntimeTechList({
         const className = `tech-item${active ? ' active' : ''}${usedCount > 0 ? ' used' : ''}`;
         return (
           <article className={className} key={item.id} title={item.description || item.id}>
-            <strong>{item.displayName || getRuntimeTechDisplayName(item.id)}</strong>
-            <code>{item.id}</code>
-            <span>{active ? '刚刚调用' : usedCount > 0 ? `已用 ${usedCount}` : '未调用'}</span>
+            <div className="tech-item-main">
+              <strong>{item.displayName || getRuntimeTechDisplayName(item.id)}</strong>
+              <code>{item.id}</code>
+            </div>
+            <span>{active ? '调用中' : usedCount > 0 ? `已用 ${usedCount}` : '待命'}</span>
           </article>
         );
       })}
