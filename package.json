@@ -14,6 +14,7 @@
     "test:dialogue-refresh-action": "node tests/dialogue-refresh-action.test.mjs",
     "test:auto-draft": "node tests/player-lawyer-auto-draft.test.mjs",
     "test:focus-regression": "node tests/player-lawyer-focus-regression.test.mjs",
+    "test:town-radar-model": "node tests/town-radar-model.test.mjs",
     "test:vn-character-rules": "node tests/vn-character-rendering-rules.test.mjs",
     "test:vn-system-scene": "node tests/vn-system-scene-rules.test.mjs",
     "test:reception-scene": "node tests/reception-scene-layout.test.mjs",
