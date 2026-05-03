@@ -10,6 +10,7 @@ import { DialogueBox } from './components/DialogueBox';
 import { PlayerLawyerInputDialog } from './components/PlayerLawyerInputDialog';
 import { PlayerLawyerTaskPanel } from './components/PlayerLawyerTaskPanel';
 import { TechLedger } from './components/TechLedger';
+import { TownRadar } from './components/TownRadar';
 import { VisualNovelStage } from './components/VisualNovelStage';
 import { getEventBus } from './services/eventBus';
 import {
@@ -21,6 +22,7 @@ import {
 import { getWebSocketService } from './services/webSocket';
 import { usePlayerLawyerRuntime } from './state/usePlayerLawyerRuntime';
 import { useSimulationRuntime } from './state/useSimulationRuntime';
+import { useTownRadarRuntime } from './state/useTownRadarRuntime';
 import type { PlayerLawyerSkill, SimulationStatus } from './services/types';
 import {
   createInitialVnRuntimeState,
@@ -76,6 +78,7 @@ function AppShell({ auth }: AppShellProps) {
   const displayedScene = nextUnacknowledgedStoryEntry
     ? createSceneForHistoryEntry(scene, nextUnacknowledgedStoryEntry)
     : scene;
+  const townRadar = useTownRadarRuntime(displayedScene);
   const playerDialogMayAutoOpen = !nextUnacknowledgedStoryEntry;
   const latestAcknowledgedStoryEntry = getLatestAcknowledgedStoryEntry(vnRuntime.history, acknowledgedDialogueEntryId);
   const caseClosed = isCaseClosed(vnRuntime.history, runtime.simulation);
@@ -439,6 +442,7 @@ function AppShell({ auth }: AppShellProps) {
         </div>
         <div className="story-surface">
           <VisualNovelStage scene={displayedScene} />
+          <TownRadar radar={townRadar} scene={displayedScene} />
           <DialogueBox
             backendMode={auth.backendConfigured && Boolean(auth.user)}
             caseClosed={caseClosed}

@@ -16,6 +16,7 @@
     "test:focus-regression": "node tests/player-lawyer-focus-regression.test.mjs",
     "test:town-radar-model": "node tests/town-radar-model.test.mjs",
     "test:town-radar-runtime": "node tests/town-radar-runtime.test.mjs",
+    "test:town-radar-component": "node tests/town-radar-component.test.mjs",
     "test:vn-character-rules": "node tests/vn-character-rendering-rules.test.mjs",
     "test:vn-system-scene": "node tests/vn-system-scene-rules.test.mjs",
     "test:reception-scene": "node tests/reception-scene-layout.test.mjs",
