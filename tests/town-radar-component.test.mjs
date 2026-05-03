@@ -7,6 +7,11 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const componentSource = readFileSync(join(root, 'src', 'components', 'TownRadar.tsx'), 'utf8');
 const appSource = readFileSync(join(root, 'src', 'App.tsx'), 'utf8');
 const stylesSource = readFileSync(join(root, 'src', 'styles.css'), 'utf8');
+const sideRailIndex = appSource.indexOf('<div className="side-rail">');
+const storySurfaceIndex = appSource.indexOf('<div className="story-surface">');
+const dialogueDockIndex = appSource.indexOf('<div className="dialogue-dock">');
+const dialogueBoxIndex = appSource.indexOf('<DialogueBox');
+const townRadarRenderIndex = appSource.indexOf('<TownRadar');
 
 assert.match(
   componentSource,
@@ -58,36 +63,43 @@ assert.doesNotMatch(
 
 assert.match(
   appSource,
-  /<div className="side-rail">[\s\S]*<TechLedger[\s\S]*<TownRadar/,
-  'App should render TownRadar at the bottom of the left status rail.',
+  /<div className="dialogue-dock">[\s\S]*<DialogueBox[\s\S]*<TownRadar/,
+  'App should render TownRadar as a right-side block inside the dialogue dock.',
 );
 
-assert.doesNotMatch(
-  appSource,
-  /<div className="story-surface">[\s\S]*<TownRadar/,
-  'TownRadar should not render inside the main story surface.',
+assert.ok(
+  sideRailIndex >= 0 && storySurfaceIndex > sideRailIndex && townRadarRenderIndex > storySurfaceIndex,
+  'TownRadar should no longer render inside the left status rail.',
 );
 
-assert.match(
-  stylesSource,
-  /\.side-rail\s*\{[\s\S]*grid-template-rows:\s*auto minmax\(0,\s*1fr\) auto;/,
-  'The left status rail should reserve a bottom row for TownRadar.',
-);
-
-assert.match(
-  stylesSource,
-  /\.town-radar\s*\{[\s\S]*position:\s*relative;/,
-  'TownRadar should be a normal left-rail panel instead of a stage overlay.',
+assert.ok(
+  storySurfaceIndex >= 0
+    && dialogueDockIndex > storySurfaceIndex
+    && dialogueBoxIndex > dialogueDockIndex
+    && townRadarRenderIndex > dialogueBoxIndex,
+  'TownRadar should sit parallel to the dialogue box inside the main story surface.',
 );
 
 assert.match(
   stylesSource,
-  /\.town-radar-map\s*\{[\s\S]*height:\s*118px;/,
-  'TownRadar map should use a flatter compact layout for the left rail.',
+  /\.dialogue-dock\s*\{[\s\S]*position:\s*absolute;[\s\S]*left:\s*24px;[\s\S]*right:\s*24px;[\s\S]*bottom:\s*22px;[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\) minmax\(300px,\s*340px\);/,
+  'The dialogue dock should align the dialogue box and TownRadar as bottom parallel blocks.',
 );
 
 assert.match(
   stylesSource,
-  /\.town-radar-legend\s*\{[\s\S]*grid-template-columns:\s*1fr;/,
-  'TownRadar legend should use a compact single-column layout in the left rail.',
+  /\.town-radar\s*\{[\s\S]*width:\s*100%;/,
+  'TownRadar should fill its dialogue-dock side block instead of floating independently.',
+);
+
+assert.match(
+  stylesSource,
+  /\.town-radar-map\s*\{[\s\S]*height:\s*132px;/,
+  'TownRadar map should use a slightly rectangular lower-right layout.',
+);
+
+assert.match(
+  stylesSource,
+  /\.town-radar-legend\s*\{[\s\S]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/,
+  'TownRadar legend should use two compact columns in the wider lower-right dock.',
 );

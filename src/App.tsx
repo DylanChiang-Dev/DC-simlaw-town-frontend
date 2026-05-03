@@ -439,28 +439,30 @@ function AppShell({ auth }: AppShellProps) {
             />
           )}
           <TechLedger background={vnRuntime.background} scene={displayedScene} />
-          <TownRadar radar={townRadar} scene={displayedScene} />
         </div>
         <div className="story-surface">
           <VisualNovelStage scene={displayedScene} />
-          <DialogueBox
-            backendMode={auth.backendConfigured && Boolean(auth.user)}
-            caseClosed={caseClosed}
-            hasPendingUserTask={Boolean(visiblePlayerRequest)}
-            heldDialogueEntryId={heldDialogueEntryId}
-            history={vnRuntime.history}
-            lastAcknowledgedEntry={latestAcknowledgedStoryEntry}
-            onAcknowledgeCurrentEntry={(entry) => {
-              setAcknowledgedDialogueEntryId(entry.id);
-            }}
-            onResumeCurrentCase={runtime.activeCaseId ? handleStartSelectedCase : undefined}
-            runtimeError={runtime.error}
-            runtimeStatus={vnRuntime.runtimeStatus}
-            scene={displayedScene}
-            selectedCaseId={runtime.selectedCaseId}
-            simulation={runtime.simulation}
-            wsConnected={vnRuntime.wsConnected}
-          />
+          <div className="dialogue-dock">
+            <DialogueBox
+              backendMode={auth.backendConfigured && Boolean(auth.user)}
+              caseClosed={caseClosed}
+              hasPendingUserTask={Boolean(visiblePlayerRequest)}
+              heldDialogueEntryId={heldDialogueEntryId}
+              history={vnRuntime.history}
+              lastAcknowledgedEntry={latestAcknowledgedStoryEntry}
+              onAcknowledgeCurrentEntry={(entry) => {
+                setAcknowledgedDialogueEntryId(entry.id);
+              }}
+              onResumeCurrentCase={runtime.activeCaseId ? handleStartSelectedCase : undefined}
+              runtimeError={runtime.error}
+              runtimeStatus={vnRuntime.runtimeStatus}
+              scene={displayedScene}
+              selectedCaseId={runtime.selectedCaseId}
+              simulation={runtime.simulation}
+              wsConnected={vnRuntime.wsConnected}
+            />
+            <TownRadar radar={townRadar} scene={displayedScene} />
+          </div>
         </div>
       </div>
       <PlayerLawyerInputDialog
