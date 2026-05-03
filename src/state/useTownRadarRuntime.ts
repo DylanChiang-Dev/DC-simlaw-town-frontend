@@ -63,7 +63,7 @@ export function useTownRadarRuntime(scene: DialogueScene): TownRadarRuntimeState
   const visibleActors = useMemo(() => {
     const stageActors = createStageRadarActors(scene);
     const runtimeActors = Object.values(state.actors);
-    return getPriorityRadarActors(dedupeRadarActors([...runtimeActors, ...stageActors]), 4);
+    return getPriorityRadarActors(mergeRadarActorsByLabel([...runtimeActors, ...stageActors]), 4);
   }, [scene, state.actors]);
 
   return { ...state, visibleActors };
@@ -110,6 +110,19 @@ export function reduceTownRadarMapEvent(
     case 'agent_move': {
       const normalized = normalizeRadarLocationId(payload.dest_loc_id, fallbackStageCode);
       return upsertRadarActor(state, payload, agentId, normalized, { moving: true });
+    }
+    case 'agent_goto_front_desk': {
+      const normalized = normalizeRadarLocationId(`${payload.lawfirm || ''}_front_desk`, fallbackStageCode);
+      return upsertRadarActor(state, payload, agentId, normalized, { moving: false });
+    }
+    case 'agent_update_dialogue': {
+      const current = state.actors[agentId];
+      if (!current) return state;
+      return upsertRadarActor(state, payload, agentId, {
+        locationId: current.locationId,
+        nodeId: current.nodeId,
+        rawLocationId: current.rawLocationId || '',
+      }, { moving: false });
     }
     case 'agent_spawn':
     case 'agent_sit':
@@ -183,21 +196,44 @@ function getActorDisplayLabel(payload: Record<string, unknown>, currentLabel = '
   return agentId || '未知角色';
 }
 
-function dedupeRadarActors(actors: RadarActor[]): RadarActor[] {
+function mergeRadarActorsByLabel(actors: RadarActor[]): RadarActor[] {
   const byLabel = new Map<string, RadarActor>();
   for (const actor of actors) {
     const key = normalizeActorLabelKey(actor.label);
     if (!key) continue;
     const current = byLabel.get(key);
-    if (!current || shouldReplaceRadarActor(current, actor)) {
-      byLabel.set(key, actor);
-    }
+    byLabel.set(key, current ? mergeRadarActor(current, actor) : actor);
   }
   return [...byLabel.values()];
 }
 
 function normalizeActorLabelKey(label: string): string {
   return String(label || '').trim().replace(/\s+/g, '').toLowerCase();
+}
+
+function mergeRadarActor(current: RadarActor, candidate: RadarActor): RadarActor {
+  if (shouldPreserveRuntimeLocation(current, candidate)) {
+    return {
+      ...candidate,
+      locationId: current.locationId,
+      nodeId: current.nodeId,
+      moving: current.moving,
+      active: current.active || candidate.active,
+    };
+  }
+  if (shouldPreserveRuntimeLocation(candidate, current)) {
+    return {
+      ...current,
+      active: current.active || candidate.active,
+    };
+  }
+  return shouldReplaceRadarActor(current, candidate) ? candidate : current;
+}
+
+function shouldPreserveRuntimeLocation(current: RadarActor, candidate: RadarActor): boolean {
+  return current.id !== candidate.id
+    && Boolean((current as TownRadarActorState).updatedAt)
+    && !Boolean((candidate as TownRadarActorState).updatedAt);
 }
 
 function shouldReplaceRadarActor(current: RadarActor, candidate: RadarActor): boolean {

@@ -176,6 +176,7 @@ export class WebSocketService {
     const type = String(payload.type || '');
     const eventName = EVENT_NAME_BY_TYPE[type];
     if (!eventName && type === 'agent_update_dialogue' && isReceptionAgentDialogue(payload)) {
+      getEventBus().emit('ws:map-event', payload);
       getEventBus().emit('ws:dialogue-update', normalizeDialoguePayload(payload));
       return;
     }

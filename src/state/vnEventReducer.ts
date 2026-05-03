@@ -535,11 +535,12 @@ function updateRuntimeStatus(state: VnRuntimeState, patch: Partial<RuntimeStatus
 function applyDialogueUpdate(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
   const text = String(payload.content || payload.dialogue_text || '收到新的案件对话。');
   const caseId = String(payload.case_id || payload.caseId || state.scene.caseId || '').trim();
-  const fallbackStageCode = normalizeStageCode(payload.scenario_type || payload.stage || state.scene.stageCode);
+  const explicitStageCode = normalizeExplicitDialogueStageCode(payload.scenario_type || payload.stage);
+  const fallbackStageCode = explicitStageCode || normalizeStageCode(state.scene.stageCode);
   const speaker = inferSpeaker(payload, fallbackStageCode, text);
-  const stageCode = isReceptionPayload(payload, text)
+  const stageCode = !explicitStageCode && isReceptionPayload(payload, text)
     ? 'RECEPTION'
-    : inferStageCodeForDialogue(payload.scenario_type || payload.stage, fallbackStageCode);
+    : inferStageCodeForDialogue(explicitStageCode, fallbackStageCode);
   const scene = createSceneFromState(state.scene, {
     characters: inferCharacters(stageCode, speaker),
     speaker,
@@ -919,6 +920,12 @@ function inferStageCodeForDialogue(
   const explicit = String(explicitStage || '').trim();
   if (explicit) return normalizeStageCode(explicit);
   return fallbackStageCode;
+}
+
+function normalizeExplicitDialogueStageCode(value: unknown): string {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  return normalizeStageCode(raw);
 }
 
 function getDialogueSpeakerLabel(

@@ -18,8 +18,14 @@ assert.match(
 
 assert.match(
   reducerSource,
-  /const stageCode = isReceptionPayload\(payload, text\)\s*\?\s*'RECEPTION'/,
+  /const stageCode = !explicitStageCode && isReceptionPayload\(payload, text\)\s*\?\s*'RECEPTION'/,
   'Front desk dialogue should be classified as RECEPTION before falling back to the payload stage.',
+);
+
+assert.match(
+  reducerSource,
+  /const explicitStageCode = normalizeExplicitDialogueStageCode\(payload\.scenario_type \|\| payload\.stage\);[\s\S]*const stageCode = !explicitStageCode && isReceptionPayload\(payload, text\)[\s\S]*\? 'RECEPTION'/,
+  'Reception inference should not override explicit LC/PLC/DLC dialogue stages.',
 );
 
 assert.match(
@@ -36,14 +42,14 @@ assert.match(
 
 assert.match(
   reducerSource,
-  /value\.includes\('client'\)[\s\S]*value\.includes\('plaintiff'\)[\s\S]*value\.includes\('case_'\)[\s\S]*return 'client';[\s\S]*if \(stageCode === 'RECEPTION'/,
+  /value\.includes\('client'\)[\s\S]*value\.includes\('plaintiff'\)[\s\S]*value\.includes\('case_'\)[\s\S]*return caseArt\.plaintiffKey;[\s\S]*if \(stageCode === 'RECEPTION'/,
   'Reception client lines should render as the client, not as the receptionist.',
 );
 
 assert.match(
   webSocketSource,
-  /type === 'agent_update_dialogue'[\s\S]*isReceptionAgentDialogue\(payload\)[\s\S]*'ws:dialogue-update'/,
-  'Front desk agent dialogue updates should feed the VN dialogue stream.',
+  /type === 'agent_update_dialogue'[\s\S]*isReceptionAgentDialogue\(payload\)[\s\S]*'ws:map-event'[\s\S]*'ws:dialogue-update'/,
+  'Front desk agent dialogue updates should feed both radar location state and the VN dialogue stream.',
 );
 
 assert.match(
@@ -60,7 +66,7 @@ assert.match(
 
 assert.match(
   dialogueSource,
-  /function getVisibleCurrentEntry\(history: DialogueHistoryEntry\[\], heldDialogueEntryId = ''\): DialogueHistoryEntry \| null \{[\s\S]*const heldEntry = history\.find\(\(entry\) => entry\.id === heldDialogueEntryId\);[\s\S]*return heldEntry \|\| history\[history\.length - 1\] \|\| null;[\s\S]*\}/,
+  /function getVisibleCurrentEntry\(history: DialogueHistoryEntry\[\], heldDialogueEntryId = ''\): DialogueHistoryEntry \| null \{[\s\S]*if \(!heldDialogueEntryId\) return null;[\s\S]*return history\.find\(\(entry\) => entry\.id === heldDialogueEntryId\) \|\| null;[\s\S]*\}/,
   'The main dialogue box should keep an unacknowledged reception character line visible, then show latest system progress after acknowledgement.',
 );
 

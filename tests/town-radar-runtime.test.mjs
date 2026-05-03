@@ -32,6 +32,30 @@ assert.match(
 
 assert.match(
   runtimeSource,
+  /case 'agent_goto_front_desk':[\s\S]*normalizeRadarLocationId\([\s\S]*payload\.lawfirm[\s\S]*fallbackStageCode\)/,
+  'agent_goto_front_desk should place the client at the correct law firm instead of falling back to SYSTEM.',
+);
+
+assert.match(
+  runtimeSource,
+  /case 'agent_update_dialogue':[\s\S]*const current = state\.actors\[agentId\];[\s\S]*locationId:\s*current\.locationId/,
+  'agent_update_dialogue should keep the speaking actor at its last real map location.',
+);
+
+assert.match(
+  runtimeSource,
+  /mergeRadarActorsByLabel\(\[\.\.\.runtimeActors,\s*\.\.\.stageActors\]\)/,
+  'Town radar should merge stage speaker activity into runtime actors without replacing their real map location.',
+);
+
+assert.match(
+  runtimeSource,
+  /return \{\s*\.\.\.candidate,\s*locationId:\s*current\.locationId,[\s\S]*active:\s*current\.active \|\| candidate\.active/,
+  'When the stage speaker matches a runtime actor, the runtime map location should win while active state is preserved.',
+);
+
+assert.match(
+  runtimeSource,
   /case 'agent_despawn':[\s\S]*delete nextActors\[agentId\]/,
   'agent_despawn should remove the actor from radar state.',
 );
@@ -58,12 +82,6 @@ assert.match(
   runtimeSource,
   /Conference_man[\s\S]*法官/,
   'Town radar should translate character asset names like Conference_man into business-facing labels.',
-);
-
-assert.match(
-  runtimeSource,
-  /dedupeRadarActors\(\[\.\.\.runtimeActors,\s*\.\.\.stageActors\]\)/,
-  'Town radar should dedupe runtime and stage actors before prioritizing them.',
 );
 
 assert.match(
