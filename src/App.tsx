@@ -439,10 +439,10 @@ function AppShell({ auth }: AppShellProps) {
             />
           )}
           <TechLedger background={vnRuntime.background} scene={displayedScene} />
+          <TownRadar radar={townRadar} scene={displayedScene} />
         </div>
         <div className="story-surface">
           <VisualNovelStage scene={displayedScene} />
-          <TownRadar radar={townRadar} scene={displayedScene} />
           <DialogueBox
             backendMode={auth.backendConfigured && Boolean(auth.user)}
             caseClosed={caseClosed}

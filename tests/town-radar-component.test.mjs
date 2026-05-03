@@ -58,24 +58,36 @@ assert.doesNotMatch(
 
 assert.match(
   appSource,
-  /import \{ TownRadar \} from '\.\/components\/TownRadar';[\s\S]*<TownRadar/,
-  'App should render TownRadar inside the story surface.',
+  /<div className="side-rail">[\s\S]*<TechLedger[\s\S]*<TownRadar/,
+  'App should render TownRadar at the bottom of the left status rail.',
+);
+
+assert.doesNotMatch(
+  appSource,
+  /<div className="story-surface">[\s\S]*<TownRadar/,
+  'TownRadar should not render inside the main story surface.',
 );
 
 assert.match(
   stylesSource,
-  /\.town-radar\s*\{[\s\S]*position:\s*absolute;[\s\S]*left:\s*10px;[\s\S]*bottom:\s*112px;/,
-  'TownRadar should sit in the true lower-left empty area above the version badge.',
+  /\.side-rail\s*\{[\s\S]*grid-template-rows:\s*auto minmax\(0,\s*1fr\) auto;/,
+  'The left status rail should reserve a bottom row for TownRadar.',
 );
 
 assert.match(
   stylesSource,
-  /\.town-radar-map\s*\{[\s\S]*height:\s*142px;/,
-  'TownRadar map should use a flatter rectangular layout.',
+  /\.town-radar\s*\{[\s\S]*position:\s*relative;/,
+  'TownRadar should be a normal left-rail panel instead of a stage overlay.',
 );
 
 assert.match(
   stylesSource,
-  /\.town-radar-legend\s*\{[\s\S]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/,
-  'TownRadar legend should use a compact two-column layout.',
+  /\.town-radar-map\s*\{[\s\S]*height:\s*118px;/,
+  'TownRadar map should use a flatter compact layout for the left rail.',
+);
+
+assert.match(
+  stylesSource,
+  /\.town-radar-legend\s*\{[\s\S]*grid-template-columns:\s*1fr;/,
+  'TownRadar legend should use a compact single-column layout in the left rail.',
 );

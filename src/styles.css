@@ -232,7 +232,7 @@ h1 {
   min-height: 0;
   min-width: 0;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 12px;
 }
 
@@ -469,11 +469,8 @@ h1 {
 }
 
 .town-radar {
-  position: absolute;
-  left: 10px;
-  bottom: 112px;
-  z-index: 4;
-  width: min(420px, calc(100% - 20px));
+  position: relative;
+  width: 100%;
   padding: 8px;
   pointer-events: none;
   color: #f8ead6;
@@ -486,9 +483,9 @@ h1 {
 
 .town-radar-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 6px;
 }
 
@@ -503,18 +500,18 @@ h1 {
 .town-radar-header strong {
   display: block;
   margin-top: 2px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .town-radar-header b {
   flex: 0 1 auto;
-  max-width: 130px;
-  padding: 3px 8px;
+  max-width: 96px;
+  padding: 3px 7px;
   overflow: hidden;
   color: #f8ead6;
   border: 1px solid rgba(255, 229, 184, 0.34);
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -522,7 +519,7 @@ h1 {
 
 .town-radar-map {
   position: relative;
-  height: 142px;
+  height: 118px;
   overflow: hidden;
   border: 1px solid rgba(86, 58, 34, 0.5);
   border-radius: 8px;
@@ -539,9 +536,9 @@ h1 {
 
 .town-radar-location {
   position: absolute;
-  width: 108px;
-  min-height: 34px;
-  padding: 4px;
+  width: 82px;
+  min-height: 30px;
+  padding: 3px;
   color: #4a3428;
   border: 1px solid #9a7049;
   border-radius: 7px;
@@ -558,23 +555,23 @@ h1 {
 
 .town-radar-location strong {
   display: block;
-  font-size: 10px;
+  font-size: 9px;
 }
 
 .town-radar-lawfirm-nodes {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2px;
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
 .town-radar-lawfirm-nodes span {
   min-width: 0;
-  padding: 1px 3px;
+  padding: 1px 2px;
   overflow: hidden;
   border-radius: 4px;
   background: #ead1ad;
-  font-size: 9px;
+  font-size: 8px;
   line-height: 1.2;
   text-align: center;
   text-overflow: ellipsis;
@@ -608,8 +605,8 @@ h1 {
 
 .town-radar-actor {
   position: absolute;
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -652,7 +649,7 @@ h1 {
 
 .town-radar-legend {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 3px 8px;
   margin-top: 6px;
 }
