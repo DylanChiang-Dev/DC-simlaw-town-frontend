@@ -60,6 +60,18 @@ assert.match(
 
 assert.match(
   loginPanelSource,
+  /className="auth-cg-scene"[\s\S]*className="auth-background"[\s\S]*className="auth-cg-light-sweep"[\s\S]*className="auth-cg-case-lines"[\s\S]*className="auth-cg-dust"[\s\S]*className="auth-cg-screen-glow"/,
+  'LoginPanel should wrap the login CG in a layered animated scene instead of rendering only a static image.',
+);
+
+assert.match(
+  loginPanelSource,
+  /aria-hidden="true"[\s\S]*auth-cg-light-sweep[\s\S]*aria-hidden="true"[\s\S]*auth-cg-case-lines[\s\S]*aria-hidden="true"[\s\S]*auth-cg-dust[\s\S]*aria-hidden="true"[\s\S]*auth-cg-screen-glow/,
+  'Decorative login CG animation layers should be hidden from assistive technology.',
+);
+
+assert.match(
+  loginPanelSource,
   /className="login-project-card"[\s\S]*\{PROJECT_INFO_TITLE\}[\s\S]*\{PROJECT_INFO_COPY\}[\s\S]*\{PROJECT_SURVEY_LABEL\}/,
   'LoginPanel should render the project introduction and survey action.',
 );
@@ -140,6 +152,30 @@ assert.match(
   stylesSource,
   /\.auth-stage\s*\{[\s\S]*padding-inline-start:\s*clamp\(56px,\s*8vw,\s*132px\)/,
   'The full-screen login panel should sit slightly farther right on desktop.',
+);
+
+assert.match(
+  stylesSource,
+  /\.auth-cg-scene\s*\{[\s\S]*position:\s*absolute[\s\S]*inset:\s*0[\s\S]*overflow:\s*hidden/,
+  'The login CG should have a full-viewport scene container for animated layers.',
+);
+
+assert.match(
+  stylesSource,
+  /\.auth-background\s*\{[\s\S]*animation:\s*loginCgDrift/,
+  'The login CG background should have a slow cinematic drift animation.',
+);
+
+assert.match(
+  stylesSource,
+  /@keyframes loginCgDrift[\s\S]*@keyframes loginLightSweep[\s\S]*@keyframes loginCaseLines[\s\S]*@keyframes loginDust[\s\S]*@keyframes loginScreenGlow/,
+  'The login page should define CSS-only keyframes for the layered CG motion.',
+);
+
+assert.match(
+  stylesSource,
+  /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*\.auth-background[\s\S]*animation:\s*none[\s\S]*\.auth-cg-light-sweep[\s\S]*animation:\s*none[\s\S]*\.auth-cg-case-lines[\s\S]*animation:\s*none[\s\S]*\.auth-cg-dust[\s\S]*animation:\s*none[\s\S]*\.auth-cg-screen-glow[\s\S]*animation:\s*none/,
+  'The login CG motion should respect prefers-reduced-motion by disabling looping animations.',
 );
 
 assert.match(

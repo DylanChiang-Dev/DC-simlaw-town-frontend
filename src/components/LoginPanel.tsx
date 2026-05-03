@@ -63,7 +63,13 @@ export function LoginPanel({ onAuthenticated }: Props) {
   return (
     <main className="auth-shell">
       <section className="auth-stage" aria-label="登录 SimAilaw Town">
-        <img className="auth-background" src="/art/vn/bg-login-law-office-v3.png" alt="法律全流程仿真工作台" />
+        <div className="auth-cg-scene">
+          <img className="auth-background" src="/art/vn/bg-login-law-office-v3.png" alt="法律全流程仿真工作台" />
+          <div aria-hidden="true" className="auth-cg-light-sweep" />
+          <div aria-hidden="true" className="auth-cg-case-lines" />
+          <div aria-hidden="true" className="auth-cg-dust" />
+          <div aria-hidden="true" className="auth-cg-screen-glow" />
+        </div>
         <div className="auth-vignette" />
         <form className="login-panel" onSubmit={handleSubmit}>
           <div className="panel-kicker">SimAilaw Town</div>

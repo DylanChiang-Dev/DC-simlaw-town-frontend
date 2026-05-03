@@ -1373,20 +1373,175 @@ h1 {
   background: #1f1510;
 }
 
-.auth-background {
+.auth-cg-scene {
   position: absolute;
   inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.auth-background {
+  position: absolute;
+  inset: -2.5%;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transform: scale(1.035) translate3d(-0.6%, 0, 0);
+  transform-origin: 64% 50%;
+  animation: loginCgDrift 22s ease-in-out infinite alternate;
+  will-change: transform, filter;
+}
+
+.auth-cg-light-sweep,
+.auth-cg-case-lines,
+.auth-cg-dust,
+.auth-cg-screen-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.auth-cg-light-sweep {
+  background:
+    linear-gradient(104deg, transparent 10%, rgba(255, 230, 172, 0.1) 31%, transparent 50%),
+    radial-gradient(circle at 76% 24%, rgba(255, 202, 115, 0.24), transparent 29%),
+    radial-gradient(circle at 55% 86%, rgba(189, 93, 53, 0.16), transparent 31%);
+  mix-blend-mode: screen;
+  opacity: 0.72;
+  transform: translate3d(-10%, 0, 0);
+  animation: loginLightSweep 13s ease-in-out infinite;
+}
+
+.auth-cg-case-lines {
+  background:
+    linear-gradient(115deg, transparent 58%, rgba(255, 233, 190, 0.17) 58.3%, transparent 58.8%),
+    linear-gradient(152deg, transparent 66%, rgba(255, 233, 190, 0.12) 66.2%, transparent 66.7%),
+    repeating-linear-gradient(90deg, transparent 0 84px, rgba(255, 235, 199, 0.045) 85px 86px, transparent 87px 168px);
+  opacity: 0.34;
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.82) 44%, #000 100%);
+  animation: loginCaseLines 18s ease-in-out infinite alternate;
+}
+
+.auth-cg-dust {
+  background-image:
+    radial-gradient(circle, rgba(255, 236, 190, 0.38) 0 1px, transparent 1.4px),
+    radial-gradient(circle, rgba(255, 198, 110, 0.28) 0 1px, transparent 1.5px);
+  background-position: 12% 26%, 82% 72%;
+  background-size: 132px 132px, 186px 186px;
+  opacity: 0.28;
+  mix-blend-mode: screen;
+  animation: loginDust 16s linear infinite;
+}
+
+.auth-cg-screen-glow {
+  background:
+    radial-gradient(ellipse at 73% 47%, rgba(119, 161, 153, 0.2), transparent 20%),
+    radial-gradient(ellipse at 84% 61%, rgba(245, 188, 96, 0.18), transparent 17%),
+    linear-gradient(90deg, transparent 0%, transparent 46%, rgba(255, 226, 177, 0.07) 69%, transparent 100%);
+  opacity: 0.74;
+  mix-blend-mode: screen;
+  animation: loginScreenGlow 9s ease-in-out infinite alternate;
 }
 
 .auth-vignette {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(18, 10, 7, 0.9) 0%, rgba(25, 14, 9, 0.72) 34%, rgba(25, 14, 9, 0.26) 62%, rgba(7, 10, 16, 0.34) 100%),
-    linear-gradient(180deg, rgba(11, 7, 5, 0.18), rgba(11, 7, 5, 0.72));
+    radial-gradient(ellipse at 73% 45%, rgba(255, 225, 177, 0.14), transparent 36%),
+    linear-gradient(90deg, rgba(18, 10, 7, 0.82) 0%, rgba(25, 14, 9, 0.58) 32%, rgba(25, 14, 9, 0.14) 62%, rgba(7, 10, 16, 0.28) 100%),
+    linear-gradient(180deg, rgba(11, 7, 5, 0.1), rgba(11, 7, 5, 0.66));
+}
+
+@keyframes loginCgDrift {
+  0% {
+    filter: saturate(1.02) brightness(0.96);
+    transform: scale(1.035) translate3d(-0.8%, 0, 0);
+  }
+
+  100% {
+    filter: saturate(1.08) brightness(1.02);
+    transform: scale(1.07) translate3d(0.6%, -0.7%, 0);
+  }
+}
+
+@keyframes loginLightSweep {
+  0%,
+  100% {
+    opacity: 0.48;
+    transform: translate3d(-14%, 0, 0);
+  }
+
+  46% {
+    opacity: 0.82;
+    transform: translate3d(8%, -1.6%, 0);
+  }
+}
+
+@keyframes loginCaseLines {
+  0% {
+    opacity: 0.2;
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    opacity: 0.42;
+    transform: translate3d(1.8%, -1.2%, 0);
+  }
+}
+
+@keyframes loginDust {
+  0% {
+    background-position: 12% 26%, 82% 72%;
+    opacity: 0.18;
+  }
+
+  50% {
+    opacity: 0.34;
+  }
+
+  100% {
+    background-position: 16% 18%, 78% 63%;
+    opacity: 0.22;
+  }
+}
+
+@keyframes loginScreenGlow {
+  0% {
+    opacity: 0.48;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  100% {
+    opacity: 0.82;
+    transform: translate3d(-0.8%, 0.5%, 0) scale(1.025);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-background {
+    animation: none;
+  }
+
+  .auth-background {
+    filter: saturate(1.02) brightness(0.98);
+    transform: scale(1.035);
+  }
+
+  .auth-cg-light-sweep {
+    animation: none;
+  }
+
+  .auth-cg-case-lines {
+    animation: none;
+  }
+
+  .auth-cg-dust {
+    animation: none;
+  }
+
+  .auth-cg-screen-glow {
+    animation: none;
+  }
 }
 
 .login-panel,
@@ -2482,6 +2637,16 @@ h1 {
     align-items: flex-start;
     padding: 18px;
     padding-inline-start: 18px;
+  }
+
+  .auth-cg-scene {
+    opacity: 0.72;
+  }
+
+  .auth-vignette {
+    background:
+      linear-gradient(180deg, rgba(17, 10, 7, 0.78) 0%, rgba(17, 10, 7, 0.52) 38%, rgba(17, 10, 7, 0.78) 100%),
+      linear-gradient(90deg, rgba(17, 10, 7, 0.7), rgba(17, 10, 7, 0.2));
   }
 
   .login-panel,
