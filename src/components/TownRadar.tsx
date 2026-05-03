@@ -5,6 +5,7 @@ import {
   getStageRadarDestination,
   type LawfirmInternalNodeId,
   type RadarActor,
+  type StageRadarDestination,
   type TownRadarLocationId,
 } from '../data/townRadarModel';
 import type { TownRadarRuntimeState } from '../state/useTownRadarRuntime';
@@ -16,7 +17,7 @@ type Props = {
 };
 
 export function TownRadar({ radar, scene }: Props) {
-  const destination = getStageRadarDestination(scene.stageCode);
+  const destination = getVisibleRadarDestination(scene.stageCode, radar.visibleActors);
   const actorLayouts = getActorLayouts(radar.visibleActors, destination.locationId);
   const recentCapabilities = [...scene.tech.activeTools, ...scene.tech.activeSkills]
     .filter(Boolean)
@@ -83,6 +84,31 @@ export function TownRadar({ radar, scene }: Props) {
       </div>
     </section>
   );
+}
+
+function getVisibleRadarDestination(stageCode: string, actors: RadarActor[]): StageRadarDestination {
+  const stageDestination = getStageRadarDestination(stageCode);
+  const actorDestination = findPrimaryActorDestination(actors);
+  if (!actorDestination) return stageDestination;
+  return {
+    ...stageDestination,
+    locationId: actorDestination.locationId,
+    nodeId: actorDestination.nodeId || stageDestination.nodeId,
+    action: formatVisibleRadarAction(stageDestination.action, actorDestination.locationId),
+  };
+}
+
+function findPrimaryActorDestination(actors: RadarActor[]) {
+  return actors.find((actor) => actor.active && actor.locationId)
+    || actors.find((actor) => actor.locationId)
+    || null;
+}
+
+function formatVisibleRadarAction(action: string, locationId: TownRadarLocationId): string {
+  if (locationId !== 'lawfirmA' && locationId !== 'lawfirmB') return action;
+  const firmLabel = locationId === 'lawfirmA' ? '律所 A' : '律所 B';
+  if (/律所 [AB]/.test(action)) return action.replace(/律所 [AB]/, firmLabel);
+  return `${firmLabel} 内部 · ${action.replace(/^.*?内部 · /, '')}`;
 }
 
 function getActorLayouts(actors: RadarActor[], fallbackLocationId: TownRadarLocationId) {

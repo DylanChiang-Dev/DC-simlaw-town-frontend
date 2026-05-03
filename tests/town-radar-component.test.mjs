@@ -63,6 +63,18 @@ assert.match(
 
 assert.match(
   componentSource,
+  /const destination = getVisibleRadarDestination\(scene\.stageCode,\s*radar\.visibleActors\);/,
+  'TownRadar should derive its highlighted destination from visible actor locations before stage defaults.',
+);
+
+assert.match(
+  componentSource,
+  /function getVisibleRadarDestination\(stageCode: string,\s*actors: RadarActor\[\]\)[\s\S]*findPrimaryActorDestination\(actors\)[\s\S]*return \{\s*\.\.\.stageDestination,[\s\S]*locationId:\s*actorDestination\.locationId,[\s\S]*nodeId:\s*actorDestination\.nodeId \|\| stageDestination\.nodeId/,
+  'TownRadar should keep PLC/DLC highlights aligned with the actual law firm where actors are visible.',
+);
+
+assert.match(
+  componentSource,
   /function groupActorPositionKey\(actor: RadarActor,[\s\S]*actor\.locationId \|\| fallbackLocationId[\s\S]*actor\.nodeId \|\| 'main'/,
   'TownRadar should group actor dots by location and internal room before spreading them.',
 );
