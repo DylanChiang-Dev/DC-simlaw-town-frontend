@@ -16,6 +16,14 @@ export function TechLedger({ background = [], scene }: Props) {
   const coreTools = catalog?.tools.core || buildFallbackItems(scene.tech.tools, '运行工具');
   const runtimeSkills = catalog?.skills.runtime || buildFallbackItems(scene.tech.skills, '专业技能');
   const extensionTools = catalog?.tools.extension || [];
+  const activeToolSet = new Set(scene.tech.activeTools);
+  const hasActiveExtension = extensionTools.some((item) => activeToolSet.has(item.id));
+  const extensionVisible = extensionsOpen || hasActiveExtension;
+  const recentTechItems = buildRecentTechItems({
+    activeSkills: scene.tech.activeSkills,
+    activeTools: scene.tech.activeTools,
+    catalogItems: [...coreTools, ...runtimeSkills, ...extensionTools],
+  });
   const hasActiveAgent = Boolean(scene.tech.agent && scene.tech.agent !== '等待案件同步');
   const hasMemory = Boolean(scene.tech.memory && scene.tech.memory !== '等待真实案件状态恢复');
   const hasPipeline = Boolean(scene.tech.pipeline && scene.tech.pipeline !== '等待案件进展');
@@ -27,6 +35,12 @@ export function TechLedger({ background = [], scene }: Props) {
     <aside className="tech-ledger" aria-label="工具与技能面板">
       <div className="ledger-kicker">AI Assistant</div>
       <h2>工具与技能面板</h2>
+      {recentTechItems.length > 0 && (
+        <div className="runtime-tech-recent" aria-live="polite">
+          <span>最近运行</span>
+          <b>{recentTechItems.join(' · ')}</b>
+        </div>
+      )}
       {hasActiveAgent && (
         <div className="ledger-agent">
           <span>当前助手</span>
@@ -60,9 +74,9 @@ export function TechLedger({ background = [], scene }: Props) {
         title="专业技能"
         usageCounts={scene.tech.usedSkills}
       />
-      <div className="ledger-section runtime-tech-collapsible">
+      <div className={`ledger-section runtime-tech-collapsible${hasActiveExtension ? ' auto-open' : ''}`}>
         <button
-          aria-expanded={extensionsOpen}
+          aria-expanded={extensionVisible}
           className="runtime-tech-toggle"
           onClick={() => setExtensionsOpen((open) => !open)}
           type="button"
@@ -70,7 +84,7 @@ export function TechLedger({ background = [], scene }: Props) {
           <span>扩展能力</span>
           <b>{extensionTools.length}</b>
         </button>
-        {extensionsOpen && (
+        {extensionVisible && (
           <RuntimeTechList
             activeIds={scene.tech.activeTools}
             emptyText="暂无扩展能力"
@@ -159,4 +173,23 @@ function buildFallbackItems(ids: string[], category: string): RuntimeTechCatalog
     description: '',
     runtimeStatus: 'observed',
   }));
+}
+
+function buildRecentTechItems({
+  activeSkills,
+  activeTools,
+  catalogItems,
+}: {
+  activeSkills: string[];
+  activeTools: string[];
+  catalogItems: RuntimeTechCatalogItem[];
+}): string[] {
+  const catalogNames = new Map(catalogItems.map((item) => [
+    item.id,
+    item.displayName || getRuntimeTechDisplayName(item.id),
+  ]));
+  return [...activeTools, ...activeSkills]
+    .filter((id, index, ids) => Boolean(id) && ids.indexOf(id) === index)
+    .slice(0, 2)
+    .map((id) => catalogNames.get(id) || getRuntimeTechDisplayName(id));
 }

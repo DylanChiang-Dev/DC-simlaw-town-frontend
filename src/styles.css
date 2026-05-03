@@ -968,6 +968,38 @@ h1 {
   word-break: break-word;
 }
 
+.runtime-tech-recent {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 5px 7px;
+  border: 1px solid rgba(125, 231, 202, 0.42);
+  border-radius: 7px;
+  background:
+    linear-gradient(90deg, rgba(125, 231, 202, 0.16), rgba(241, 201, 132, 0.08)),
+    rgba(18, 28, 25, 0.56);
+  box-shadow: inset 0 0 0 1px rgba(125, 231, 202, 0.08);
+}
+
+.runtime-tech-recent span {
+  color: #a6f3dc;
+  font-size: 9px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.runtime-tech-recent b {
+  min-width: 0;
+  color: #fff4df;
+  font-size: 11px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ledger-agent,
 .ledger-section,
 .ledger-note {
@@ -1088,6 +1120,10 @@ h1 {
 .runtime-tech-collapsible {
   display: grid;
   gap: 5px;
+}
+
+.runtime-tech-collapsible.auto-open {
+  border-top-color: rgba(125, 231, 202, 0.36);
 }
 
 .runtime-tech-toggle {
