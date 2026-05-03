@@ -470,11 +470,11 @@ h1 {
 
 .town-radar {
   position: absolute;
-  right: 18px;
-  top: 18px;
+  left: 10px;
+  bottom: 112px;
   z-index: 4;
-  width: min(302px, calc(100% - 36px));
-  padding: 10px;
+  width: min(420px, calc(100% - 20px));
+  padding: 8px;
   pointer-events: none;
   color: #f8ead6;
   border: 1px solid rgba(255, 229, 184, 0.54);
@@ -489,7 +489,7 @@ h1 {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .town-radar-header span {
@@ -522,7 +522,7 @@ h1 {
 
 .town-radar-map {
   position: relative;
-  height: 188px;
+  height: 142px;
   overflow: hidden;
   border: 1px solid rgba(86, 58, 34, 0.5);
   border-radius: 8px;
@@ -539,9 +539,9 @@ h1 {
 
 .town-radar-location {
   position: absolute;
-  width: 96px;
-  min-height: 40px;
-  padding: 5px;
+  width: 108px;
+  min-height: 34px;
+  padding: 4px;
   color: #4a3428;
   border: 1px solid #9a7049;
   border-radius: 7px;
@@ -558,23 +558,23 @@ h1 {
 
 .town-radar-location strong {
   display: block;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .town-radar-lawfirm-nodes {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 3px;
-  margin-top: 4px;
+  gap: 2px;
+  margin-top: 3px;
 }
 
 .town-radar-lawfirm-nodes span {
   min-width: 0;
-  padding: 2px 3px;
+  padding: 1px 3px;
   overflow: hidden;
   border-radius: 4px;
   background: #ead1ad;
-  font-size: 10px;
+  font-size: 9px;
   line-height: 1.2;
   text-align: center;
   text-overflow: ellipsis;
@@ -608,19 +608,16 @@ h1 {
 
 .town-radar-actor {
   position: absolute;
-  width: 20px;
-  height: 20px;
+  width: 14px;
+  height: 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #fff8ec;
-  border: 2px solid rgba(255, 248, 236, 0.86);
+  color: transparent;
+  border: 2px solid rgba(255, 248, 236, 0.88);
   border-radius: 50%;
   background: #6f6151;
   box-shadow: 0 3px 8px rgba(43, 29, 18, 0.28);
-  font-size: 9px;
-  font-weight: 800;
-  line-height: 1;
   transform: translate(-50%, -50%);
   transition: left 0.8s ease, top 0.8s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -653,10 +650,67 @@ h1 {
   transform: translate(-50%, -50%) scale(1.08);
 }
 
+.town-radar-legend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px 8px;
+  margin-top: 6px;
+}
+
+.town-radar-legend-item {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #f8ead6;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.town-radar-legend-item b {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.town-radar-legend-dot {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border: 1px solid rgba(255, 248, 236, 0.82);
+  border-radius: 50%;
+  background: #6f6151;
+  box-shadow: 0 0 0 2px rgba(255, 240, 210, 0.1);
+}
+
+.town-radar-legend-dot.playerLawyer,
+.town-radar-legend-dot.opponentLawyer {
+  background: #8b2f2a;
+}
+
+.town-radar-legend-dot.plaintiff {
+  background: #2d6b55;
+}
+
+.town-radar-legend-dot.defendant {
+  background: #6a4fa3;
+}
+
+.town-radar-legend-dot.judge,
+.town-radar-legend-dot.courtStaff {
+  background: #3f6382;
+}
+
+.town-radar-legend-dot.receptionist {
+  background: #cf9b35;
+}
+
 .town-radar-footer {
   display: grid;
-  gap: 4px;
-  margin-top: 8px;
+  gap: 3px;
+  margin-top: 6px;
   font-size: 11px;
   line-height: 1.35;
 }

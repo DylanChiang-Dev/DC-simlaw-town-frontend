@@ -57,15 +57,24 @@ export function TownRadar({ radar, scene }: Props) {
         </svg>
         {radar.visibleActors.map((actor) => (
           <span
-            className={`town-radar-actor ${actor.kind} ${actor.active ? 'active' : ''} ${actor.moving ? 'moving' : ''}`}
+            aria-hidden="true"
+            className={`town-radar-actor town-radar-actor-dot ${actor.kind} ${actor.active ? 'active' : ''} ${actor.moving ? 'moving' : ''}`}
             key={actor.id}
             style={getActorStyle(actor.locationId || destination.locationId)}
             title={actor.label}
-          >
-            {formatActorLabel(actor.label)}
-          </span>
+          />
         ))}
       </div>
+      {radar.visibleActors.length > 0 && (
+        <div className="town-radar-legend" aria-label="雷达人物颜色">
+          {radar.visibleActors.map((actor) => (
+            <span className="town-radar-legend-item" key={actor.id} title={actor.label}>
+              <i className={`town-radar-legend-dot ${actor.kind}`} aria-hidden="true" />
+              <b>{actor.label}</b>
+            </span>
+          ))}
+        </div>
+      )}
       <div className="town-radar-footer">
         <span>{destination.action}</span>
         {recentCapabilities.length > 0 && <b>{recentCapabilities.join(' · ')}</b>}
@@ -80,10 +89,4 @@ function getActorStyle(locationId: TownRadarLocationId) {
     left: `${location.x}%`,
     top: `${location.y + 15}%`,
   };
-}
-
-function formatActorLabel(label: string): string {
-  const trimmed = String(label || '').trim();
-  if (!trimmed) return '?';
-  return trimmed.slice(0, 2);
 }
