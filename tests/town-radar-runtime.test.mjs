@@ -62,6 +62,18 @@ assert.match(
 
 assert.match(
   runtimeSource,
+  /dedupeRadarActors\(\[\.\.\.runtimeActors,\s*\.\.\.stageActors\]\)/,
+  'Town radar should dedupe runtime and stage actors before prioritizing them.',
+);
+
+assert.match(
+  runtimeSource,
+  /normalizeActorLabelKey/,
+  'Town radar should use normalized business labels to collapse duplicate actors with different ids.',
+);
+
+assert.match(
+  runtimeSource,
   /currentLabel[\s\S]*isCharacterAssetName/,
   'Town radar should not keep a previously cached character asset name as the visible label.',
 );

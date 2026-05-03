@@ -63,7 +63,7 @@ export function useTownRadarRuntime(scene: DialogueScene): TownRadarRuntimeState
   const visibleActors = useMemo(() => {
     const stageActors = createStageRadarActors(scene);
     const runtimeActors = Object.values(state.actors);
-    return getPriorityRadarActors([...runtimeActors, ...stageActors], 4);
+    return getPriorityRadarActors(dedupeRadarActors([...runtimeActors, ...stageActors]), 4);
   }, [scene, state.actors]);
 
   return { ...state, visibleActors };
@@ -181,6 +181,30 @@ function getActorDisplayLabel(payload: Record<string, unknown>, currentLabel = '
 
   if (currentLabel && !isCharacterAssetName(currentLabel)) return currentLabel;
   return agentId || '未知角色';
+}
+
+function dedupeRadarActors(actors: RadarActor[]): RadarActor[] {
+  const byLabel = new Map<string, RadarActor>();
+  for (const actor of actors) {
+    const key = normalizeActorLabelKey(actor.label);
+    if (!key) continue;
+    const current = byLabel.get(key);
+    if (!current || shouldReplaceRadarActor(current, actor)) {
+      byLabel.set(key, actor);
+    }
+  }
+  return [...byLabel.values()];
+}
+
+function normalizeActorLabelKey(label: string): string {
+  return String(label || '').trim().replace(/\s+/g, '').toLowerCase();
+}
+
+function shouldReplaceRadarActor(current: RadarActor, candidate: RadarActor): boolean {
+  if (current.moving !== candidate.moving) return Boolean(candidate.moving);
+  if (current.active !== candidate.active) return Boolean(candidate.active);
+  if (current.id === candidate.id) return true;
+  return Boolean(candidate.nodeId && !current.nodeId);
 }
 
 function firstNonEmpty(values: unknown[]): string {
