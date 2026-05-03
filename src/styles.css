@@ -180,6 +180,45 @@ h1 {
   background: rgba(142, 63, 53, 0.36);
 }
 
+.hud-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255, 241, 220, 0.07);
+}
+
+.hud-switch.active {
+  border-color: rgba(151, 168, 120, 0.44);
+  background: rgba(151, 168, 120, 0.16);
+}
+
+.hud-switch-track {
+  position: relative;
+  width: 28px;
+  height: 15px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 222, 176, 0.24);
+  border-radius: 999px;
+  background: rgba(25, 15, 10, 0.36);
+}
+
+.hud-switch-thumb {
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 241, 220, 0.74);
+  transform: translateY(-50%);
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.hud-switch.active .hud-switch-thumb {
+  background: #dbe7a8;
+  transform: translate(13px, -50%);
+}
+
 .vn-layout {
   flex: 1 1 auto;
   min-height: 0;

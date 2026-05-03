@@ -3,8 +3,10 @@ import type { AuthUser, SimulationStatus } from '../services/types';
 import type { RuntimeStatus } from '../state/vnEventReducer';
 
 type Props = {
+  autoNextEnabled?: boolean;
   backendConfigured: boolean;
   loading?: boolean;
+  onAutoNextChange?: (enabled: boolean) => void;
   onLogout?: () => void;
   onOpenDocuments?: () => void;
   onRestart?: () => Promise<void> | void;
@@ -17,8 +19,10 @@ type Props = {
 };
 
 export function CommandHud({
+  autoNextEnabled = false,
   backendConfigured,
   loading = false,
+  onAutoNextChange,
   onLogout,
   onOpenDocuments,
   onRestart,
@@ -49,6 +53,18 @@ export function CommandHud({
         {lastError && <StatusPill label="运行错误" tone="error" />}
       </div>
       <div className="hud-actions" aria-label="操作">
+        <button
+          role="switch"
+          aria-checked={autoNextEnabled}
+          className={`hud-button hud-switch ${autoNextEnabled ? 'active' : ''}`}
+          onClick={() => onAutoNextChange?.(!autoNextEnabled)}
+          type="button"
+        >
+          <span className="hud-switch-track" aria-hidden="true">
+            <span className="hud-switch-thumb" />
+          </span>
+          自动下一句
+        </button>
         {backendConfigured && user && (
           <>
             <button className="hud-button" disabled={loading} onClick={onOpenDocuments} type="button">

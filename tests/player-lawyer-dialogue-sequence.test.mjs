@@ -7,6 +7,7 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const projectRoot = dirname(root);
 const appSource = readFileSync(join(root, 'src', 'App.tsx'), 'utf8');
 const dialogueSource = readFileSync(join(root, 'src', 'components', 'DialogueBox.tsx'), 'utf8');
+const commandHudSource = readFileSync(join(root, 'src', 'components', 'CommandHud.tsx'), 'utf8');
 const webSocketSource = readFileSync(join(root, 'src', 'services', 'webSocket.ts'), 'utf8');
 const vnReducerSource = readFileSync(join(root, 'src', 'state', 'vnEventReducer.ts'), 'utf8');
 const agentsSource = readFileSync(join(projectRoot, 'AGENTS.md'), 'utf8');
@@ -136,6 +137,60 @@ assert.match(
   appSource,
   /const playerDialogMayAutoOpen = !nextUnacknowledgedStoryEntry;/,
   'Player task dialogs should auto-open only after every queued story entry has been acknowledged.',
+);
+
+assert.match(
+  appSource,
+  /const AUTO_NEXT_STORAGE_KEY = 'simlaw-town:auto-next-enabled';/,
+  'App should centralize the localStorage key for the auto-next preference.',
+);
+
+assert.match(
+  appSource,
+  /const \[autoNextEnabled, setAutoNextEnabled\] = useState\(\(\) => readAutoNextPreference\(\)\);/,
+  'Auto-next should initialize from localStorage instead of defaulting to enabled.',
+);
+
+assert.match(
+  appSource,
+  /function readAutoNextPreference\(\): boolean \{[\s\S]*localStorage\.getItem\(AUTO_NEXT_STORAGE_KEY\) === 'true'[\s\S]*return false;[\s\S]*\}/,
+  'Auto-next should default to off when there is no stored local preference.',
+);
+
+assert.match(
+  appSource,
+  /localStorage\.setItem\(AUTO_NEXT_STORAGE_KEY, autoNextEnabled \? 'true' : 'false'\);/,
+  'Changing auto-next should persist the preference on this browser.',
+);
+
+assert.match(
+  appSource,
+  /if \(!autoNextEnabled\) return;[\s\S]*if \(!nextUnacknowledgedStoryEntry\) return;[\s\S]*window\.setTimeout\(\(\) => \{[\s\S]*setAcknowledgedDialogueEntryId\(nextUnacknowledgedStoryEntry\.id\);[\s\S]*\}, AUTO_NEXT_ACKNOWLEDGE_DELAY_MS\);/,
+  'When enabled, auto-next should acknowledge the current visible story entry after the configured delay.',
+);
+
+assert.match(
+  appSource,
+  /const AUTO_NEXT_ACKNOWLEDGE_DELAY_MS = 900;/,
+  'Auto-next should use the agreed 900ms reading delay.',
+);
+
+assert.match(
+  appSource,
+  /autoNextEnabled=\{autoNextEnabled\}[\s\S]*onAutoNextChange=\{setAutoNextEnabled\}/,
+  'App should pass the auto-next switch state and setter to the top command HUD.',
+);
+
+assert.match(
+  commandHudSource,
+  /autoNextEnabled\?: boolean;[\s\S]*onAutoNextChange\?: \(enabled: boolean\) => void;/,
+  'CommandHud should expose an internal interface for the auto-next switch.',
+);
+
+assert.match(
+  commandHudSource,
+  /role="switch"[\s\S]*aria-checked=\{autoNextEnabled\}[\s\S]*自动下一句/,
+  'CommandHud should render a compact accessible top switch labelled 自动下一句.',
 );
 
 assert.match(

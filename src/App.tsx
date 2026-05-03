@@ -47,6 +47,8 @@ const STAGE_DOCUMENT_TYPES: Record<string, string> = {
   AD: 'AD',
   AR: 'AR',
 };
+const AUTO_NEXT_STORAGE_KEY = 'simlaw-town:auto-next-enabled';
+const AUTO_NEXT_ACKNOWLEDGE_DELAY_MS = 900;
 
 function AppShell({ auth }: AppShellProps) {
   const [documentsOpen, setDocumentsOpen] = useState(false);
@@ -60,6 +62,7 @@ function AppShell({ auth }: AppShellProps) {
   const [documentFollowupLoading, setDocumentFollowupLoading] = useState(false);
   const [documentSkills, setDocumentSkills] = useState<PlayerLawyerSkill[]>([]);
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
+  const [autoNextEnabled, setAutoNextEnabled] = useState(() => readAutoNextPreference());
   const runtime = useSimulationRuntime(auth.backendConfigured && Boolean(auth.user));
   const playerLawyer = usePlayerLawyerRuntime(
     auth.backendConfigured && Boolean(auth.user),
@@ -99,6 +102,31 @@ function AppShell({ auth }: AppShellProps) {
     && !runtime.activeCaseId
     && !runtime.loading,
   );
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(AUTO_NEXT_STORAGE_KEY, autoNextEnabled ? 'true' : 'false');
+    } catch {
+      // Ignore private browsing or storage-denied environments.
+    }
+  }, [autoNextEnabled]);
+
+  useEffect(() => {
+    if (!autoNextEnabled) return;
+    if (!nextUnacknowledgedStoryEntry) return;
+    if (caseClosed || runtime.error || runtime.simulation?.paused || playerDialogOpen) return;
+    const timeoutId = window.setTimeout(() => {
+      setAcknowledgedDialogueEntryId(nextUnacknowledgedStoryEntry.id);
+    }, AUTO_NEXT_ACKNOWLEDGE_DELAY_MS);
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    autoNextEnabled,
+    caseClosed,
+    nextUnacknowledgedStoryEntry,
+    playerDialogOpen,
+    runtime.error,
+    runtime.simulation?.paused,
+  ]);
 
   useEffect(() => {
     if (!runtime.activeCaseId) {
@@ -327,8 +355,10 @@ function AppShell({ auth }: AppShellProps) {
   return (
     <main className="app-shell">
       <CommandHud
+        autoNextEnabled={autoNextEnabled}
         backendConfigured={auth.backendConfigured}
         loading={runtime.loading}
+        onAutoNextChange={setAutoNextEnabled}
         onLogout={auth.user ? auth.onLogout : undefined}
         onOpenDocuments={() => setDocumentsOpen(true)}
         onRestart={() => setRestartConfirmOpen(true)}
@@ -574,6 +604,14 @@ function shouldOpenClosingSummary(
 function isOperationalContinueNotice(text: string): boolean {
   return text.includes('已请求继续生成下一句')
     || text.includes('已收到继续请求');
+}
+
+function readAutoNextPreference(): boolean {
+  try {
+    return localStorage.getItem(AUTO_NEXT_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
 }
 
 function isDocumentStage(stage?: string): boolean {
