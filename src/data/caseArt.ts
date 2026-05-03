@@ -34,11 +34,11 @@ export const CASE_ART_PROFILES: CaseArtAssetMap = {
     plaintiffKey: 'case1Plaintiff',
     defendantKey: 'case1Defendant',
     plaintiffLawyerKey: 'lawyerZhangMing',
-    defendantLawyerKey: 'lawyerZhangMing',
+    defendantLawyerKey: 'lawyerWangXiaoming',
     plaintiffPortrait: '/art/vn/char-case1-plaintiff-wu-jian-concerned.png',
     defendantPortrait: '/art/vn/char-case1-defendant-lan-xuanbo-defensive.png',
     plaintiffLawyerPortrait: '/art/vn/char-lawyer-zhang-ming-neutral.png',
-    defendantLawyerPortrait: '/art/vn/char-lawyer-zhang-ming-neutral.png',
+    defendantLawyerPortrait: '/art/vn/char-lawyer-wang-xiaoming-neutral.png',
     caseCg: '/art/vn/cg-case1-hair-salon-rent-evidence.png',
   },
   case_3: {

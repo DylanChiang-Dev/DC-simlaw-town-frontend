@@ -35,6 +35,7 @@ const styleSource = readFileSync(join(root, 'src', 'styles.css'), 'utf8');
   'char-case7-plaintiff-hu-yindi-worried.png',
   'char-case7-defendant-zhou-sigui-anxious.png',
   'char-lawyer-zhang-ming-neutral.png',
+  'char-player-lawyer-neutral.png',
   'char-lawyer-wang-xiaoming-neutral.png',
   'char-lawyer-chen-gang-serious.png',
 ].forEach((asset) => {
@@ -57,6 +58,7 @@ const styleSource = readFileSync(join(root, 'src', 'styles.css'), 'utf8');
   ['胡引弟', 'case7Plaintiff'],
   ['周思贵', 'case7Defendant'],
   ['张明', 'lawyerZhangMing'],
+  ['李婷', 'lawyerLiTing'],
   ['王小明', 'lawyerWangXiaoming'],
   ['陈刚', 'lawyerChenGang'],
 ].forEach(([speakerName, characterKey]) => {
@@ -95,6 +97,30 @@ assert.match(
   reducerSource,
   /value\.includes\('defendant_lawyer'\)[\s\S]*return caseArt\.defendantLawyerKey;[\s\S]*value\.includes\('defendant'\)[\s\S]*return caseArt\.defendantKey;/,
   'Defendant lawyer speaker ids should resolve to the case defendant lawyer before generic defendant/client matching.',
+);
+
+assert.match(
+  runtimeSceneSource,
+  /lawyerLiTing:\s*\{[\s\S]*name:\s*'李婷'[\s\S]*role:\s*'被告律师'/,
+  'Li Ting needs a non-player courtroom role so defendant-side case_1 speech is not labeled as the plaintiff player lawyer.',
+);
+
+assert.match(
+  readFileSync(join(root, 'src', 'data', 'caseArt.ts'), 'utf8'),
+  /case_1:\s*\{[\s\S]*plaintiffLawyerKey:\s*'lawyerZhangMing'[\s\S]*defendantLawyerKey:\s*'lawyerWangXiaoming'/,
+  'case_1 should render Zhang Ming as plaintiff lawyer and Wang Xiaoming as defendant lawyer.',
+);
+
+assert.match(
+  reducerSource,
+  /value\.includes\('lawyer_b01'\) && speakerName\.includes\('李婷'\)[\s\S]*return 'lawyerLiTing'/,
+  'Historical backend records naming lawyer_B01/李婷 should still render Li Ting instead of the case default lawyer.',
+);
+
+assert.match(
+  reducerSource,
+  /speakerName\.includes\('李婷'\)[\s\S]*caseArt\.plaintiffLawyerKey === 'playerLawyer'[\s\S]*return 'playerLawyer'[\s\S]*defendant_lawyer[\s\S]*return 'lawyerLiTing'/,
+  'The Chinese name 李婷 should follow the current case-side mapping instead of always forcing the player-lawyer portrait.',
 );
 
 assert.match(

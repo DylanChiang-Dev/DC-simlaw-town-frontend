@@ -10,6 +10,7 @@ export type CharacterKey =
   | 'courtClerk'
   | 'judgeAssistant'
   | 'trafficOfficer'
+  | 'lawyerLiTing'
   | 'case1Plaintiff'
   | 'case1Defendant'
   | 'case3Plaintiff'
@@ -115,6 +116,13 @@ export const characters: Record<CharacterKey, Character> = {
     name: '赵雪',
     role: '被告律师',
     portrait: '/art/vn/char-opponent-lawyer-confident.png',
+    position: 'right',
+  },
+  lawyerLiTing: {
+    key: 'lawyerLiTing',
+    name: '李婷',
+    role: '被告律师',
+    portrait: '/art/vn/char-player-lawyer-neutral.png',
     position: 'right',
   },
   courtClerk: {

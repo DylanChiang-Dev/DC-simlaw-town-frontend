@@ -732,6 +732,22 @@ function createSystemScene(scene: DialogueScene, text: string, stageCode = 'SYST
 
 function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text: string): CharacterKey {
   const speakerName = String(payload.speaker_name || '').trim();
+  const value = `${payload.speaker_name || ''} ${payload.speaker_id || ''} ${payload.role || ''}`.toLowerCase();
+  const caseArt = getCaseArtProfile(payload.case_id || payload.caseId || '');
+  if (value.includes('lawyer_b01') && speakerName.includes('李婷')) return 'lawyerLiTing';
+  if (value.includes('lawyer_b02') && speakerName.includes('赵雪')) return 'opponentLawyer';
+  if (
+    value.includes('plaintiff_lawyer')
+    || value.includes('plaintiff lawyer')
+    || value.includes('原告律师')
+  ) return caseArt.plaintiffLawyerKey;
+  if (
+    value.includes('defendant_lawyer')
+    || value.includes('defense_lawyer')
+    || value.includes('defendant lawyer')
+    || value.includes('defense lawyer')
+    || value.includes('被告律师')
+  ) return caseArt.defendantLawyerKey;
   if (speakerName.includes('吴建')) return 'case1Plaintiff';
   if (speakerName.includes('蓝宣博')) return 'case1Defendant';
   if (speakerName.includes('连杰')) return 'case3Plaintiff';
@@ -753,10 +769,13 @@ function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text:
   if (speakerName.includes('程玉静')) return 'defendant';
   if (speakerName.includes('刘玉田')) return 'client';
   if (speakerName.includes('赵雪')) return 'opponentLawyer';
-  if (speakerName.includes('李婷')) return 'playerLawyer';
+  if (speakerName.includes('李婷')) {
+    if (caseArt.defendantLawyerKey === 'lawyerLiTing') return 'lawyerLiTing';
+    if (caseArt.plaintiffLawyerKey === 'playerLawyer') return 'playerLawyer';
+    if (value.includes('defendant_lawyer') || value.includes('defense_lawyer') || value.includes('被告律师')) return 'lawyerLiTing';
+    return 'lawyerLiTing';
+  }
 
-  const value = `${payload.speaker_name || ''} ${payload.speaker_id || ''}`.toLowerCase();
-  const caseArt = getCaseArtProfile(payload.case_id || payload.caseId || '');
   if (value.includes('reception') || value.includes('front_desk') || value.includes('前台') || value.includes('接待')) {
     return 'receptionist';
   }
