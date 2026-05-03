@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const appSource = readFileSync(join(root, 'src', 'App.tsx'), 'utf8');
+const commandHudSource = readFileSync(join(root, 'src', 'components', 'CommandHud.tsx'), 'utf8');
 const dialogueSource = readFileSync(join(root, 'src', 'components', 'DialogueBox.tsx'), 'utf8');
 const summarySource = readFileSync(join(root, 'src', 'components', 'CaseClosingSummaryDialog.tsx'), 'utf8');
 const apiSource = readFileSync(join(root, 'src', 'services', 'caseClosingApi.ts'), 'utf8');
@@ -42,8 +43,50 @@ assert.match(
 
 assert.match(
   appSource,
-  /<CaseClosingSummaryDialog[\s\S]*open=\{closingSummaryOpen\}[\s\S]*caseId=\{runtime\.selectedCaseId \|\| runtime\.activeCaseId\}/,
+  /<CaseClosingSummaryDialog[\s\S]*open=\{closingSummaryOpen\}[\s\S]*caseId=\{closingCaseId\}/,
   'App should render the closing summary dialog only after the final line is acknowledged.',
+);
+
+assert.match(
+  commandHudSource,
+  /canOpenClosingSummary\?: boolean/,
+  'CommandHud should accept a flag for the closing score reopen entry.',
+);
+
+assert.match(
+  commandHudSource,
+  /onOpenClosingSummary\?: \(\) => void/,
+  'CommandHud should accept a callback for reopening the closing score dialog.',
+);
+
+assert.match(
+  commandHudSource,
+  /canOpenClosingSummary && onOpenClosingSummary[\s\S]*查看评分/,
+  'CommandHud should render a 查看评分 button only when the closed-case score can be reopened.',
+);
+
+assert.match(
+  appSource,
+  /const closingCaseId = runtime\.selectedCaseId \|\| runtime\.activeCaseId;/,
+  'App should derive one stable case id for automatic and manual closing summary opens.',
+);
+
+assert.match(
+  appSource,
+  /canOpenClosingSummary=\{Boolean\(caseClosed && closingCaseId\)\}/,
+  'App should expose the score reopen action only after a case is closed and a case id is known.',
+);
+
+assert.match(
+  appSource,
+  /onOpenClosingSummary=\{\(\) => setClosingSummaryOpen\(true\)\}/,
+  'App should let CommandHud reopen the existing closing summary dialog.',
+);
+
+assert.match(
+  appSource,
+  /<CaseClosingSummaryDialog[\s\S]*caseId=\{closingCaseId\}/,
+  'The closing summary dialog should use the same stable case id as the HUD reopen action.',
 );
 
 assert.match(

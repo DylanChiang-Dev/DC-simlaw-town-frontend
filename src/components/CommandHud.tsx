@@ -5,9 +5,11 @@ import type { RuntimeStatus } from '../state/vnEventReducer';
 type Props = {
   autoNextEnabled?: boolean;
   backendConfigured: boolean;
+  canOpenClosingSummary?: boolean;
   loading?: boolean;
   onAutoNextChange?: (enabled: boolean) => void;
   onLogout?: () => void;
+  onOpenClosingSummary?: () => void;
   onOpenDocuments?: () => void;
   onRestart?: () => Promise<void> | void;
   onResumeCurrentCase?: () => Promise<void>;
@@ -21,9 +23,11 @@ type Props = {
 export function CommandHud({
   autoNextEnabled = false,
   backendConfigured,
+  canOpenClosingSummary = false,
   loading = false,
   onAutoNextChange,
   onLogout,
+  onOpenClosingSummary,
   onOpenDocuments,
   onRestart,
   onResumeCurrentCase,
@@ -70,6 +74,11 @@ export function CommandHud({
             <button className="hud-button" disabled={loading} onClick={onOpenDocuments} type="button">
               文书
             </button>
+            {canOpenClosingSummary && onOpenClosingSummary && (
+              <button className="hud-button" disabled={loading} onClick={onOpenClosingSummary} type="button">
+                查看评分
+              </button>
+            )}
             {canResume && (
               <button className="hud-button" disabled={loading} onClick={() => void onResumeCurrentCase?.()} type="button">
                 继续当前案件

@@ -82,6 +82,7 @@ function AppShell({ auth }: AppShellProps) {
   const playerDialogMayAutoOpen = !nextUnacknowledgedStoryEntry;
   const latestAcknowledgedStoryEntry = getLatestAcknowledgedStoryEntry(vnRuntime.history, acknowledgedDialogueEntryId);
   const caseClosed = isCaseClosed(vnRuntime.history, runtime.simulation);
+  const closingCaseId = runtime.selectedCaseId || runtime.activeCaseId;
   const heldDialogueEntryId = nextUnacknowledgedStoryEntry?.id || '';
   const activePlayerRequest = playerLawyer.activeRequest
     && runtime.activeCaseId
@@ -389,9 +390,11 @@ function AppShell({ auth }: AppShellProps) {
       <CommandHud
         autoNextEnabled={autoNextEnabled}
         backendConfigured={auth.backendConfigured}
+        canOpenClosingSummary={Boolean(caseClosed && closingCaseId)}
         loading={runtime.loading}
         onAutoNextChange={setAutoNextEnabled}
         onLogout={auth.user ? auth.onLogout : undefined}
+        onOpenClosingSummary={() => setClosingSummaryOpen(true)}
         onOpenDocuments={() => setDocumentsOpen(true)}
         onRestart={() => setRestartConfirmOpen(true)}
         onResumeCurrentCase={runtime.activeCaseId ? handleStartSelectedCase : undefined}
@@ -505,7 +508,7 @@ function AppShell({ auth }: AppShellProps) {
       />
       <CaseClosingSummaryDialog
         open={closingSummaryOpen}
-        caseId={runtime.selectedCaseId || runtime.activeCaseId}
+        caseId={closingCaseId}
         onClose={() => setClosingSummaryOpen(false)}
       />
       {restartConfirmOpen && (
