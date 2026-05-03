@@ -120,8 +120,9 @@ export function getRadarActorKind(value: unknown): RadarActorKind {
 }
 
 export function createStageRadarActors(scene: DialogueScene): RadarActor[] {
+  if (!scene.speaker || String(scene.speaker) === 'system') return [];
   const destination = getStageRadarDestination(scene.stageCode);
-  const speakerId = scene.speaker || 'system';
+  const speakerId = scene.speaker;
   return getPriorityRadarActors([
     {
       id: speakerId,

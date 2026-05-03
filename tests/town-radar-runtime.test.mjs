@@ -44,6 +44,18 @@ assert.match(
 
 assert.match(
   runtimeSource,
+  /case 'agent_update_dialogue':[\s\S]*inferReceptionistLocationFromAgentId\(agentId,[\s\S]*fallbackStageCode\)/,
+  'Receptionist dialogue should infer its law firm from ids like receptionist_law_firm_B when no move event exists.',
+);
+
+assert.match(
+  runtimeSource,
+  /function inferReceptionistLocationFromAgentId\(agentId: string,[\s\S]*law_firm_b[\s\S]*lawfirmB_front_desk[\s\S]*law_firm_a[\s\S]*lawfirmA_front_desk/,
+  'Receptionist ids should map to their matching front desk instead of defaulting to law firm A.',
+);
+
+assert.match(
+  runtimeSource,
   /mergeRadarActorsByLabel\(\[\.\.\.runtimeActors,\s*\.\.\.stageActors\]\)/,
   'Town radar should merge stage speaker activity into runtime actors without replacing their real map location.',
 );
@@ -70,6 +82,12 @@ assert.match(
   runtimeSource,
   /getActorDisplayLabel\(payload,\s*current\?\.label,\s*agentId\)/,
   'Town radar actor labels should prefer business names over character asset names.',
+);
+
+assert.match(
+  runtimeSource,
+  /if \(isReceptionistAgentId\(agentId\)\) return '律所前台';/,
+  'Receptionist map events should share the VN receptionist label so runtime and stage actors merge.',
 );
 
 assert.match(

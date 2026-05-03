@@ -63,3 +63,9 @@ assert.match(
   /export function getPriorityRadarActors\(/,
   'The model should expose a priority helper so the component can keep the radar uncluttered.',
 );
+
+assert.match(
+  modelSource,
+  /if \(!scene\.speaker \|\| String\(scene\.speaker\) === 'system'\) return \[\];/,
+  'Town radar should not create a visible actor dot for the system placeholder speaker.',
+);

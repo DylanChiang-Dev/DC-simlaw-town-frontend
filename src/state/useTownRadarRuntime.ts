@@ -117,11 +117,12 @@ export function reduceTownRadarMapEvent(
     }
     case 'agent_update_dialogue': {
       const current = state.actors[agentId];
-      if (!current) return state;
+      const inferredReceptionistLocation = inferReceptionistLocationFromAgentId(agentId, fallbackStageCode);
+      if (!current && !inferredReceptionistLocation) return state;
       return upsertRadarActor(state, payload, agentId, {
-        locationId: current.locationId,
-        nodeId: current.nodeId,
-        rawLocationId: current.rawLocationId || '',
+        locationId: current?.locationId || inferredReceptionistLocation!.locationId,
+        nodeId: current?.nodeId || inferredReceptionistLocation?.nodeId,
+        rawLocationId: current?.rawLocationId || inferredReceptionistLocation?.rawLocationId || '',
       }, { moving: false });
     }
     case 'agent_spawn':
@@ -179,6 +180,7 @@ function upsertRadarActor(
 }
 
 function getActorDisplayLabel(payload: Record<string, unknown>, currentLabel = '', agentId = ''): string {
+  if (isReceptionistAgentId(agentId)) return '律所前台';
   const businessName = firstNonEmpty([
     payload.name,
     payload.speaker_name,
@@ -194,6 +196,22 @@ function getActorDisplayLabel(payload: Record<string, unknown>, currentLabel = '
 
   if (currentLabel && !isCharacterAssetName(currentLabel)) return currentLabel;
   return agentId || '未知角色';
+}
+
+function inferReceptionistLocationFromAgentId(agentId: string, fallbackStageCode: string) {
+  if (!isReceptionistAgentId(agentId)) return null;
+  const normalized = agentId.toLowerCase();
+  if (normalized.includes('law_firm_b') || normalized.includes('lawfirmb')) {
+    return normalizeRadarLocationId('lawfirmB_front_desk', fallbackStageCode);
+  }
+  if (normalized.includes('law_firm_a') || normalized.includes('lawfirma')) {
+    return normalizeRadarLocationId('lawfirmA_front_desk', fallbackStageCode);
+  }
+  return null;
+}
+
+function isReceptionistAgentId(agentId: string): boolean {
+  return /receptionist|front_desk|前台|接待/i.test(agentId);
 }
 
 function mergeRadarActorsByLabel(actors: RadarActor[]): RadarActor[] {
