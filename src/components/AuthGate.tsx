@@ -2,8 +2,9 @@ import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { fetchCurrentUser } from '../services/apiClient';
 import { AUTH_LOGOUT_EVENT, getAuthService } from '../services/auth';
 import { getRuntimeMode } from '../services/runtime';
-import { ensureSandbox } from '../services/sandboxApi';
+import { ensureSandbox, pauseSimulation } from '../services/sandboxApi';
 import type { AuthUser } from '../services/types';
+import { getWebSocketService } from '../services/webSocket';
 import { LoginPanel } from './LoginPanel';
 
 export type AuthGateState = {
@@ -52,7 +53,13 @@ export function AuthGate({ children }: Props) {
     }
   }
 
-  function handleLogout(): void {
+  async function handleLogout(): Promise<void> {
+    try {
+      getWebSocketService().send({ type: 'client_logout' });
+      await pauseSimulation();
+    } catch (err) {
+      console.warn('Failed to pause sandbox before logout:', err);
+    }
     authService.logout();
     setUser(null);
     setState(runtime.configured ? 'unauthenticated' : 'offline');
