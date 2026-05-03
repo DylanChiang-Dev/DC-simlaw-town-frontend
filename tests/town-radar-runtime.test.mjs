@@ -42,6 +42,36 @@ assert.match(
   'Unknown or raw destination ids should be retained for debugging.',
 );
 
+assert.match(
+  runtimeSource,
+  /getActorDisplayLabel\(payload,\s*current\?\.label,\s*agentId\)/,
+  'Town radar actor labels should prefer business names over character asset names.',
+);
+
+assert.match(
+  runtimeSource,
+  /payload\.name[\s\S]*payload\.speaker_name[\s\S]*payload\.display_name[\s\S]*payload\.profile_name/,
+  'Town radar display labels should read business-facing name fields before character_name.',
+);
+
+assert.match(
+  runtimeSource,
+  /Conference_man[\s\S]*法官/,
+  'Town radar should translate character asset names like Conference_man into business-facing labels.',
+);
+
+assert.match(
+  runtimeSource,
+  /currentLabel[\s\S]*isCharacterAssetName/,
+  'Town radar should not keep a previously cached character asset name as the visible label.',
+);
+
+assert.doesNotMatch(
+  runtimeSource,
+  /payload\.character_name\s*\|\|\s*payload\.name/,
+  'Town radar must not prefer character_name before business name fields.',
+);
+
 assert.doesNotMatch(
   runtimeSource,
   /fetch\(|axios|apiClient|getWebSocketService\(\)\.send/,

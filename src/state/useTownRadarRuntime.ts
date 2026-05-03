@@ -140,7 +140,7 @@ function upsertRadarActor(
 ): TownRadarRuntimeState {
   const current = state.actors[agentId];
   const updatedAt = Date.now();
-  const label = String(payload.character_name || payload.name || payload.speaker_name || current?.label || agentId);
+  const label = getActorDisplayLabel(payload, current?.label, agentId);
   const moving = options.moving;
   const actor: TownRadarActorState = {
     id: agentId,
@@ -163,4 +163,48 @@ function upsertRadarActor(
     lastEventAt: updatedAt,
     lastRawLocationId: normalized.rawLocationId,
   };
+}
+
+function getActorDisplayLabel(payload: Record<string, unknown>, currentLabel = '', agentId = ''): string {
+  const businessName = firstNonEmpty([
+    payload.name,
+    payload.speaker_name,
+    payload.display_name,
+    payload.profile_name,
+  ]);
+  if (businessName) return businessName;
+
+  const characterName = firstNonEmpty([payload.character_name]);
+  const roleLabel = getRoleDisplayLabel(payload.role);
+  if (roleLabel && (!characterName || isCharacterAssetName(characterName))) return roleLabel;
+  if (characterName && !isCharacterAssetName(characterName)) return characterName;
+
+  if (currentLabel && !isCharacterAssetName(currentLabel)) return currentLabel;
+  return agentId || '未知角色';
+}
+
+function firstNonEmpty(values: unknown[]): string {
+  for (const value of values) {
+    const text = String(value || '').trim();
+    if (text) return text;
+  }
+  return '';
+}
+
+function isCharacterAssetName(value: string): boolean {
+  return /^(Adam|Alex|Amelia|Ash|Bob|Bruce|Conference_man|Conference_woman|Dan|Edward|Lucy|Molly|Pier|Rob|Roki|Samuel)$/i
+    .test(value.trim());
+}
+
+function getRoleDisplayLabel(value: unknown): string {
+  const role = String(value || '').trim().toLowerCase();
+  if (/judge|法官/.test(role)) return '法官';
+  if (/plaintiff_lawyer|player|原告律师/.test(role)) return '原告律师';
+  if (/defendant_lawyer|opponent|被告律师/.test(role)) return '被告律师';
+  if (/lawyer|律师/.test(role)) return '律师';
+  if (/plaintiff|原告/.test(role)) return '原告';
+  if (/defendant|被告/.test(role)) return '被告';
+  if (/reception|front_desk|前台|接待/.test(role)) return '前台';
+  if (/clerk|assistant|书记员|法官助理/.test(role)) return '法庭工作人员';
+  return '';
 }
