@@ -119,6 +119,12 @@ assert.match(
 
 assert.match(
   reducerSource,
+  /readPlayerResponsibility\(payload\.player_responsibility\)[\s\S]*return caseArt\.plaintiffLawyerKey;[\s\S]*value\.includes\('lawyer_b02'\) && speakerName\.includes\('赵雪'\)[\s\S]*return 'opponentLawyer'/,
+  'Player-responsibility dialogue should resolve to the current plaintiff lawyer before legacy Zhao Xue/opponent-lawyer fallbacks.',
+);
+
+assert.match(
+  reducerSource,
   /speakerName\.includes\('李婷'\)[\s\S]*caseArt\.plaintiffLawyerKey === 'playerLawyer'[\s\S]*return 'playerLawyer'[\s\S]*defendant_lawyer[\s\S]*return 'lawyerLiTing'/,
   'The Chinese name 李婷 should follow the current case-side mapping instead of always forcing the player-lawyer portrait.',
 );

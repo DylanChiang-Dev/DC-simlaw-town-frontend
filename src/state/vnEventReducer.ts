@@ -801,6 +801,7 @@ function inferSpeaker(payload: Record<string, unknown>, stageCode: string, text:
   const speakerName = String(payload.speaker_name || '').trim();
   const value = `${payload.speaker_name || ''} ${payload.speaker_id || ''} ${payload.role || ''}`.toLowerCase();
   const caseArt = getCaseArtProfile(payload.case_id || payload.caseId || '');
+  if (readPlayerResponsibility(payload.player_responsibility)) return caseArt.plaintiffLawyerKey;
   if (value.includes('lawyer_b01') && speakerName.includes('李婷')) return 'lawyerLiTing';
   if (value.includes('lawyer_b02') && speakerName.includes('赵雪')) return 'opponentLawyer';
   if (
