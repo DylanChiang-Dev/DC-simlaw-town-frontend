@@ -1,5 +1,6 @@
 import { characters, type CharacterKey, type DialogueScene } from '../data/runtimeScene';
 import { getCaseArtProfile } from '../data/caseArt';
+import type { RuntimeTechCatalog } from '../services/types';
 
 const STAGE_LABELS: Record<string, string> = {
   SYSTEM: '系统运行',
@@ -135,6 +136,8 @@ export type VnRuntimeEvent =
   | { type: 'dialogue-gate-accepted'; payload?: Record<string, unknown> }
   | { type: 'dialogue-gate-error'; payload?: Record<string, unknown> }
   | { type: 'runtime-progress'; payload?: Record<string, unknown> }
+  | { type: 'runtime-tech-catalog-loaded'; catalog: RuntimeTechCatalog }
+  | { type: 'clear-runtime-tech-highlight' }
   | { type: 'step-gate-waiting'; payload?: Record<string, unknown> }
   | { type: 'step-gate-accepted'; payload?: Record<string, unknown> }
   | { type: 'step-gate-error'; payload?: Record<string, unknown> }
@@ -165,6 +168,12 @@ const SYSTEM_SCENE: DialogueScene = {
     agent: '等待案件同步',
     tools: [],
     skills: [],
+    catalog: null,
+    usedTools: {},
+    usedSkills: {},
+    activeTools: [],
+    activeSkills: [],
+    lastTechEventAt: '',
     memory: '等待真实案件状态恢复',
     pipeline: '等待案件进展',
   },
@@ -267,6 +276,10 @@ export function vnEventReducer(state: VnRuntimeState, event: VnRuntimeEvent): Vn
       );
     case 'runtime-progress':
       return applyRuntimeProgress(state, event.payload || {});
+    case 'runtime-tech-catalog-loaded':
+      return applyRuntimeTechCatalog(state, event.catalog);
+    case 'clear-runtime-tech-highlight':
+      return clearRuntimeTechHighlight(state);
     case 'step-gate-waiting':
       return updateRuntimeStatus(state, {
         phase: 'waiting_user',
@@ -390,17 +403,63 @@ function applyRuntimeProgress(state: VnRuntimeState, payload: Record<string, unk
 function applyRuntimeCapabilityDisplay(state: VnRuntimeState, payload: Record<string, unknown>): VnRuntimeState {
   const toolNames = readStringList(payload.tool_names);
   const skillNames = readStringList(payload.skill_names);
+  const activeToolNames = readStringList(payload.active_tool_names);
+  const activeSkillNames = readStringList(payload.active_skill_names);
   const memory = String(payload.memory || payload.memory_summary || '').trim();
-  if (toolNames.length === 0 && skillNames.length === 0 && !memory) return state;
+  if (
+    toolNames.length === 0
+    && skillNames.length === 0
+    && activeToolNames.length === 0
+    && activeSkillNames.length === 0
+    && !memory
+  ) return state;
+  const mergedTools = toolNames.length > 0 ? mergeRuntimeTags(state.scene.tech.tools, toolNames) : state.scene.tech.tools;
+  const mergedSkills = skillNames.length > 0 ? mergeRuntimeTags(state.scene.tech.skills, skillNames) : state.scene.tech.skills;
+  const usedToolNames = activeToolNames.length > 0 ? activeToolNames : toolNames;
+  const usedSkillNames = activeSkillNames.length > 0 ? activeSkillNames : skillNames;
+  const now = String(payload.occurred_at || new Date().toISOString());
   return {
     ...state,
     scene: {
       ...state.scene,
       tech: {
         ...state.scene.tech,
-        tools: toolNames.length > 0 ? mergeRuntimeTags(state.scene.tech.tools, toolNames) : state.scene.tech.tools,
-        skills: skillNames.length > 0 ? mergeRuntimeTags(state.scene.tech.skills, skillNames) : state.scene.tech.skills,
+        tools: mergedTools,
+        skills: mergedSkills,
+        usedTools: updateUsageCounts(state.scene.tech.usedTools, usedToolNames, activeToolNames.length > 0),
+        usedSkills: updateUsageCounts(state.scene.tech.usedSkills, usedSkillNames, activeSkillNames.length > 0),
+        activeTools: activeToolNames,
+        activeSkills: activeSkillNames,
+        lastTechEventAt: activeToolNames.length > 0 || activeSkillNames.length > 0 ? now : state.scene.tech.lastTechEventAt,
         memory: memory || state.scene.tech.memory,
+      },
+    },
+  };
+}
+
+function applyRuntimeTechCatalog(state: VnRuntimeState, catalog: RuntimeTechCatalog): VnRuntimeState {
+  return {
+    ...state,
+    scene: {
+      ...state.scene,
+      tech: {
+        ...state.scene.tech,
+        catalog,
+      },
+    },
+  };
+}
+
+function clearRuntimeTechHighlight(state: VnRuntimeState): VnRuntimeState {
+  if (state.scene.tech.activeTools.length === 0 && state.scene.tech.activeSkills.length === 0) return state;
+  return {
+    ...state,
+    scene: {
+      ...state.scene,
+      tech: {
+        ...state.scene.tech,
+        activeTools: [],
+        activeSkills: [],
       },
     },
   };
@@ -452,6 +511,14 @@ function readStringList(value: unknown): string[] {
 
 function mergeRuntimeTags(existing: string[], incoming: string[]): string[] {
   return Array.from(new Set([...existing, ...incoming])).slice(-8);
+}
+
+function updateUsageCounts(existing: Record<string, number>, incoming: string[], shouldIncrement: boolean): Record<string, number> {
+  const next = { ...existing };
+  for (const name of readStringList(incoming)) {
+    next[name] = shouldIncrement ? (next[name] || 0) + 1 : Math.max(next[name] || 0, 1);
+  }
+  return next;
 }
 
 function updateRuntimeStatus(state: VnRuntimeState, patch: Partial<RuntimeStatus>): VnRuntimeState {

@@ -1001,6 +1001,120 @@ h1 {
   word-break: break-word;
 }
 
+.runtime-tech-grid {
+  display: grid;
+  gap: 7px;
+}
+
+.tech-item {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid rgba(255, 222, 176, 0.12);
+  border-radius: 8px;
+  background: rgba(19, 13, 10, 0.34);
+  color: #d7c1a7;
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.tech-item strong {
+  color: #fff1dc;
+  font-size: 12px;
+  line-height: 1.32;
+  overflow-wrap: anywhere;
+}
+
+.tech-item code {
+  color: #a99478;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 10px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.tech-item span {
+  width: fit-content;
+  max-width: 100%;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(255, 222, 176, 0.08);
+  color: #c8ae91;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.tech-item.used {
+  border-color: rgba(241, 201, 132, 0.28);
+  background: rgba(92, 60, 33, 0.26);
+}
+
+.tech-item.used span {
+  background: rgba(241, 201, 132, 0.15);
+  color: #f1c984;
+}
+
+.tech-item.active {
+  border-color: rgba(125, 231, 202, 0.9);
+  background:
+    linear-gradient(90deg, rgba(125, 231, 202, 0.16), rgba(255, 244, 223, 0.06)),
+    rgba(22, 30, 27, 0.66);
+  box-shadow: 0 0 0 1px rgba(125, 231, 202, 0.16), 0 10px 26px rgba(30, 214, 166, 0.18);
+  transform: translateY(-1px);
+  animation: techPulse 1.15s ease-in-out infinite;
+}
+
+.tech-item.active span {
+  background: rgba(125, 231, 202, 0.2);
+  color: #bfffee;
+}
+
+.runtime-tech-collapsible {
+  display: grid;
+  gap: 8px;
+}
+
+.runtime-tech-toggle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.runtime-tech-toggle span {
+  margin: 0;
+  color: #f1c984;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.runtime-tech-toggle b {
+  min-width: 24px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(255, 222, 176, 0.1);
+  color: #fff1dc;
+  font-size: 11px;
+  text-align: center;
+}
+
+@keyframes techPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(125, 231, 202, 0.16), 0 10px 26px rgba(30, 214, 166, 0.16);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(125, 231, 202, 0.32), 0 12px 34px rgba(30, 214, 166, 0.28);
+  }
+}
+
 .ledger-tags em {
   color: #bfa88e;
   font-size: 12px;

@@ -28,6 +28,7 @@ import {
   vnEventReducer,
   type DialogueHistoryEntry,
 } from './state/vnEventReducer';
+import { fetchRuntimeTechCatalog } from './services/runtimeTechCatalogApi';
 
 type AppShellProps = {
   auth: AuthGateState;
@@ -49,6 +50,7 @@ const STAGE_DOCUMENT_TYPES: Record<string, string> = {
 };
 const AUTO_NEXT_STORAGE_KEY = 'simlaw-town:auto-next-enabled';
 const AUTO_NEXT_ACKNOWLEDGE_DELAY_MS = 900;
+const TECH_HIGHLIGHT_DURATION_MS = 4000;
 
 function AppShell({ auth }: AppShellProps) {
   const [documentsOpen, setDocumentsOpen] = useState(false);
@@ -102,6 +104,33 @@ function AppShell({ auth }: AppShellProps) {
     && !runtime.activeCaseId
     && !runtime.loading,
   );
+
+  useEffect(() => {
+    if (!auth.backendConfigured || !auth.user) return;
+    let cancelled = false;
+    fetchRuntimeTechCatalog()
+      .then((catalog) => {
+        if (!cancelled) dispatchVnEvent({ type: 'runtime-tech-catalog-loaded', catalog });
+      })
+      .catch(() => {
+        // The panel can still render observed runtime tags when the catalog endpoint is unavailable.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [auth.backendConfigured, auth.user]);
+
+  useEffect(() => {
+    if (displayedScene.tech.activeTools.length === 0 && displayedScene.tech.activeSkills.length === 0) return;
+    const timeoutId = window.setTimeout(() => {
+      dispatchVnEvent({ type: 'clear-runtime-tech-highlight' });
+    }, TECH_HIGHLIGHT_DURATION_MS);
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    displayedScene.tech.activeSkills,
+    displayedScene.tech.activeTools,
+    displayedScene.tech.lastTechEventAt,
+  ]);
 
   useEffect(() => {
     try {

@@ -63,6 +63,24 @@ export type AgentCapability = {
   isPlayerAgent: boolean;
 };
 
+export type RuntimeTechCatalogItem = {
+  id: string;
+  displayName: string;
+  category: string;
+  description: string;
+  runtimeStatus: string;
+};
+
+export type RuntimeTechCatalog = {
+  tools: {
+    core: RuntimeTechCatalogItem[];
+    extension: RuntimeTechCatalogItem[];
+  };
+  skills: {
+    runtime: RuntimeTechCatalogItem[];
+  };
+};
+
 export type SimulationStatus = {
   status: string;
   sessionStatus: string;

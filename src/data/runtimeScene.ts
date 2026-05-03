@@ -1,3 +1,5 @@
+import type { RuntimeTechCatalog } from '../services/types';
+
 export type CharacterKey =
   | 'system'
   | 'playerLawyer'
@@ -33,6 +35,8 @@ export type Character = {
   position: 'left' | 'center' | 'right';
 };
 
+export type RuntimeTechUsageCounts = Record<string, number>;
+
 export type DialogueScene = {
   id: string;
   caseTitle: string;
@@ -50,6 +54,12 @@ export type DialogueScene = {
     agent: string;
     tools: string[];
     skills: string[];
+    catalog: RuntimeTechCatalog | null;
+    usedTools: RuntimeTechUsageCounts;
+    usedSkills: RuntimeTechUsageCounts;
+    activeTools: string[];
+    activeSkills: string[];
+    lastTechEventAt: string;
     memory: string;
     pipeline: string;
   };

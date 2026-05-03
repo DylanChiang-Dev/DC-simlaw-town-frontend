@@ -1,6 +1,6 @@
 {
   "name": "simlaw-town-frontend-v2",
-  "version": "2.1.40",
+  "version": "2.1.41",
   "private": true,
   "type": "module",
   "scripts": {
