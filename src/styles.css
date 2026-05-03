@@ -1495,22 +1495,22 @@ h1 {
 .case-timeline {
   min-width: 0;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: stretch;
   gap: 6px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .case-stage {
   position: relative;
-  flex: 1 1 clamp(118px, 12vw, 178px);
+  flex: 1 0 max-content;
   min-width: 0;
-  max-width: 210px;
   min-height: 40px;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 34px 8px 9px;
+  padding: 8px 9px;
   border: 1px solid rgba(255, 222, 176, 0.15);
   appearance: none;
   background: rgba(39, 25, 18, 0.78);
@@ -1518,6 +1518,7 @@ h1 {
   cursor: pointer;
   font: inherit;
   text-align: left;
+  white-space: nowrap;
 }
 
 .case-stage:disabled {
@@ -1561,18 +1562,16 @@ h1 {
   min-width: 0;
   margin-top: 0;
   padding-right: 0;
-  overflow-wrap: anywhere;
   color: #f6dec0;
   font-size: 11px;
   line-height: 1.2;
-  white-space: normal;
+  white-space: nowrap;
 }
 
 .case-stage-count {
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  transform: translateY(-50%);
+  position: static;
+  flex: 0 0 auto;
+  margin-left: auto;
   min-width: 22px;
   padding: 2px 6px;
   border-radius: 999px;
@@ -3099,8 +3098,7 @@ h1 {
   }
 
   .case-timeline {
-    max-height: 92px;
-    overflow-y: auto;
+    overflow-x: auto;
   }
 
   .build-version-badge {

@@ -114,8 +114,20 @@ assert.match(
 
 assert.match(
   stylesSource,
-  /\.case-stage\s*\{[\s\S]*flex:\s*1\s+1\s+clamp\(118px,\s*12vw,\s*178px\)[\s\S]*max-width:\s*210px/,
-  'Lifecycle stage controls should have adaptive content-aware widths instead of equal eighth-width columns.',
+  /\.case-stage\s*\{[\s\S]*flex:\s*1\s+0\s+max-content[\s\S]*white-space:\s*nowrap/,
+  'Lifecycle stage controls should size from their own content instead of squeezing labels into narrow fixed tracks.',
+);
+
+assert.doesNotMatch(
+  stylesSource,
+  /\.case-stage\s*\{[^}]*max-width:/,
+  'Lifecycle stage controls should not keep a hard maximum width that forces multi-line stage labels.',
+);
+
+assert.match(
+  stylesSource,
+  /\.case-stage-count\s*\{[\s\S]*position:\s*static[\s\S]*margin-left:\s*auto/,
+  'Lifecycle stage counts should participate in the same horizontal row instead of being absolutely overlaid.',
 );
 
 assert.doesNotMatch(
