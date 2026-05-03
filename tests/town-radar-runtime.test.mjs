@@ -74,6 +74,12 @@ assert.match(
 
 assert.match(
   runtimeSource,
+  /case 'agent_end_interaction':[\s\S]*if \(!isReceptionistAgentId\(agentId\)\) return state;[\s\S]*delete nextActors\[agentId\]/,
+  'Receptionist end-interaction events should remove the temporary front-desk NPC from the radar.',
+);
+
+assert.match(
+  runtimeSource,
   /rawLocationId/,
   'Unknown or raw destination ids should be retained for debugging.',
 );

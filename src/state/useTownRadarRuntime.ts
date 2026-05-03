@@ -107,6 +107,12 @@ export function reduceTownRadarMapEvent(
       delete nextActors[agentId];
       return { ...state, actors: nextActors, lastEventAt: Date.now() };
     }
+    case 'agent_end_interaction': {
+      if (!isReceptionistAgentId(agentId)) return state;
+      const nextActors = { ...state.actors };
+      delete nextActors[agentId];
+      return { ...state, actors: nextActors, lastEventAt: Date.now() };
+    }
     case 'agent_move': {
       const normalized = normalizeRadarLocationId(payload.dest_loc_id, fallbackStageCode);
       return upsertRadarActor(state, payload, agentId, normalized, { moving: true });
