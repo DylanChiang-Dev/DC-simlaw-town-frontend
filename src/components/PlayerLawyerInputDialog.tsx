@@ -14,32 +14,26 @@ const DOCUMENT_FOLLOWUP_HINTS = [
   {
     id: 'core_fact',
     label: '关键事实',
-    question: '请补充本案最关键的事实经过，包括时间、地点、参与人和事件顺序。',
   },
   {
     id: 'amount_basis',
     label: '金额依据',
-    question: '请列明目前主张的金额、各项费用的计算依据，以及是否有票据或转账记录。',
   },
   {
     id: 'evidence',
     label: '证据材料',
-    question: '请说明你手上已有的证据材料，包括合同、聊天记录、票据、鉴定、报警或就医材料。',
   },
   {
     id: 'opponent_response',
     label: '对方态度',
-    question: '请说明对方目前的态度、已经提出的理由或可能抗辩点。',
   },
   {
     id: 'litigation_goal',
     label: '诉讼目标',
-    question: '请确认你最希望法院支持的诉求，以及是否接受调解或分期履行。',
   },
   {
     id: 'missing_identity',
     label: '主体信息',
-    question: '请补充原被告身份信息、联系方式、住址或统一社会信用代码等起诉状必需信息。',
   },
 ];
 
@@ -199,11 +193,6 @@ export function PlayerLawyerInputDialog({
     setDocumentMode('drafting');
   }
 
-  function applyDocumentFollowupHint(question: string): void {
-    setFollowupQuestion(question);
-    setPolishError('');
-  }
-
   function applyTemplate(): void {
     const templateText = String(documentSkill?.templateText || '').trim();
     if (!templateText) return;
@@ -342,16 +331,12 @@ export function PlayerLawyerInputDialog({
               </div>
               <div className="document-followup-hints" aria-label="追问提示">
                 {DOCUMENT_FOLLOWUP_HINTS.map((hint) => (
-                  <button
+                  <span
                     className="document-followup-hint"
-                    disabled={loading}
                     key={hint.id}
-                    onClick={() => applyDocumentFollowupHint(hint.question)}
-                    title={hint.question}
-                    type="button"
                   >
                     {hint.label}
-                  </button>
+                  </span>
                 ))}
               </div>
               <div className="document-followup-row">

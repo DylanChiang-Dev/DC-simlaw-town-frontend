@@ -2733,24 +2733,15 @@ h1 {
 }
 
 .document-followup-hint {
+  display: inline-flex;
+  align-items: center;
   border: 1px solid rgba(166, 210, 189, 0.3);
   border-radius: 999px;
   padding: 7px 10px;
   background: rgba(216, 242, 223, 0.08);
   color: #d8f2df;
-  cursor: pointer;
   font-size: 12px;
   font-weight: 800;
-}
-
-.document-followup-hint:hover:not(:disabled) {
-  border-color: rgba(216, 242, 223, 0.56);
-  background: rgba(216, 242, 223, 0.14);
-}
-
-.document-followup-hint:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
 }
 
 .document-followup-row textarea {

@@ -8,6 +8,7 @@ const dialogSource = readFileSync(join(root, 'src', 'components', 'PlayerLawyerI
 const runtimeSource = readFileSync(join(root, 'src', 'state', 'usePlayerLawyerRuntime.ts'), 'utf8');
 const apiSource = readFileSync(join(root, 'src', 'services', 'playerLawyerApi.ts'), 'utf8');
 const appSource = readFileSync(join(root, 'src', 'App.tsx'), 'utf8');
+const followupHintsBlock = dialogSource.match(/const DOCUMENT_FOLLOWUP_HINTS = \[[\s\S]*?\];/)?.[0] || '';
 
 assert.doesNotMatch(
   dialogSource,
@@ -108,13 +109,25 @@ assert.match(
 assert.match(
   dialogSource,
   /DOCUMENT_FOLLOWUP_HINTS[\s\S]*关键事实[\s\S]*金额依据[\s\S]*证据材料[\s\S]*诉讼目标/,
-  'The document-stage dialog should expose concrete follow-up prompt chips.',
+  'The document-stage dialog should expose concrete follow-up reference hints.',
 );
 
-assert.match(
+assert.doesNotMatch(
   dialogSource,
-  /function applyDocumentFollowupHint\(question: string\)[\s\S]*setFollowupQuestion\(question\)/,
-  'Follow-up prompt chips should fill the editable question field instead of submitting immediately.',
+  /applyDocumentFollowupHint/,
+  'Follow-up hints should not keep helper functions that fill the editable question field.',
+);
+
+assert.doesNotMatch(
+  followupHintsBlock,
+  /question:/,
+  'Follow-up hints should be short reference labels without question templates.',
+);
+
+assert.doesNotMatch(
+  dialogSource,
+  /className="document-followup-hint"[\s\S]{0,220}onClick/,
+  'Follow-up hint labels should be reference-only and must not have click handlers.',
 );
 
 assert.match(
