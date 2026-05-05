@@ -2,7 +2,6 @@ import { FormEvent, useEffect, useState } from 'react';
 import { MarkdownText } from './MarkdownText';
 import type { PlayerLawyerRequest, PlayerLawyerSkill } from '../services/types';
 
-const DOCUMENT_STAGES = new Set(['CD', 'DD', 'AD', 'AR']);
 const MIN_DOCUMENT_FOLLOWUPS_BEFORE_DRAFTING = 2;
 const RESPONSE_HINTS = [
   { id: 'liability_scope', label: '责任和赔偿范围', description: '引导用户回应责任承担、合理损失范围和例外。' },
@@ -10,38 +9,127 @@ const RESPONSE_HINTS = [
   { id: 'claim_items', label: '赔偿项目', description: '引导用户覆盖医疗费、误工费、护理费等可主张项目。' },
   { id: 'missing_info', label: '追问信息', description: '引导用户向当事人继续追问金额、票据、收入等缺失细节。' },
 ];
-const DOCUMENT_FOLLOWUP_HINTS = [
-  {
-    id: 'core_fact',
-    label: '关键事实',
-    example: '事情发生的时间、地点、经过和在场人员，能再说清楚吗？',
-  },
-  {
-    id: 'amount_basis',
-    label: '请求依据',
-    example: '你提出的每项请求分别依据哪些事实、约定或法律关系？',
-  },
-  {
-    id: 'evidence',
-    label: '证据材料',
-    example: '你手上有哪些能证明这些事实和请求的材料？现在是否能提交？',
-  },
-  {
-    id: 'opponent_response',
-    label: '对方态度',
-    example: '对方现在承认、拒绝，还是提出过其他说法？',
-  },
-  {
-    id: 'litigation_goal',
-    label: '诉讼目标',
-    example: '你最希望法院支持哪几项请求？有没有可以接受的底线？',
-  },
-  {
-    id: 'missing_identity',
-    label: '主体信息',
-    example: '对方姓名、身份、地址、联系方式是否完整准确？',
-  },
-];
+const DOCUMENT_FOLLOWUP_HINTS_BY_STAGE = {
+  CD: [
+    {
+      id: 'core_fact',
+      label: '关键事实',
+      example: '事情发生的时间、地点、经过和在场人员，能再说清楚吗？',
+    },
+    {
+      id: 'amount_basis',
+      label: '请求依据',
+      example: '你提出的每项请求分别依据哪些事实、约定或法律关系？',
+    },
+    {
+      id: 'evidence',
+      label: '证据材料',
+      example: '你手上有哪些能证明这些事实和请求的材料？现在是否能提交？',
+    },
+    {
+      id: 'opponent_response',
+      label: '对方态度',
+      example: '对方现在承认、拒绝，还是提出过其他说法？',
+    },
+    {
+      id: 'litigation_goal',
+      label: '诉讼目标',
+      example: '你最希望法院支持哪几项请求？有没有可以接受的底线？',
+    },
+    {
+      id: 'missing_identity',
+      label: '主体信息',
+      example: '对方姓名、身份、地址、联系方式是否完整准确？',
+    },
+  ],
+  DD: [
+    {
+      id: 'claim_scope',
+      label: '对方诉请',
+      example: '对方主张的每一项请求，你认可哪些、反对哪些？',
+    },
+    {
+      id: 'defense_fact',
+      label: '答辩事实',
+      example: '有哪些事实可以说明对方说法不完整、不准确或不能成立？',
+    },
+    {
+      id: 'evidence_response',
+      label: '证据反驳',
+      example: '对方提交的证据里，哪些真实性、关联性或证明目的需要反驳？',
+    },
+    {
+      id: 'legal_defense',
+      label: '法律抗辩',
+      example: '本案有没有时效、主体、责任范围或合同履行方面的抗辩理由？',
+    },
+    {
+      id: 'settlement_bottom_line',
+      label: '处理底线',
+      example: '如果法院调解，你能接受的范围和不能接受的底线是什么？',
+    },
+  ],
+  AD: [
+    {
+      id: 'first_instance_error',
+      label: '一审错误',
+      example: '你认为一审判决在事实认定、证据采信或法律适用上错在哪里？',
+    },
+    {
+      id: 'appeal_request',
+      label: '上诉请求',
+      example: '你希望二审法院具体撤销、改判或变更哪几项内容？',
+    },
+    {
+      id: 'appeal_basis',
+      label: '上诉依据',
+      example: '支撑上诉请求的关键事实、证据和法律理由分别是什么？',
+    },
+    {
+      id: 'new_evidence',
+      label: '新证据',
+      example: '二审有没有新证据需要提交？为什么一审没有提交？',
+    },
+    {
+      id: 'appeal_goal',
+      label: '改判目标',
+      example: '如果二审不能完全支持上诉，哪些调整结果可以接受？',
+    },
+  ],
+  AR: [
+    {
+      id: 'appeal_reasons',
+      label: '上诉理由',
+      example: '对方上诉主要不服一审判决的哪几项？',
+    },
+    {
+      id: 'first_instance_basis',
+      label: '一审依据',
+      example: '一审判决支持我方立场的关键事实和证据是什么？',
+    },
+    {
+      id: 'point_by_point_response',
+      label: '逐项反驳',
+      example: '对方每一项上诉理由，你认为哪里不成立？',
+    },
+    {
+      id: 'new_evidence_response',
+      label: '新证据应对',
+      example: '对方二审是否提交新证据？我方如何质证或回应？',
+    },
+    {
+      id: 'response_goal',
+      label: '答辩目标',
+      example: '我方是请求驳回上诉、维持原判，还是接受部分调整？',
+    },
+    {
+      id: 'risk_bottom_line',
+      label: '风险底线',
+      example: '如果二审法院不完全维持原判，哪些结果可以接受？',
+    },
+  ],
+};
+const DOCUMENT_STAGES = new Set(Object.keys(DOCUMENT_FOLLOWUP_HINTS_BY_STAGE));
 
 type Props = {
   documentSkill?: PlayerLawyerSkill | null;
@@ -102,8 +190,9 @@ export function PlayerLawyerInputDialog({
 
   if (!request) return null;
 
-  const stage = String(request.stage || '').toUpperCase();
+  const stage = String(request.stage || '').toUpperCase() as keyof typeof DOCUMENT_FOLLOWUP_HINTS_BY_STAGE;
   const documentStage = DOCUMENT_STAGES.has(stage);
+  const documentFollowupHints = DOCUMENT_FOLLOWUP_HINTS_BY_STAGE[stage] || DOCUMENT_FOLLOWUP_HINTS_BY_STAGE.CD;
   const canStartDocumentDraft = followupHistory.length >= MIN_DOCUMENT_FOLLOWUPS_BEFORE_DRAFTING;
   const showDocumentDrafting = documentStage && documentMode === 'drafting';
   const showDocumentFollowup = documentStage && (documentMode === 'followup' || showDocumentDrafting);
@@ -340,7 +429,7 @@ export function PlayerLawyerInputDialog({
               <div className="document-followup-hints" aria-label="追问提示">
                 <span className="document-followup-hints-title">参考追问方向</span>
                 <div className="document-followup-hints-grid">
-                  {DOCUMENT_FOLLOWUP_HINTS.map((hint) => (
+                  {documentFollowupHints.map((hint) => (
                     <div className="document-followup-hint-card" key={hint.id}>
                       <strong>{hint.label}</strong>
                       <span>{hint.example}</span>

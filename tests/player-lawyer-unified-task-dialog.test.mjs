@@ -39,8 +39,8 @@ assert.match(
 
 assert.match(
   dialogSource,
-  /DOCUMENT_STAGES\s*=\s*new Set\(\['CD', 'DD', 'AD', 'AR'\]\)/,
-  'The unified document task dialog should cover CD, DD, AD, and AR document stages.',
+  /DOCUMENT_FOLLOWUP_HINTS_BY_STAGE\s*=\s*\{[\s\S]*CD:\s*\[[\s\S]*DD:\s*\[[\s\S]*AD:\s*\[[\s\S]*AR:\s*\[[\s\S]*DOCUMENT_STAGES\s*=\s*new Set\(Object\.keys\(DOCUMENT_FOLLOWUP_HINTS_BY_STAGE\)\)/,
+  'The unified document task dialog should cover CD, DD, AD, and AR document stages through the stage-specific hint map.',
 );
 
 assert.match(

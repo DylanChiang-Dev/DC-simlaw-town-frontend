@@ -8,7 +8,7 @@ const dialogSource = readFileSync(join(root, 'src', 'components', 'PlayerLawyerI
 const runtimeSource = readFileSync(join(root, 'src', 'state', 'usePlayerLawyerRuntime.ts'), 'utf8');
 const apiSource = readFileSync(join(root, 'src', 'services', 'playerLawyerApi.ts'), 'utf8');
 const appSource = readFileSync(join(root, 'src', 'App.tsx'), 'utf8');
-const followupHintsBlock = dialogSource.match(/const DOCUMENT_FOLLOWUP_HINTS = \[[\s\S]*?\];/)?.[0] || '';
+const followupHintsBlock = dialogSource.match(/const DOCUMENT_FOLLOWUP_HINTS_BY_STAGE = \{[\s\S]*?\n\};/)?.[0] || '';
 
 assert.doesNotMatch(
   dialogSource,
@@ -108,8 +108,8 @@ assert.match(
 
 assert.match(
   dialogSource,
-  /DOCUMENT_FOLLOWUP_HINTS[\s\S]*关键事实[\s\S]*请求依据[\s\S]*证据材料[\s\S]*诉讼目标/,
-  'The document-stage dialog should expose concrete follow-up reference hints.',
+  /DOCUMENT_FOLLOWUP_HINTS_BY_STAGE[\s\S]*CD:[\s\S]*关键事实[\s\S]*请求依据[\s\S]*DD:[\s\S]*答辩事实[\s\S]*AD:[\s\S]*一审错误[\s\S]*AR:[\s\S]*上诉理由/,
+  'The document-stage dialog should expose stage-specific follow-up reference hints.',
 );
 
 assert.match(
@@ -128,6 +128,18 @@ assert.match(
   dialogSource,
   /请求依据[\s\S]*每项请求分别依据/,
   'The document-stage dialog should show a cross-case request-basis example question.',
+);
+
+assert.match(
+  followupHintsBlock,
+  /AR:[\s\S]*对方上诉主要不服一审判决的哪几项[\s\S]*一审判决支持我方立场的关键事实和证据是什么[\s\S]*对方每一项上诉理由，你认为哪里不成立[\s\S]*我方是请求驳回上诉、维持原判，还是接受部分调整/,
+  'Appeal-response drafting should show follow-up examples focused on answering the appellant and defending the first-instance judgment.',
+);
+
+assert.match(
+  dialogSource,
+  /const documentFollowupHints = DOCUMENT_FOLLOWUP_HINTS_BY_STAGE\[stage\] \|\| DOCUMENT_FOLLOWUP_HINTS_BY_STAGE\.CD;/,
+  'The dialog should select follow-up hints by document stage with a stable CD fallback.',
 );
 
 assert.doesNotMatch(
