@@ -70,6 +70,48 @@ assert.match(
 );
 
 assert.match(
+  dialogSource,
+  /const MIN_DOCUMENT_FOLLOWUPS_BEFORE_DRAFTING = 2;/,
+  'The document-stage dialog should require two follow-ups before drafting.',
+);
+
+assert.match(
+  dialogSource,
+  /type DocumentMode = 'followup' \| 'drafting';/,
+  'The document-stage dialog should model follow-up and drafting as explicit modes.',
+);
+
+assert.match(
+  dialogSource,
+  /const canStartDocumentDraft = followupHistory\.length >= MIN_DOCUMENT_FOLLOWUPS_BEFORE_DRAFTING;/,
+  'The document-stage dialog should unlock drafting only after the required follow-up count.',
+);
+
+assert.match(
+  dialogSource,
+  /setDocumentMode\('followup'\);[\s\S]*setFollowupHistory\(\[\]\);/,
+  'New document requests should reset into follow-up mode with an empty follow-up history.',
+);
+
+assert.match(
+  dialogSource,
+  /documentStage && documentMode === 'followup'[\s\S]*提交追问/,
+  'Document requests should initially show a follow-up-only workflow.',
+);
+
+assert.match(
+  dialogSource,
+  /canStartDocumentDraft[\s\S]*开始起草/,
+  'The dialog should show a start-drafting action only after enough follow-ups.',
+);
+
+assert.doesNotMatch(
+  dialogSource,
+  /documentStage \? '请写入完整文书正文，或先套用参考模板后修改。' :/,
+  'The document editor should not be rendered unconditionally as soon as a document request opens.',
+);
+
+assert.match(
   appSource,
   /handleDocumentFollowup[\s\S]*sendPlayerLawyerDocumentFollowup[\s\S]*requestId:\s*request\.requestId/,
   'App should send document follow-up questions against the active pending document request.',

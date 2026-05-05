@@ -3,6 +3,7 @@ import { MarkdownText } from './MarkdownText';
 import type { PlayerLawyerRequest, PlayerLawyerSkill } from '../services/types';
 
 const DOCUMENT_STAGES = new Set(['CD', 'DD', 'AD', 'AR']);
+const MIN_DOCUMENT_FOLLOWUPS_BEFORE_DRAFTING = 2;
 const RESPONSE_HINTS = [
   { id: 'liability_scope', label: '责任和赔偿范围', description: '引导用户回应责任承担、合理损失范围和例外。' },
   { id: 'evidence_support', label: '证据支持', description: '引导用户说明医疗、交警、鉴定等证据如何支撑主张。' },
@@ -34,6 +35,8 @@ type DocumentFollowupPair = {
   answer: string;
 };
 
+type DocumentMode = 'followup' | 'drafting';
+
 export function PlayerLawyerInputDialog({
   documentSkill,
   loading,
@@ -51,6 +54,7 @@ export function PlayerLawyerInputDialog({
   const [polishError, setPolishError] = useState('');
   const [followupQuestion, setFollowupQuestion] = useState('');
   const [followupHistory, setFollowupHistory] = useState<DocumentFollowupPair[]>([]);
+  const [documentMode, setDocumentMode] = useState<DocumentMode>('followup');
 
   useEffect(() => {
     setMessage('');
@@ -58,6 +62,7 @@ export function PlayerLawyerInputDialog({
     setPolishedMessage('');
     setPolishError('');
     setFollowupQuestion('');
+    setDocumentMode('followup');
     setFollowupHistory([]);
   }, [request?.requestId]);
 
@@ -65,11 +70,18 @@ export function PlayerLawyerInputDialog({
 
   const stage = String(request.stage || '').toUpperCase();
   const documentStage = DOCUMENT_STAGES.has(stage);
+  const canStartDocumentDraft = followupHistory.length >= MIN_DOCUMENT_FOLLOWUPS_BEFORE_DRAFTING;
+  const showDocumentDrafting = documentStage && documentMode === 'drafting';
+  const showDocumentFollowup = documentStage && (documentMode === 'followup' || showDocumentDrafting);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     if (!message.trim()) return;
     if (documentStage) {
+      if (!showDocumentDrafting || !canStartDocumentDraft) {
+        setPolishError(`请先完成至少 ${MIN_DOCUMENT_FOLLOWUPS_BEFORE_DRAFTING} 轮追问，再开始起草文书。`);
+        return;
+      }
       setPolishError('');
       try {
         await onSubmitDocument({ documentText: message.trim() });
@@ -146,6 +158,15 @@ export function PlayerLawyerInputDialog({
     }
   }
 
+  function startDocumentDrafting(): void {
+    if (!canStartDocumentDraft) {
+      setPolishError(`请先完成至少 ${MIN_DOCUMENT_FOLLOWUPS_BEFORE_DRAFTING} 轮追问，再开始起草文书。`);
+      return;
+    }
+    setPolishError('');
+    setDocumentMode('drafting');
+  }
+
   function applyTemplate(): void {
     const templateText = String(documentSkill?.templateText || '').trim();
     if (!templateText) return;
@@ -179,10 +200,11 @@ export function PlayerLawyerInputDialog({
             {documentStage ? (
               <>
                 <p>
-                  当前文本框就是文书任务入口。用户可以参考后端文书模板直接起草，也可以套用模板后按案件事实修改。
+                  文书阶段先补事实，再起草。请先完成至少 {MIN_DOCUMENT_FOLLOWUPS_BEFORE_DRAFTING} 轮当事人追问，
+                  补齐事实、金额、证据或诉讼立场。
                 </p>
                 <p>
-                  提交时会把用户写入的完整文书保存为本阶段结果，系统随后继续导出 PDF 并推进流程。
+                  达到追问轮数后再进入起草区，系统会保留模板、智能体润色和手写确认。
                 </p>
               </>
             ) : (
@@ -214,7 +236,7 @@ export function PlayerLawyerInputDialog({
               ))}
             </div>
           )}
-          {documentStage && (
+          {showDocumentDrafting && (
             <section className="document-template-reference" aria-label="参考模板">
               <div className="document-template-header">
                 <div>
@@ -254,18 +276,32 @@ export function PlayerLawyerInputDialog({
               )}
             </section>
           )}
-          <textarea
-            autoFocus
-            disabled={loading}
-            onChange={(event) => setMessage(event.target.value)}
-            placeholder={documentStage ? '请写入完整文书正文，或先套用参考模板后修改。' : '请写下你准备让当前角色表达的回复要点。'}
-            value={message}
-          />
-          {documentStage && (
+          {!documentStage && (
+            <textarea
+              autoFocus
+              disabled={loading}
+              onChange={(event) => setMessage(event.target.value)}
+              placeholder="请写下你准备让当前角色表达的回复要点。"
+              value={message}
+            />
+          )}
+          {showDocumentDrafting && (
+            <textarea
+              autoFocus
+              disabled={loading}
+              onChange={(event) => setMessage(event.target.value)}
+              placeholder="请写入完整文书正文，或先套用参考模板后修改。"
+              value={message}
+            />
+          )}
+          {showDocumentFollowup && (
             <section className="document-followup-panel" aria-label="追问当事人">
               <div className="document-followup-header">
                 <strong>追问当事人</strong>
-                <span>补齐事实、金额、证据或诉讼立场后再起草。</span>
+                <span>
+                  已完成 {followupHistory.length}/{MIN_DOCUMENT_FOLLOWUPS_BEFORE_DRAFTING} 轮必需追问；
+                  满 2 轮后可以开始起草，也可以继续追问。
+                </span>
               </div>
               <div className="document-followup-row">
                 <textarea
@@ -274,15 +310,24 @@ export function PlayerLawyerInputDialog({
                   placeholder="写下要向当事人追问的一个具体问题。"
                   value={followupQuestion}
                 />
-                <button
-                  className="secondary-action"
-                  disabled={loading || !followupQuestion.trim()}
-                  onClick={handleDocumentFollowup}
-                  type="button"
-                >
-                  {loading ? '追问中' : '追问当事人'}
-                </button>
+                {showDocumentDrafting && (
+                  <button
+                    className="secondary-action"
+                    disabled={loading || !followupQuestion.trim()}
+                    onClick={handleDocumentFollowup}
+                    type="button"
+                  >
+                    {loading ? '追问中' : '追问当事人'}
+                  </button>
+                )}
               </div>
+              {documentMode === 'followup' && canStartDocumentDraft && (
+                <div className="document-followup-actions">
+                  <button className="primary-action" disabled={loading} onClick={startDocumentDrafting} type="button">
+                    开始起草
+                  </button>
+                </div>
+              )}
               {followupHistory.length > 0 && (
                 <div className="document-followup-history" aria-label="追问记录">
                   {followupHistory.map((item, index) => (
@@ -317,9 +362,19 @@ export function PlayerLawyerInputDialog({
             <button className="secondary-action" disabled={loading} onClick={onClose} type="button">
               稍后处理
             </button>
-            <button className="primary-action" disabled={loading || !message.trim()} type="submit">
-              {loading ? '提交中' : documentStage ? '提交文书并继续' : '提交回复'}
-            </button>
+            {documentStage && documentMode === 'followup' ? (
+              <button className="primary-action" disabled={loading || !followupQuestion.trim()} onClick={handleDocumentFollowup} type="button">
+                {loading ? '追问中' : '提交追问'}
+              </button>
+            ) : (
+              <button
+                className="primary-action"
+                disabled={loading || !message.trim() || (documentStage && !canStartDocumentDraft)}
+                type="submit"
+              >
+                {loading ? '提交中' : documentStage ? '提交文书并继续' : '提交回复'}
+              </button>
+            )}
           </div>
         </form>
       </section>
