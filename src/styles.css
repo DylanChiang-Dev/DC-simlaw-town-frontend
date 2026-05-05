@@ -2412,6 +2412,97 @@ h1 {
   font-size: 12px;
 }
 
+.task-workbench-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 24;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(25, 15, 10, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.task-workbench-shell {
+  position: relative;
+  width: min(1240px, calc(100vw - 40px));
+  height: min(94vh, 900px);
+  min-height: 620px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  border: 1px solid rgba(255, 222, 176, 0.36);
+  background: var(--panel-solid);
+  box-shadow: 0 34px 100px rgba(0, 0, 0, 0.52);
+  overflow: hidden;
+}
+
+.task-workbench-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 24px 28px 16px;
+  border-bottom: 1px solid rgba(255, 222, 176, 0.16);
+}
+
+.task-workbench-title-block {
+  min-width: 0;
+}
+
+.task-workbench-title-block h2 {
+  margin-top: 8px;
+  color: #fff4df;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.task-workbench-meta {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.task-workbench-meta span {
+  border: 1px solid rgba(255, 222, 176, 0.22);
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: rgba(255, 241, 220, 0.08);
+  color: #f4d6a4;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.task-workbench-body {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.34fr) minmax(0, 1fr);
+  gap: 16px;
+  padding: 18px 28px;
+}
+
+.task-workbench-side,
+.task-workbench-main {
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid rgba(233, 188, 114, 0.22);
+  background: rgba(255, 241, 220, 0.055);
+  padding: 16px;
+}
+
+.task-workbench-main {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.task-workbench-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 28px 20px;
+  border-top: 1px solid rgba(255, 222, 176, 0.16);
+  background: rgba(25, 15, 10, 0.24);
+}
+
 .player-lawyer-dialog-layer {
   position: fixed;
   inset: 0;
@@ -2552,6 +2643,41 @@ h1 {
 .player-lawyer-input-dialog::-webkit-scrollbar-thumb {
   border-radius: 999px;
   background: rgba(233, 188, 114, 0.42);
+}
+
+.player-workbench-assist {
+  display: grid;
+  gap: 14px;
+}
+
+.player-workbench-form {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(260px, 1fr) auto auto;
+  gap: 14px;
+}
+
+.player-workbench-editor {
+  width: 100%;
+  min-height: 360px;
+  height: 100%;
+  resize: none;
+  border: 1px solid rgba(255, 222, 176, 0.28);
+  border-radius: 8px;
+  padding: 14px 15px;
+  background: rgba(255, 241, 220, 0.09);
+  color: #fff8ed;
+  font: inherit;
+  line-height: 1.65;
+}
+
+.document-followup-editor {
+  min-height: 180px;
+}
+
+.player-workbench-editor:focus {
+  outline: 2px solid rgba(233, 188, 114, 0.45);
+  outline-offset: 1px;
 }
 
 .response-assist-explain {
@@ -2872,6 +2998,18 @@ h1 {
   font-size: 16px;
 }
 
+.closing-workbench-side,
+.closing-workbench-main {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.closing-workbench-main {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
 .closing-summary-meta {
   margin-top: 12px;
   display: flex;
@@ -2970,6 +3108,10 @@ h1 {
 
 .closing-evaluation-section {
   margin-top: 14px;
+}
+
+.closing-workbench-main .closing-evaluation-section {
+  margin-top: 0;
 }
 
 .closing-evaluation-header {
@@ -3374,6 +3516,28 @@ h1 {
   .player-lawyer-dialog-actions {
     justify-content: flex-start;
     flex-wrap: wrap;
+  }
+
+  .task-workbench-layer {
+    padding: 10px;
+  }
+
+  .task-workbench-shell {
+    width: calc(100vw - 20px);
+    height: calc(100vh - 20px);
+    min-height: 0;
+  }
+
+  .task-workbench-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(180px, 0.42fr) minmax(0, 1fr);
+    padding: 12px;
+  }
+
+  .task-workbench-header,
+  .task-workbench-footer {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 
   .confirm-dialog-actions {
