@@ -10,6 +10,38 @@ const RESPONSE_HINTS = [
   { id: 'claim_items', label: '赔偿项目', description: '引导用户覆盖医疗费、误工费、护理费等可主张项目。' },
   { id: 'missing_info', label: '追问信息', description: '引导用户向当事人继续追问金额、票据、收入等缺失细节。' },
 ];
+const DOCUMENT_FOLLOWUP_HINTS = [
+  {
+    id: 'core_fact',
+    label: '关键事实',
+    question: '请补充本案最关键的事实经过，包括时间、地点、参与人和事件顺序。',
+  },
+  {
+    id: 'amount_basis',
+    label: '金额依据',
+    question: '请列明目前主张的金额、各项费用的计算依据，以及是否有票据或转账记录。',
+  },
+  {
+    id: 'evidence',
+    label: '证据材料',
+    question: '请说明你手上已有的证据材料，包括合同、聊天记录、票据、鉴定、报警或就医材料。',
+  },
+  {
+    id: 'opponent_response',
+    label: '对方态度',
+    question: '请说明对方目前的态度、已经提出的理由或可能抗辩点。',
+  },
+  {
+    id: 'litigation_goal',
+    label: '诉讼目标',
+    question: '请确认你最希望法院支持的诉求，以及是否接受调解或分期履行。',
+  },
+  {
+    id: 'missing_identity',
+    label: '主体信息',
+    question: '请补充原被告身份信息、联系方式、住址或统一社会信用代码等起诉状必需信息。',
+  },
+];
 
 type Props = {
   documentSkill?: PlayerLawyerSkill | null;
@@ -167,6 +199,11 @@ export function PlayerLawyerInputDialog({
     setDocumentMode('drafting');
   }
 
+  function applyDocumentFollowupHint(question: string): void {
+    setFollowupQuestion(question);
+    setPolishError('');
+  }
+
   function applyTemplate(): void {
     const templateText = String(documentSkill?.templateText || '').trim();
     if (!templateText) return;
@@ -303,6 +340,20 @@ export function PlayerLawyerInputDialog({
                   满 2 轮后可以开始起草，也可以继续追问。
                 </span>
               </div>
+              <div className="document-followup-hints" aria-label="追问提示">
+                {DOCUMENT_FOLLOWUP_HINTS.map((hint) => (
+                  <button
+                    className="document-followup-hint"
+                    disabled={loading}
+                    key={hint.id}
+                    onClick={() => applyDocumentFollowupHint(hint.question)}
+                    title={hint.question}
+                    type="button"
+                  >
+                    {hint.label}
+                  </button>
+                ))}
+              </div>
               <div className="document-followup-row">
                 <textarea
                   disabled={loading}
@@ -328,16 +379,20 @@ export function PlayerLawyerInputDialog({
                   </button>
                 </div>
               )}
-              {followupHistory.length > 0 && (
-                <div className="document-followup-history" aria-label="追问记录">
-                  {followupHistory.map((item, index) => (
+              <div className="document-followup-history" aria-label="追问记录">
+                {followupHistory.length > 0 ? (
+                  followupHistory.map((item, index) => (
                     <article key={`${index}-${item.question}`}>
-                      <strong>问：{item.question}</strong>
+                      <strong>第 {index + 1} 问：{item.question}</strong>
                       <span>答：{item.answer}</span>
                     </article>
-                  ))}
-                </div>
-              )}
+                  ))
+                ) : (
+                  <p className="document-followup-empty">
+                    尚未追问。先选择一个提示方向，或直接写下你要补充核实的问题。
+                  </p>
+                )}
+              </div>
             </section>
           )}
           {!documentStage && (

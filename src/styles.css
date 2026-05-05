@@ -2726,6 +2726,33 @@ h1 {
   align-items: start;
 }
 
+.document-followup-hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.document-followup-hint {
+  border: 1px solid rgba(166, 210, 189, 0.3);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(216, 242, 223, 0.08);
+  color: #d8f2df;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.document-followup-hint:hover:not(:disabled) {
+  border-color: rgba(216, 242, 223, 0.56);
+  background: rgba(216, 242, 223, 0.14);
+}
+
+.document-followup-hint:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .document-followup-row textarea {
   min-height: 74px;
 }
@@ -2741,6 +2768,17 @@ h1 {
   padding: 9px 10px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.055);
+}
+
+.document-followup-empty {
+  margin: 0;
+  border: 1px dashed rgba(166, 210, 189, 0.24);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  color: #b9d3c4;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .document-followup-history strong,

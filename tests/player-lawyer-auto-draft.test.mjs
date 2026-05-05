@@ -105,6 +105,30 @@ assert.match(
   'The dialog should show a start-drafting action only after enough follow-ups.',
 );
 
+assert.match(
+  dialogSource,
+  /DOCUMENT_FOLLOWUP_HINTS[\s\S]*关键事实[\s\S]*金额依据[\s\S]*证据材料[\s\S]*诉讼目标/,
+  'The document-stage dialog should expose concrete follow-up prompt chips.',
+);
+
+assert.match(
+  dialogSource,
+  /function applyDocumentFollowupHint\(question: string\)[\s\S]*setFollowupQuestion\(question\)/,
+  'Follow-up prompt chips should fill the editable question field instead of submitting immediately.',
+);
+
+assert.match(
+  dialogSource,
+  /尚未追问。先选择一个提示方向/,
+  'The document-stage dialog should show an empty state before the first follow-up.',
+);
+
+assert.match(
+  dialogSource,
+  /第 \{index \+ 1\} 问：/,
+  'The follow-up history should label previous questions by sequence number.',
+);
+
 assert.doesNotMatch(
   dialogSource,
   /documentStage \? '请写入完整文书正文，或先套用参考模板后修改。' :/,
