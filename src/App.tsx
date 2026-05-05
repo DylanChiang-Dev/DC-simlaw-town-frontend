@@ -32,6 +32,11 @@ import {
 } from './state/vnEventReducer';
 import { fetchRuntimeTechCatalog } from './services/runtimeTechCatalogApi';
 
+type DocumentFollowupPair = {
+  question: string;
+  answer: string;
+};
+
 type AppShellProps = {
   auth: AuthGateState;
 };
@@ -64,6 +69,7 @@ function AppShell({ auth }: AppShellProps) {
   const [closingSummaryEntryId, setClosingSummaryEntryId] = useState('');
   const [documentPolishLoading, setDocumentPolishLoading] = useState(false);
   const [documentFollowupLoading, setDocumentFollowupLoading] = useState(false);
+  const [documentFollowupHistoryByRequestId, setDocumentFollowupHistoryByRequestId] = useState<Record<string, DocumentFollowupPair[]>>({});
   const [documentSkills, setDocumentSkills] = useState<PlayerLawyerSkill[]>([]);
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const [autoNextEnabled, setAutoNextEnabled] = useState(() => readAutoNextPreference());
@@ -375,11 +381,19 @@ function AppShell({ auth }: AppShellProps) {
         requestId: request.requestId,
         message: input.message.trim(),
       });
-      await playerLawyer.refresh();
-      return {
-        question: result.question,
-        answer: result.answer,
+      const followup = {
+        question: result.question || input.message.trim(),
+        answer: result.answer || '当事人暂未补充更多信息。',
       };
+      setDocumentFollowupHistoryByRequestId((current) => ({
+        ...current,
+        [request.requestId]: [
+          ...(current[request.requestId] || []),
+          followup,
+        ],
+      }));
+      await playerLawyer.refresh();
+      return followup;
     } finally {
       setDocumentFollowupLoading(false);
     }
@@ -470,6 +484,7 @@ function AppShell({ auth }: AppShellProps) {
       </div>
       <PlayerLawyerInputDialog
         documentSkill={activeDocumentSkill}
+        initialFollowupHistory={activePlayerRequest ? documentFollowupHistoryByRequestId[activePlayerRequest.requestId] || [] : []}
         loading={playerLawyer.actionLoading || documentPolishLoading || documentFollowupLoading}
         onClose={() => setPlayerDialogOpen(false)}
         onFollowupDocument={handleDocumentFollowup}

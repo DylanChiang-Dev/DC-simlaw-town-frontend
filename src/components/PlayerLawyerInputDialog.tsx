@@ -45,6 +45,7 @@ const DOCUMENT_FOLLOWUP_HINTS = [
 
 type Props = {
   documentSkill?: PlayerLawyerSkill | null;
+  initialFollowupHistory?: DocumentFollowupPair[];
   loading: boolean;
   onClose: () => void;
   onFollowupDocument: (input: { message: string }) => Promise<{ question: string; answer: string }>;
@@ -71,6 +72,7 @@ type DocumentMode = 'followup' | 'drafting';
 
 export function PlayerLawyerInputDialog({
   documentSkill,
+  initialFollowupHistory = [],
   loading,
   onClose,
   onFollowupDocument,
@@ -95,7 +97,7 @@ export function PlayerLawyerInputDialog({
     setPolishError('');
     setFollowupQuestion('');
     setDocumentMode('followup');
-    setFollowupHistory([]);
+    setFollowupHistory(initialFollowupHistory);
   }, [request?.requestId]);
 
   if (!request) return null;

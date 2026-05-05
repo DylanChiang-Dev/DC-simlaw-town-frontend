@@ -90,8 +90,8 @@ assert.match(
 
 assert.match(
   dialogSource,
-  /setDocumentMode\('followup'\);[\s\S]*setFollowupHistory\(\[\]\);/,
-  'New document requests should reset into follow-up mode with an empty follow-up history.',
+  /initialFollowupHistory[\s\S]*setFollowupHistory\(initialFollowupHistory\);/,
+  'New document requests should initialize follow-up history from the parent request-scoped state.',
 );
 
 assert.match(
@@ -176,6 +176,18 @@ assert.match(
   appSource,
   /handleDocumentFollowup[\s\S]*sendPlayerLawyerDocumentFollowup[\s\S]*requestId:\s*request\.requestId/,
   'App should send document follow-up questions against the active pending document request.',
+);
+
+assert.match(
+  appSource,
+  /documentFollowupHistoryByRequestId[\s\S]*setDocumentFollowupHistoryByRequestId[\s\S]*request\.requestId/,
+  'App should keep document follow-up history keyed by request id so reopening the dialog preserves prior questions.',
+);
+
+assert.match(
+  appSource,
+  /initialFollowupHistory=\{activePlayerRequest \? documentFollowupHistoryByRequestId\[activePlayerRequest\.requestId\] \|\| \[\] : \[\]\}/,
+  'App should pass request-scoped document follow-up history into the dialog.',
 );
 
 assert.match(
