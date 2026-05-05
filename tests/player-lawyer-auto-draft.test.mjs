@@ -108,8 +108,32 @@ assert.match(
 
 assert.match(
   dialogSource,
-  /DOCUMENT_FOLLOWUP_HINTS[\s\S]*关键事实[\s\S]*金额依据[\s\S]*证据材料[\s\S]*诉讼目标/,
+  /DOCUMENT_FOLLOWUP_HINTS[\s\S]*关键事实[\s\S]*请求依据[\s\S]*证据材料[\s\S]*诉讼目标/,
   'The document-stage dialog should expose concrete follow-up reference hints.',
+);
+
+assert.match(
+  followupHintsBlock,
+  /example:/,
+  'Follow-up hints should include read-only example questions so players know how to ask.',
+);
+
+assert.match(
+  dialogSource,
+  /参考追问方向/,
+  'The document-stage dialog should label follow-up hints as reference directions.',
+);
+
+assert.match(
+  dialogSource,
+  /请求依据[\s\S]*每项请求分别依据/,
+  'The document-stage dialog should show a cross-case request-basis example question.',
+);
+
+assert.doesNotMatch(
+  followupHintsBlock,
+  /交通事故|借款|借条|转账|收据|医疗费|误工费/,
+  'Follow-up hint examples should not be tied to one case type or compensation scenario.',
 );
 
 assert.doesNotMatch(
@@ -120,19 +144,19 @@ assert.doesNotMatch(
 
 assert.doesNotMatch(
   followupHintsBlock,
-  /question:/,
-  'Follow-up hints should be short reference labels without question templates.',
+  /setFollowupQuestion/,
+  'Follow-up hint data should never be wired to fill the editable question field.',
 );
 
 assert.doesNotMatch(
-  dialogSource,
-  /className="document-followup-hint"[\s\S]{0,220}onClick/,
-  'Follow-up hint labels should be reference-only and must not have click handlers.',
+  dialogSource.match(/<div className="document-followup-hints"[\s\S]*?<\/div>\s*<div className="document-followup-row">/)?.[0] || '',
+  /onClick/,
+  'Follow-up hint reference cards should not have click handlers.',
 );
 
 assert.match(
   dialogSource,
-  /尚未追问。先选择一个提示方向/,
+  /尚未追问。可参考上方问法/,
   'The document-stage dialog should show an empty state before the first follow-up.',
 );
 

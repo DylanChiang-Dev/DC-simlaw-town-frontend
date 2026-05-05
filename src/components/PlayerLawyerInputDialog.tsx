@@ -14,26 +14,32 @@ const DOCUMENT_FOLLOWUP_HINTS = [
   {
     id: 'core_fact',
     label: '关键事实',
+    example: '事情发生的时间、地点、经过和在场人员，能再说清楚吗？',
   },
   {
     id: 'amount_basis',
-    label: '金额依据',
+    label: '请求依据',
+    example: '你提出的每项请求分别依据哪些事实、约定或法律关系？',
   },
   {
     id: 'evidence',
     label: '证据材料',
+    example: '你手上有哪些能证明这些事实和请求的材料？现在是否能提交？',
   },
   {
     id: 'opponent_response',
     label: '对方态度',
+    example: '对方现在承认、拒绝，还是提出过其他说法？',
   },
   {
     id: 'litigation_goal',
     label: '诉讼目标',
+    example: '你最希望法院支持哪几项请求？有没有可以接受的底线？',
   },
   {
     id: 'missing_identity',
     label: '主体信息',
+    example: '对方姓名、身份、地址、联系方式是否完整准确？',
   },
 ];
 
@@ -330,14 +336,15 @@ export function PlayerLawyerInputDialog({
                 </span>
               </div>
               <div className="document-followup-hints" aria-label="追问提示">
-                {DOCUMENT_FOLLOWUP_HINTS.map((hint) => (
-                  <span
-                    className="document-followup-hint"
-                    key={hint.id}
-                  >
-                    {hint.label}
-                  </span>
-                ))}
+                <span className="document-followup-hints-title">参考追问方向</span>
+                <div className="document-followup-hints-grid">
+                  {DOCUMENT_FOLLOWUP_HINTS.map((hint) => (
+                    <div className="document-followup-hint-card" key={hint.id}>
+                      <strong>{hint.label}</strong>
+                      <span>{hint.example}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="document-followup-row">
                 <textarea
@@ -374,7 +381,7 @@ export function PlayerLawyerInputDialog({
                   ))
                 ) : (
                   <p className="document-followup-empty">
-                    尚未追问。先选择一个提示方向，或直接写下你要补充核实的问题。
+                    尚未追问。可参考上方问法，自己写下要补充核实的问题。
                   </p>
                 )}
               </div>
