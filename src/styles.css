@@ -2926,14 +2926,13 @@ h1 {
 }
 
 .closing-document-list,
-.closing-turn-list {
+.closing-report-note {
   margin-top: 12px;
   display: grid;
   gap: 8px;
 }
 
-.closing-document-item,
-.closing-turn-item {
+.closing-document-item {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -2942,18 +2941,28 @@ h1 {
   background: rgba(25, 15, 10, 0.24);
 }
 
-.closing-turn-item {
-  display: grid;
+.closing-report-note {
+  min-height: 96px;
+  place-content: center;
+  border: 1px solid rgba(233, 188, 114, 0.18);
+  padding: 16px;
+  background: rgba(25, 15, 10, 0.24);
+  color: #dcc3a7;
+  text-align: center;
 }
 
-.closing-document-item strong,
-.closing-turn-item span {
+.closing-report-note strong {
+  color: #fff4df;
+  font-size: 28px;
+}
+
+.closing-document-item strong {
   color: #fff4df;
   font-size: 13px;
 }
 
 .closing-document-item span,
-.closing-turn-item .markdown-text {
+.closing-report-note span {
   color: #dcc3a7;
   font-size: 12px;
   line-height: 1.55;

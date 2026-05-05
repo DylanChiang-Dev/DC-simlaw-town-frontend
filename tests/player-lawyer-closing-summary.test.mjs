@@ -137,6 +137,24 @@ assert.match(
   'Closing summary dialog should call the Markdown report download helper.',
 );
 
+assert.doesNotMatch(
+  summarySource,
+  /summary\.playerTurns\.slice\(-4\)/,
+  'Closing summary dialog must not show a partial tail of player submissions.',
+);
+
+assert.doesNotMatch(
+  summarySource,
+  /className="closing-turn-list"/,
+  'Closing summary dialog should avoid partial submission lists; full records belong in the Markdown report.',
+);
+
+assert.match(
+  summarySource,
+  /完整提交与对话请导出复盘 Markdown 查看/,
+  'Closing summary dialog should tell users where to inspect the full player record.',
+);
+
 assert.match(
   typesSource,
   /export type CaseClosingEvaluation/,

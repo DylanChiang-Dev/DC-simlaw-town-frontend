@@ -122,15 +122,10 @@ export function CaseClosingSummaryDialog({ caseId, onClose, open }: Props) {
             </section>
 
             <section className="closing-summary-section">
-              <h3>玩家提交</h3>
-              <div className="closing-turn-list">
-                {summary.playerTurns.slice(-4).map((turn, index) => (
-                  <article className="closing-turn-item" key={turn.requestId || `${turn.stage}-${index}`}>
-                    <span>{turn.stage || '阶段'} · {turn.speakerLabel || '原告律师'}</span>
-                    <MarkdownText text={turn.finalMessage} />
-                  </article>
-                ))}
-                {!summary.playerTurns.length ? <div className="empty-case">暂无玩家提交记录。</div> : null}
+              <h3>完整记录</h3>
+              <div className="closing-report-note">
+                <strong>{summary.playerTurnCount}</strong>
+                <span>条玩家提交已纳入评分。完整提交与对话请导出复盘 Markdown 查看。</span>
               </div>
             </section>
           </div>
