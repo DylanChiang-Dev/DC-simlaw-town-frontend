@@ -9,34 +9,40 @@ const runtimeSource = readFileSync(join(root, 'src', 'state', 'usePlayerLawyerRu
 const apiSource = readFileSync(join(root, 'src', 'services', 'playerLawyerApi.ts'), 'utf8');
 const appSource = readFileSync(join(root, 'src', 'App.tsx'), 'utf8');
 
-assert.match(
-  apiSource,
-  /draftPlayerLawyerResponse[\s\S]*?\/api\/sandbox\/player-lawyer\/draft-response/,
-  'Frontend API should call the dedicated AI draft-response endpoint instead of abusing polish-response.',
+assert.doesNotMatch(
+  dialogSource,
+  /AI 代答并提交|handleAutoDraftSubmit/,
+  'Formal player text input should not expose one-click AI answer submission.',
 );
 
-assert.match(
+assert.doesNotMatch(
   runtimeSource,
-  /draftTextReply:\s*\(input:\s*Omit<PlayerLawyerDraftInput,\s*'requestId'>\)/,
-  'usePlayerLawyerRuntime should expose draftTextReply for one-click AI answer generation.',
+  /draftTextReply/,
+  'Formal player runtime should not expose one-click AI answer submission.',
+);
+
+assert.doesNotMatch(
+  appSource,
+  /onDraftText/,
+  'App should not pass a one-click AI draft submit handler into the player dialog.',
+);
+
+assert.doesNotMatch(
+  apiSource,
+  /draftPlayerLawyerResponse/,
+  'Formal frontend API wrapper should not expose draft-response after removing the UI entry.',
 );
 
 assert.match(
   dialogSource,
-  /AI 代答并提交/,
-  'The text input dialog should expose an AI auto-answer submit button for flow-through testing.',
+  /AI 润色/,
+  'The text input dialog should still expose AI polish for user-authored text.',
 );
 
 assert.doesNotMatch(
   dialogSource,
   /AI 生成文书并继续流程|handleAutoDocumentSubmit/,
   'The document-stage dialog should no longer expose AI document completion.',
-);
-
-assert.match(
-  dialogSource,
-  /handleAutoDraftSubmit/,
-  'The AI auto-answer button should submit the generated draft, not only fill an unused local variable.',
 );
 
 assert.match(

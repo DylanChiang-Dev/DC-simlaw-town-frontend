@@ -15,8 +15,8 @@ assert.match(
 
 assert.match(
   appSource,
-  /<PlayerLawyerInputDialog[\s\S]*?loading=\{playerLawyer\.actionLoading\}/,
-  'PlayerLawyerInputDialog must not receive background refresh loading because disabling a focused textarea drops focus.',
+  /<PlayerLawyerInputDialog[\s\S]*?loading=\{playerLawyer\.actionLoading \|\| documentPolishLoading \|\| documentFollowupLoading\}/,
+  'PlayerLawyerInputDialog should only receive user-initiated action loading flags, not background refresh loading.',
 );
 
 assert.doesNotMatch(

@@ -14,7 +14,6 @@ type Props = {
   documentSkill?: PlayerLawyerSkill | null;
   loading: boolean;
   onClose: () => void;
-  onDraftText: (input: { hintIds: string[] }) => Promise<string>;
   onFollowupDocument: (input: { message: string }) => Promise<{ question: string; answer: string }>;
   onPolishDocument: (input: { documentText: string; followupHistory: DocumentFollowupPair[] }) => Promise<string>;
   onPolishText: (input: { originalMessage: string; hintIds: string[] }) => Promise<string>;
@@ -39,7 +38,6 @@ export function PlayerLawyerInputDialog({
   documentSkill,
   loading,
   onClose,
-  onDraftText,
   onFollowupDocument,
   onPolishDocument,
   onPolishText,
@@ -145,27 +143,6 @@ export function PlayerLawyerInputDialog({
       setFollowupQuestion('');
     } catch (err) {
       setPolishError(err instanceof Error ? err.message : '追问当事人失败');
-    }
-  }
-
-  async function handleAutoDraftSubmit(): Promise<void> {
-    if (loading) return;
-    setPolishError('');
-    try {
-      const draft = (await onDraftText({ hintIds: selectedHints })).trim();
-      if (!draft) return;
-      setMessage(draft);
-      setPolishedMessage(draft);
-      await onSubmitText({
-        message: draft,
-        originalMessage: '',
-        polishedMessage: draft,
-        finalMessage: draft,
-        hintIds: selectedHints,
-        usedAiPolish: true,
-      });
-    } catch (err) {
-      setPolishError(err instanceof Error ? err.message : 'AI 代答失败');
     }
   }
 
@@ -320,9 +297,6 @@ export function PlayerLawyerInputDialog({
           )}
           {!documentStage && (
             <div className="response-assist-actions">
-              <button className="secondary-action" disabled={loading} onClick={handleAutoDraftSubmit} type="button">
-                {loading ? '处理中' : 'AI 代答并提交'}
-              </button>
               <button className="secondary-action" disabled={loading || !message.trim()} onClick={handlePolish} type="button">
                 {loading ? '处理中' : 'AI 润色'}
               </button>

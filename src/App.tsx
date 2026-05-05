@@ -472,10 +472,6 @@ function AppShell({ auth }: AppShellProps) {
         documentSkill={activeDocumentSkill}
         loading={playerLawyer.actionLoading || documentPolishLoading || documentFollowupLoading}
         onClose={() => setPlayerDialogOpen(false)}
-        onDraftText={async (input) => {
-          const assist = await playerLawyer.draftTextReply(input);
-          return assist.aiPolishedMessage;
-        }}
         onFollowupDocument={handleDocumentFollowup}
         onPolishDocument={handleDocumentPolish}
         onPolishText={async (input) => {

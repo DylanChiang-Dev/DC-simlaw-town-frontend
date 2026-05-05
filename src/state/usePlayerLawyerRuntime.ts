@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  draftPlayerLawyerResponse,
   fetchPendingPlayerLawyerRequests,
   fetchPlayerLawyerStatus,
   polishPlayerLawyerResponse,
@@ -8,7 +7,6 @@ import {
 } from '../services/playerLawyerApi';
 import { getEventBus } from '../services/eventBus';
 import type {
-  PlayerLawyerDraftInput,
   PlayerLawyerPolishInput,
   PlayerLawyerRequest,
   PlayerLawyerResponseAssist,
@@ -29,7 +27,6 @@ export type PlayerLawyerRuntimeState = {
   error: string;
   loading: boolean;
   status: PlayerLawyerStatus | null;
-  draftTextReply: (input: Omit<PlayerLawyerDraftInput, 'requestId'>) => Promise<PlayerLawyerResponseAssist>;
   refresh: () => Promise<void>;
   polishTextReply: (input: Omit<PlayerLawyerPolishInput, 'requestId'>) => Promise<PlayerLawyerResponseAssist>;
   submitTextReply: (input: Omit<PlayerLawyerTextSubmitInput, 'requestId'>) => Promise<void>;
@@ -142,26 +139,6 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
     }
   }
 
-  async function draftTextReply(input: Omit<PlayerLawyerDraftInput, 'requestId'>): Promise<PlayerLawyerResponseAssist> {
-    if (!activeRequest) {
-      throw new Error('当前没有待处理的用户任务');
-    }
-    setActionLoading(true);
-    setError('');
-    try {
-      return await draftPlayerLawyerResponse({
-        requestId: activeRequest.requestId,
-        hintIds: input.hintIds,
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'AI 代答失败';
-      setError(message);
-      throw err;
-    } finally {
-      setActionLoading(false);
-    }
-  }
-
   async function submitTextReply(input: Omit<PlayerLawyerTextSubmitInput, 'requestId'>): Promise<void> {
     if (!activeRequest) {
       throw new Error('当前没有待处理的用户任务');
@@ -192,7 +169,6 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
     actionLoading,
     activeRequest,
     error,
-    draftTextReply,
     loading: refreshLoading || actionLoading,
     status,
     refresh,
