@@ -106,6 +106,18 @@ assert.match(
 );
 
 assert.match(
+  runtimeSceneSource,
+  /playerLawyer:\s*\{[\s\S]*name:\s*'李婷'[\s\S]*role:\s*'原告律师'/,
+  'The player-side Li Ting speaker plate should show one legal role: plaintiff lawyer.',
+);
+
+assert.doesNotMatch(
+  runtimeSceneSource,
+  /playerLawyer:\s*\{[\s\S]*role:\s*'[^']*玩家代理人/,
+  'Player agency should be represented by the independent evaluation marker, not a second role in the speaker plate.',
+);
+
+assert.match(
   readFileSync(join(root, 'src', 'data', 'caseArt.ts'), 'utf8'),
   /case_1:\s*\{[\s\S]*plaintiffLawyerKey:\s*'lawyerZhangMing'[\s\S]*defendantLawyerKey:\s*'lawyerWangXiaoming'/,
   'case_1 should render Zhang Ming as plaintiff lawyer and Wang Xiaoming as defendant lawyer.',

@@ -82,7 +82,7 @@ export const characters: Record<CharacterKey, Character> = {
   playerLawyer: {
     key: 'playerLawyer',
     name: '李婷',
-    role: '原告律师 / 玩家代理人',
+    role: '原告律师',
     portrait: '/art/vn/char-player-lawyer-neutral.png',
     position: 'left',
   },
