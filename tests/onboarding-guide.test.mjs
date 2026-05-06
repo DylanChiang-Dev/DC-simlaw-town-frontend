@@ -199,3 +199,27 @@ assert.match(
   /\.onboarding-guide-map[\s\S]*\.onboarding-coach[\s\S]*\.onboarding-coach\.key/s,
   "Styles should cover the guide map, base coach, and key coach states.",
 );
+
+assert.doesNotMatch(
+  stylesSource,
+  /\.onboarding[\s\S]*rgba\(15,\s*23,\s*42[\s\S]*\.onboarding/s,
+  "Onboarding styles should not use the old blue-gray panel color that clashes with the main wood/gold theme.",
+);
+
+assert.doesNotMatch(
+  stylesSource,
+  /\.onboarding[\s\S]*rgba\(59,\s*130,\s*246[\s\S]*\.onboarding/s,
+  "Onboarding styles should not use the old blue accent color.",
+);
+
+assert.doesNotMatch(
+  stylesSource,
+  /\.onboarding[\s\S]*rgba\(34,\s*197,\s*94[\s\S]*\.onboarding/s,
+  "Onboarding styles should not use the old green current-step accent color.",
+);
+
+assert.match(
+  stylesSource,
+  /\.onboarding-guide-step[\s\S]*rgba\(233,\s*188,\s*114[\s\S]*\.onboarding-guide-step\.active[\s\S]*rgba\(142,\s*63,\s*53/s,
+  "Onboarding guide should use the app's gold and wine accent colors.",
+);
