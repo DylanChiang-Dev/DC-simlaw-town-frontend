@@ -220,7 +220,8 @@ function AppShell({ auth }: AppShellProps) {
   useEffect(() => {
     if (!visiblePlayerRequest?.requestId) return;
     if (autoOpenedPlayerRequestId === visiblePlayerRequest.requestId) return;
-    if (!playerDialogMayAutoOpen || onboardingBlocksPlayerDialog) return;
+    if (!playerDialogMayAutoOpen) return;
+    if (onboardingBlocksPlayerDialog) return;
     setPlayerDialogOpen(true);
     setAutoOpenedPlayerRequestId(visiblePlayerRequest.requestId);
   }, [autoOpenedPlayerRequestId, onboardingBlocksPlayerDialog, playerDialogMayAutoOpen, visiblePlayerRequest?.requestId]);
