@@ -93,7 +93,7 @@ export function FrontendDemoApp() {
   );
 }
 
-function DemoWorkbench({ workbench }: { workbench: FrontendDemoWorkbench }) {
+export function DemoWorkbench({ workbench }: { workbench: FrontendDemoWorkbench }) {
   if (workbench.kind === 'none') return null;
   if (workbench.kind === 'reply') {
     return (
