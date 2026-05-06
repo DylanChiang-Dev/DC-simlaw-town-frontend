@@ -52,6 +52,69 @@ button {
   gap: 8px;
 }
 
+.recording-frontend-demo .app-shell {
+  padding: 10px 12px;
+}
+
+.frontend-recording-demo .command-hud {
+  flex: 0 0 auto;
+}
+
+.frontend-demo-scene-strip {
+  flex: 0 0 auto;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border: 1px solid rgba(233, 188, 114, 0.26);
+  background: rgba(25, 15, 10, 0.46);
+  color: #f4d6a4;
+}
+
+.frontend-demo-scene-strip span {
+  color: #f0c982;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.frontend-demo-scene-strip strong {
+  color: #fff4df;
+  font-size: 14px;
+}
+
+.frontend-demo-scene-strip b {
+  margin-left: auto;
+  color: #f1c984;
+  font-size: 12px;
+}
+
+.recording-frontend-demo .build-version-badge {
+  display: none;
+}
+
+.frontend-recording-demo.scene-consult .side-rail {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.frontend-recording-demo .task-workbench-shell {
+  width: min(1420px, calc(100vw - 40px));
+}
+
+.frontend-recording-demo .task-workbench-body {
+  grid-template-columns: minmax(360px, 0.4fr) minmax(0, 1fr);
+}
+
+.frontend-recording-demo .response-hint-row {
+  grid-template-columns: 1fr;
+}
+
+.frontend-recording-demo .response-hint-chip {
+  min-height: 0;
+}
+
 .command-hud {
   min-width: 0;
   display: flex;
