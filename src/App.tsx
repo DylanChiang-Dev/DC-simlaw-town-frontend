@@ -7,6 +7,8 @@ import { CaseDocumentsPanel } from './components/CaseDocumentsPanel';
 import { CaseTimeline } from './components/CaseTimeline';
 import { CommandHud } from './components/CommandHud';
 import { DialogueBox } from './components/DialogueBox';
+import { OnboardingCoach } from './components/OnboardingCoach';
+import { OnboardingGuideDialog } from './components/OnboardingGuideDialog';
 import { PlayerLawyerInputDialog } from './components/PlayerLawyerInputDialog';
 import { PlayerLawyerTaskPanel } from './components/PlayerLawyerTaskPanel';
 import { TechLedger } from './components/TechLedger';
@@ -20,6 +22,9 @@ import {
   sendPlayerLawyerDocumentFollowup,
 } from './services/playerLawyerApi';
 import { getWebSocketService } from './services/webSocket';
+import { getOnboardingStepById } from './onboarding/onboardingContent';
+import { getCurrentOnboardingStepId } from './onboarding/onboardingRuntime';
+import { useOnboardingState } from './onboarding/useOnboardingState';
 import { usePlayerLawyerRuntime } from './state/usePlayerLawyerRuntime';
 import { useSimulationRuntime } from './state/useSimulationRuntime';
 import { useTownRadarRuntime } from './state/useTownRadarRuntime';
@@ -73,6 +78,7 @@ function AppShell({ auth }: AppShellProps) {
   const [documentSkills, setDocumentSkills] = useState<PlayerLawyerSkill[]>([]);
   const [restartConfirmOpen, setRestartConfirmOpen] = useState(false);
   const [autoNextEnabled, setAutoNextEnabled] = useState(() => readAutoNextPreference());
+  const onboarding = useOnboardingState();
   const runtime = useSimulationRuntime(auth.backendConfigured && Boolean(auth.user));
   const playerLawyer = usePlayerLawyerRuntime(
     auth.backendConfigured && Boolean(auth.user),
@@ -103,10 +109,6 @@ function AppShell({ auth }: AppShellProps) {
     )
     : false;
   const visiblePlayerRequest = activePlayerRequestReady && playerDialogMayAutoOpen ? activePlayerRequest : null;
-  const showUserTaskPanel = Boolean(visiblePlayerRequest || playerLawyer.error);
-  const activeDocumentSkill = activePlayerRequest
-    ? findDocumentSkillForStage(documentSkills, activePlayerRequest.stage)
-    : null;
   const casePickerOpen = Boolean(
     auth.backendConfigured
     && auth.user
@@ -114,6 +116,34 @@ function AppShell({ auth }: AppShellProps) {
     && !runtime.activeCaseId
     && !runtime.loading,
   );
+  const activeDocumentFollowupCount = visiblePlayerRequest
+    ? documentFollowupHistoryByRequestId[visiblePlayerRequest.requestId]?.length || 0
+    : 0;
+  const finalCaseClosedLineAcknowledged = Boolean(latestAcknowledgedStoryEntry && isCaseClosedEntry(latestAcknowledgedStoryEntry));
+  const currentOnboardingStepId = getCurrentOnboardingStepId({
+    caseClosed,
+    casePickerOpen,
+    documentFollowupCount: activeDocumentFollowupCount,
+    finalCaseClosedLineAcknowledged,
+    nextUnacknowledgedStoryEntryId: nextUnacknowledgedStoryEntry?.id || '',
+    visiblePlayerRequestStage: visiblePlayerRequest?.stage || '',
+  });
+  const currentOnboardingStep = getOnboardingStepById(currentOnboardingStepId);
+  const onboardingBlocksPlayerDialog = Boolean(
+    currentOnboardingStep?.kind === 'key'
+      && !onboarding.isCompleted
+      && !onboarding.isStepDismissed(currentOnboardingStep.id),
+  );
+  const visiblePlayerRequestForDialog = onboardingBlocksPlayerDialog ? null : visiblePlayerRequest;
+  const shouldShowOnboardingCoach = Boolean(
+    currentOnboardingStep
+      && !onboarding.isCompleted
+      && !onboarding.isStepDismissed(currentOnboardingStep.id),
+  );
+  const showUserTaskPanel = Boolean(visiblePlayerRequest || playerLawyer.error);
+  const activeDocumentSkill = activePlayerRequest
+    ? findDocumentSkillForStage(documentSkills, activePlayerRequest.stage)
+    : null;
 
   useEffect(() => {
     if (!auth.backendConfigured || !auth.user) return;
@@ -190,10 +220,10 @@ function AppShell({ auth }: AppShellProps) {
   useEffect(() => {
     if (!visiblePlayerRequest?.requestId) return;
     if (autoOpenedPlayerRequestId === visiblePlayerRequest.requestId) return;
-    if (!playerDialogMayAutoOpen) return;
+    if (!playerDialogMayAutoOpen || onboardingBlocksPlayerDialog) return;
     setPlayerDialogOpen(true);
     setAutoOpenedPlayerRequestId(visiblePlayerRequest.requestId);
-  }, [autoOpenedPlayerRequestId, playerDialogMayAutoOpen, visiblePlayerRequest?.requestId]);
+  }, [autoOpenedPlayerRequestId, onboardingBlocksPlayerDialog, playerDialogMayAutoOpen, visiblePlayerRequest?.requestId]);
 
   useEffect(() => {
     if (!activePlayerRequest || !isDocumentStage(activePlayerRequest.stage)) return;
@@ -367,6 +397,24 @@ function AppShell({ auth }: AppShellProps) {
     }
   }
 
+  function handleOnboardingCoachConfirm() {
+    if (!currentOnboardingStep) return;
+    onboarding.markStepDismissed(currentOnboardingStep.id);
+    if (currentOnboardingStep.id === 'closing-score') {
+      onboarding.completeOnboarding();
+      setClosingSummaryOpen(true);
+      return;
+    }
+    if (visiblePlayerRequest && currentOnboardingStep.kind === 'key') {
+      setPlayerDialogOpen(true);
+    }
+  }
+
+  function handleOnboardingCoachDismiss() {
+    if (!currentOnboardingStep) return;
+    onboarding.markStepDismissed(currentOnboardingStep.id);
+  }
+
   async function handleDocumentFollowup(input: { message: string }): Promise<{ question: string; answer: string }> {
     const request = playerLawyer.activeRequest;
     if (!request) {
@@ -410,6 +458,7 @@ function AppShell({ auth }: AppShellProps) {
         onLogout={auth.user ? auth.onLogout : undefined}
         onOpenClosingSummary={() => setClosingSummaryOpen(true)}
         onOpenDocuments={() => setDocumentsOpen(true)}
+        onOpenOnboardingGuide={onboarding.openGuide}
         onRestart={() => setRestartConfirmOpen(true)}
         onResumeCurrentCase={runtime.activeCaseId ? handleStartSelectedCase : undefined}
         runtimeError={runtime.error}
@@ -418,7 +467,7 @@ function AppShell({ auth }: AppShellProps) {
         user={auth.user}
         wsConnected={vnRuntime.wsConnected}
       />
-      {visiblePlayerRequest && !playerDialogOpen && (
+      {visiblePlayerRequest && !playerDialogOpen && !onboardingBlocksPlayerDialog && (
         <section className="user-task-recovery-banner" aria-label="当前流程等待用户处理">
           <div>
             <strong>当前流程正在等待你处理用户任务</strong>
@@ -426,7 +475,12 @@ function AppShell({ auth }: AppShellProps) {
               刷新或重新连接后，案件会停在这个节点，不是系统卡住，也不需要先重置。请继续处理当前角色任务。
             </span>
           </div>
-          <button className="primary-action" disabled={playerLawyer.actionLoading} onClick={() => setPlayerDialogOpen(true)} type="button">
+          <button
+            className="primary-action"
+            disabled={playerLawyer.actionLoading}
+            onClick={() => setPlayerDialogOpen(true)}
+            type="button"
+          >
             {isDocumentStage(visiblePlayerRequest.stage) ? '继续文书' : '继续处理'}
           </button>
         </section>
@@ -450,7 +504,9 @@ function AppShell({ auth }: AppShellProps) {
               activeRequest={visiblePlayerRequest}
               error={playerLawyer.error}
               loading={playerLawyer.actionLoading}
-              onOpenRequest={() => setPlayerDialogOpen(true)}
+              onOpenRequest={() => {
+                if (!onboardingBlocksPlayerDialog) setPlayerDialogOpen(true);
+              }}
               simulation={runtime.simulation}
               status={playerLawyer.status}
             />
@@ -503,7 +559,7 @@ function AppShell({ auth }: AppShellProps) {
           });
           setPlayerDialogOpen(false);
         }}
-        request={playerDialogOpen ? visiblePlayerRequest : null}
+        request={playerDialogOpen ? visiblePlayerRequestForDialog : null}
       />
       <CaseTimeline
         activeCode={displayedScene.stageCode}
@@ -522,6 +578,20 @@ function AppShell({ auth }: AppShellProps) {
         caseId={closingCaseId}
         onClose={() => setClosingSummaryOpen(false)}
       />
+      <OnboardingGuideDialog
+        currentStepId={currentOnboardingStepId}
+        open={onboarding.guideOpen}
+        onClose={() => onboarding.setGuideOpen(false)}
+        onReset={onboarding.resetOnboarding}
+      />
+      {shouldShowOnboardingCoach && (
+        <OnboardingCoach
+          step={currentOnboardingStep}
+          onConfirm={handleOnboardingCoachConfirm}
+          onDismiss={handleOnboardingCoachDismiss}
+          onOpenGuide={onboarding.openGuide}
+        />
+      )}
       {restartConfirmOpen && (
         <div className="modal-layer" role="dialog" aria-modal="true" aria-label="确认重置模拟">
           <section className="confirm-dialog">

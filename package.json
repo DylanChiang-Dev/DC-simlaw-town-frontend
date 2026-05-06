@@ -25,6 +25,7 @@
     "test:closing-summary": "node tests/player-lawyer-closing-summary.test.mjs",
     "test:stage-transcript": "node tests/dialogue-stage-transcript.test.mjs",
     "test:unified-task-dialog": "node tests/player-lawyer-unified-task-dialog.test.mjs",
+    "test:onboarding-guide": "node tests/onboarding-guide.test.mjs",
     "preview": "vite preview --host 0.0.0.0 --port 4174"
   },
   "dependencies": {

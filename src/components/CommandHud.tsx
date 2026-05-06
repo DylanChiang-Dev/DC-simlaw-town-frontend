@@ -11,6 +11,7 @@ type Props = {
   onLogout?: () => void;
   onOpenClosingSummary?: () => void;
   onOpenDocuments?: () => void;
+  onOpenOnboardingGuide?: () => void;
   onRestart?: () => Promise<void> | void;
   onResumeCurrentCase?: () => Promise<void>;
   runtimeError?: string;
@@ -29,6 +30,7 @@ export function CommandHud({
   onLogout,
   onOpenClosingSummary,
   onOpenDocuments,
+  onOpenOnboardingGuide,
   onRestart,
   onResumeCurrentCase,
   runtimeError = '',
@@ -71,6 +73,11 @@ export function CommandHud({
         </button>
         {backendConfigured && user && (
           <>
+            {onOpenOnboardingGuide && (
+              <button className="hud-button" disabled={loading} onClick={onOpenOnboardingGuide} type="button">
+                新手导航
+              </button>
+            )}
             <button className="hud-button" disabled={loading} onClick={onOpenDocuments} type="button">
               文书
             </button>
