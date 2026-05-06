@@ -130,6 +130,18 @@ assert.match(
 
 assert.match(
   coachSource,
+  /onboarding-coach-ack[\s\S]*onDismiss[\s\S]*知道了/,
+  "The light coach acknowledgement should use its own styled primary onboarding button.",
+);
+
+assert.doesNotMatch(
+  coachSource,
+  /ghost-action[\s\S]*知道了/,
+  "The light coach acknowledgement should not fall back to the unstyled generic ghost button.",
+);
+
+assert.match(
+  coachSource,
   /kind === ["']key["'][\s\S]*知道了，开始处理[\s\S]*onConfirm/,
   "Key coach hints should require an explicit confirmation before the UI proceeds.",
 );
@@ -198,6 +210,18 @@ assert.match(
   stylesSource,
   /\.onboarding-guide-map[\s\S]*\.onboarding-coach[\s\S]*\.onboarding-coach\.key/s,
   "Styles should cover the guide map, base coach, and key coach states.",
+);
+
+assert.match(
+  stylesSource,
+  /\.onboarding-coach-ack\s*\{[\s\S]*linear-gradient\(135deg,\s*#ffe5ad,\s*#e4ac55\)[\s\S]*color:\s*#25150d/s,
+  "The light coach acknowledgement button should use a dedicated gold primary style instead of a gray block.",
+);
+
+assert.match(
+  stylesSource,
+  /\.onboarding-coach-secondary\s*\{[\s\S]*border:\s*1px solid rgba\(255,\s*222,\s*176,\s*0\.36\)[\s\S]*color:\s*#fff1dc/s,
+  "The light coach secondary action should stay in the app's cream and gold outline palette.",
 );
 
 assert.doesNotMatch(

@@ -13,16 +13,18 @@ export function OnboardingCoach({ onConfirm, onDismiss, onOpenGuide, step }: Pro
   if (step.kind === 'light') {
     return (
       <aside className="onboarding-coach light" aria-label="新手提示">
-        <div>
+        <div className="onboarding-coach-copy">
           <strong>{step.title}</strong>
           <span>{step.description}</span>
         </div>
-        <button className="secondary-action" onClick={onOpenGuide} type="button">
-          查看流程
-        </button>
-        <button className="ghost-action" onClick={onDismiss} type="button">
-          知道了
-        </button>
+        <div className="onboarding-coach-inline-actions">
+          <button className="onboarding-coach-secondary" onClick={onOpenGuide} type="button">
+            查看流程
+          </button>
+          <button className="onboarding-coach-ack" onClick={onDismiss} type="button">
+            知道了
+          </button>
+        </div>
       </aside>
     );
   }
