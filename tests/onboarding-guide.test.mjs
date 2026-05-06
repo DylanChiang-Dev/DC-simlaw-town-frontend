@@ -63,6 +63,12 @@ assert.match(
 );
 
 assert.match(
+  contentSource,
+  /visualType:[\s\S]*case-picker[\s\S]*visualType:[\s\S]*dialogue[\s\S]*visualType:[\s\S]*reply-input[\s\S]*visualType:[\s\S]*document-followup[\s\S]*visualType:[\s\S]*document-drafting[\s\S]*visualType:[\s\S]*court-argument[\s\S]*visualType:[\s\S]*closing-score[\s\S]*visualType:[\s\S]*markdown-review/s,
+  "Every onboarding step should define a visual preview type so the guide is not text-only.",
+);
+
+assert.match(
   stateSource,
   /ONBOARDING_COMPLETED_STORAGE_KEY\s*=\s*["']simlaw-town:onboarding-v1-completed["']/,
   "Onboarding completion should use a versioned localStorage key.",
@@ -120,6 +126,24 @@ assert.match(
   guideSource,
   /重置新手导航[\s\S]*onReset/,
   "The full guide should expose reset onboarding state as an explicit action.",
+);
+
+assert.match(
+  guideSource,
+  /<OnboardingVisualPreview type=\{activeStep\.visualType\} \/>/,
+  "The onboarding guide detail pane should render a visual preview for the selected step.",
+);
+
+assert.match(
+  guideSource,
+  /function OnboardingVisualPreview[\s\S]*aria-label=\{`\$\{titleByType\[type\]\}示意图`\}[\s\S]*onboarding-visual-frame/s,
+  "The visual preview should be announced as a step-specific screenshot-like diagram.",
+);
+
+assert.match(
+  guideSource,
+  /visual-case-grid[\s\S]*visual-dialogue-scene[\s\S]*visual-input-workbench[\s\S]*visual-document-workbench[\s\S]*visual-score-panel[\s\S]*visual-markdown-panel/s,
+  "The guide should include distinct visual preview structures for case, dialogue, input, document, score, and Markdown steps.",
 );
 
 assert.match(
@@ -210,6 +234,12 @@ assert.match(
   stylesSource,
   /\.onboarding-guide-map[\s\S]*\.onboarding-coach[\s\S]*\.onboarding-coach\.key/s,
   "Styles should cover the guide map, base coach, and key coach states.",
+);
+
+assert.match(
+  stylesSource,
+  /\.onboarding-visual-preview[\s\S]*\.onboarding-visual-frame[\s\S]*\.visual-case-grid[\s\S]*\.visual-dialogue-scene[\s\S]*\.visual-input-workbench[\s\S]*\.visual-document-workbench[\s\S]*\.visual-score-panel[\s\S]*\.visual-markdown-panel/s,
+  "Styles should render screenshot-like onboarding visual previews for each workflow family.",
 );
 
 assert.match(

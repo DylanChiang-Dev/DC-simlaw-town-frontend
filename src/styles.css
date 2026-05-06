@@ -2575,6 +2575,245 @@ h1 {
   padding: 14px;
 }
 
+.onboarding-visual-preview {
+  border: 1px solid rgba(233, 188, 114, 0.28);
+  border-radius: 8px;
+  margin: 0;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(52, 34, 24, 0.88), rgba(31, 20, 15, 0.96));
+}
+
+.onboarding-visual-preview figcaption {
+  align-items: center;
+  border-bottom: 1px solid rgba(233, 188, 114, 0.18);
+  color: #fff4df;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+}
+
+.onboarding-visual-preview figcaption strong {
+  font-size: 13px;
+}
+
+.onboarding-visual-preview figcaption span {
+  color: #d9bc94;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.onboarding-visual-frame {
+  min-height: 170px;
+  padding: 14px;
+  position: relative;
+}
+
+.onboarding-visual-frame::before {
+  border: 1px solid rgba(255, 241, 220, 0.09);
+  border-radius: 6px;
+  content: "";
+  inset: 14px;
+  pointer-events: none;
+  position: absolute;
+}
+
+.visual-case-grid,
+.visual-input-workbench,
+.visual-document-workbench {
+  display: grid;
+  gap: 10px;
+  min-height: 142px;
+  position: relative;
+  z-index: 1;
+}
+
+.visual-case-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.visual-case-grid span,
+.visual-input-workbench > div,
+.visual-document-workbench > div,
+.visual-score-panel,
+.visual-markdown-panel,
+.dialogue-card {
+  border: 1px solid rgba(233, 188, 114, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 241, 220, 0.06);
+}
+
+.visual-case-grid span {
+  min-height: 132px;
+}
+
+.visual-case-grid span::before,
+.visual-case-grid span::after {
+  content: "";
+  display: block;
+  margin: 14px auto 0;
+}
+
+.visual-case-grid span::before {
+  width: calc(100% - 28px);
+  height: 54px;
+  border-radius: 6px;
+  background: rgba(233, 188, 114, 0.16);
+}
+
+.visual-case-grid span::after {
+  width: calc(100% - 38px);
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 241, 220, 0.28);
+  box-shadow: 0 18px 0 rgba(255, 241, 220, 0.16);
+}
+
+.visual-case-grid .selected {
+  border-color: rgba(233, 188, 114, 0.72);
+  background: rgba(142, 63, 53, 0.26);
+}
+
+.visual-dialogue-scene {
+  min-height: 142px;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+.visual-dialogue-scene .avatar {
+  background: linear-gradient(180deg, rgba(233, 188, 114, 0.78), rgba(142, 63, 53, 0.76));
+  border-radius: 999px 999px 10px 10px;
+  bottom: 28px;
+  height: 104px;
+  position: absolute;
+  width: 54px;
+}
+
+.visual-dialogue-scene .avatar.left {
+  left: 44px;
+}
+
+.visual-dialogue-scene .avatar.right {
+  right: 44px;
+}
+
+.dialogue-card {
+  bottom: 8px;
+  display: grid;
+  gap: 9px;
+  left: 26px;
+  padding: 14px;
+  position: absolute;
+  right: 26px;
+}
+
+.dialogue-card b,
+.visual-input-workbench b,
+.visual-document-workbench b {
+  background: #ffe3a7;
+  border-radius: 999px;
+  display: block;
+  height: 10px;
+  width: 34%;
+}
+
+.dialogue-card i,
+.visual-input-workbench i,
+.visual-document-workbench i,
+.visual-score-panel i,
+.visual-markdown-panel i {
+  background: rgba(255, 241, 220, 0.24);
+  border-radius: 999px;
+  display: block;
+  height: 9px;
+  width: 100%;
+}
+
+.dialogue-card .short,
+.visual-input-workbench .short,
+.visual-document-workbench .short,
+.visual-score-panel .short,
+.visual-markdown-panel .short {
+  width: 62%;
+}
+
+.visual-input-workbench,
+.visual-document-workbench {
+  grid-template-columns: 0.36fr 1fr;
+}
+
+.visual-input-workbench .context-panel,
+.visual-input-workbench .input-panel,
+.visual-document-workbench .document-sidebar,
+.visual-document-workbench .document-main {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 14px;
+}
+
+.visual-input-workbench .context-panel span,
+.visual-document-workbench .document-sidebar span {
+  background: rgba(233, 188, 114, 0.13);
+  border-radius: 6px;
+  height: 30px;
+}
+
+.visual-input-workbench em,
+.visual-document-workbench em,
+.visual-markdown-panel em {
+  align-self: end;
+  background: linear-gradient(135deg, #ffe5ad, #e4ac55);
+  border-radius: 999px;
+  color: #25150d;
+  display: inline-flex;
+  font-style: normal;
+  font-weight: 900;
+  justify-content: center;
+  justify-self: end;
+  margin-top: 8px;
+  padding: 8px 12px;
+}
+
+.visual-score-panel,
+.visual-markdown-panel {
+  align-items: center;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: auto 1fr;
+  min-height: 142px;
+  padding: 18px;
+  position: relative;
+  z-index: 1;
+}
+
+.score-badge,
+.visual-markdown-panel span {
+  align-items: center;
+  background: rgba(233, 188, 114, 0.18);
+  border: 1px solid rgba(233, 188, 114, 0.46);
+  border-radius: 50%;
+  color: #ffe3a7;
+  display: inline-flex;
+  font-size: 28px;
+  font-weight: 950;
+  height: 74px;
+  justify-content: center;
+  width: 74px;
+}
+
+.visual-score-panel div,
+.visual-markdown-panel div {
+  display: grid;
+  gap: 12px;
+}
+
+.visual-markdown-panel em {
+  grid-column: 2;
+  justify-self: start;
+}
+
 .onboarding-coach {
   border: 1px solid rgba(233, 188, 114, 0.32);
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
@@ -3675,6 +3914,43 @@ h1 {
   .onboarding-coach-secondary,
   .onboarding-coach-ack {
     width: 100%;
+  }
+
+  .onboarding-visual-frame {
+    min-height: 150px;
+    padding: 10px;
+  }
+
+  .onboarding-visual-frame::before {
+    inset: 10px;
+  }
+
+  .visual-case-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .visual-case-grid span {
+    min-height: 76px;
+  }
+
+  .visual-input-workbench,
+  .visual-document-workbench,
+  .visual-score-panel,
+  .visual-markdown-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .visual-dialogue-scene .avatar.left {
+    left: 18px;
+  }
+
+  .visual-dialogue-scene .avatar.right {
+    right: 18px;
+  }
+
+  .dialogue-card {
+    left: 12px;
+    right: 12px;
   }
 
   .auth-stage {

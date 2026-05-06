@@ -3,6 +3,7 @@ import {
   getOnboardingStepById,
   getOnboardingStepIndex,
   ONBOARDING_STEPS,
+  type OnboardingStepVisualType,
   type OnboardingStepId,
 } from '../onboarding/onboardingContent';
 import { TaskWorkbenchShell } from './TaskWorkbenchShell';
@@ -49,6 +50,7 @@ export function OnboardingGuideDialog({ currentStepId, onClose, onReset, open }:
       <div className="panel-kicker">{activeStep.phaseLabel}</div>
       <h3>{activeStep.title}</h3>
       <p>{activeStep.description}</p>
+      <OnboardingVisualPreview type={activeStep.visualType} />
       <div className="onboarding-guide-card">
         <strong>需要输入或关注的内容</strong>
         <span>{activeStep.example}</span>
@@ -83,5 +85,136 @@ export function OnboardingGuideDialog({ currentStepId, onClose, onReset, open }:
       onClose={onClose}
       title="新手导航"
     />
+  );
+}
+
+function OnboardingVisualPreview({ type }: { type: OnboardingStepVisualType }) {
+  const titleByType: Record<OnboardingStepVisualType, string> = {
+    'case-picker': '案件选择界面',
+    dialogue: '角色对白界面',
+    'reply-input': '玩家回复工作台',
+    'document-followup': '文书追问工作台',
+    'document-drafting': '文书起草工作台',
+    'court-argument': '庭审输入界面',
+    'closing-score': '结案评分面板',
+    'markdown-review': '复盘 Markdown 导出',
+  };
+
+  return (
+    <figure className={`onboarding-visual-preview ${type}`} aria-label={`${titleByType[type]}示意图`}>
+      <figcaption>
+        <strong>界面示意</strong>
+        <span>{titleByType[type]}</span>
+      </figcaption>
+      <div className="onboarding-visual-frame" aria-hidden="true">
+        {renderVisualPreview(type)}
+      </div>
+    </figure>
+  );
+}
+
+function renderVisualPreview(type: OnboardingStepVisualType) {
+  if (type === 'case-picker') {
+    return (
+      <div className="visual-case-grid">
+        <span />
+        <span className="selected" />
+        <span />
+      </div>
+    );
+  }
+
+  if (type === 'dialogue') {
+    return (
+      <div className="visual-dialogue-scene">
+        <span className="avatar left" />
+        <span className="avatar right" />
+        <div className="dialogue-card">
+          <b />
+          <i />
+          <i className="short" />
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'reply-input' || type === 'court-argument') {
+    return (
+      <div className="visual-input-workbench">
+        <div className="context-panel">
+          <span />
+          <span />
+          <span className="short" />
+        </div>
+        <div className="input-panel">
+          <b />
+          <i />
+          <i />
+          <em>{type === 'court-argument' ? '庭审发言' : '提交回复'}</em>
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'document-followup') {
+    return (
+      <div className="visual-document-workbench">
+        <div className="document-sidebar">
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="document-main followup">
+          <b />
+          <i />
+          <i className="short" />
+          <em>提交追问</em>
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'document-drafting') {
+    return (
+      <div className="visual-document-workbench">
+        <div className="document-sidebar">
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="document-main drafting">
+          <b />
+          <i />
+          <i />
+          <i className="short" />
+          <em>确认文书</em>
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'closing-score') {
+    return (
+      <div className="visual-score-panel">
+        <span className="score-badge">86</span>
+        <div>
+          <i />
+          <i />
+          <i className="short" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="visual-markdown-panel">
+      <span>#</span>
+      <div>
+        <i />
+        <i />
+        <i className="short" />
+      </div>
+      <em>导出 Markdown</em>
+    </div>
   );
 }
