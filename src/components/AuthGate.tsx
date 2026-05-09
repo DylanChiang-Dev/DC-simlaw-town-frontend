@@ -15,11 +15,12 @@ export type AuthGateState = {
 
 type Props = {
   children: (state: AuthGateState) => ReactNode;
+  ensureWorkspace?: boolean;
 };
 
 type BootstrapState = 'checking' | 'authenticated' | 'unauthenticated' | 'offline';
 
-export function AuthGate({ children }: Props) {
+export function AuthGate({ children, ensureWorkspace = true }: Props) {
   const runtime = useMemo(() => getRuntimeMode(), []);
   const authService = useMemo(() => getAuthService(), []);
   const [state, setState] = useState<BootstrapState>(runtime.configured ? 'checking' : 'offline');
@@ -41,7 +42,9 @@ export function AuthGate({ children }: Props) {
 
     try {
       await fetchCurrentUser();
-      await ensureSandbox();
+      if (ensureWorkspace) {
+        await ensureSandbox();
+      }
       setUser(authService.getCurrentUser());
       setError('');
       setState('authenticated');
@@ -75,7 +78,7 @@ export function AuthGate({ children }: Props) {
     return () => window.removeEventListener(AUTH_LOGOUT_EVENT, handleAuthLogout);
     // Runtime config is read once at app boot.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [ensureWorkspace]);
 
   if (state === 'offline' || state === 'authenticated') {
     return (

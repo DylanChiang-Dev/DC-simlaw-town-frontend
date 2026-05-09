@@ -36,8 +36,12 @@ function HumanEvalShell({ auth }: { auth: AuthGateState }) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!auth.backendConfigured || !auth.user) return;
+    if (!auth.backendConfigured || !auth.user) {
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
+    setLoading(true);
     Promise.all([fetchHumanEvalCases(), fetchHumanEvalSchema()])
       .then(([casePayload]) => {
         if (cancelled) return;
@@ -118,7 +122,7 @@ function HumanEvalShell({ auth }: { auth: AuthGateState }) {
 
 export function HumanEvalApp() {
   return (
-    <AuthGate>
+    <AuthGate ensureWorkspace={false}>
       {(auth) => <HumanEvalShell auth={auth} />}
     </AuthGate>
   );

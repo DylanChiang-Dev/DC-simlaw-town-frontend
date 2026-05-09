@@ -16,6 +16,7 @@ const RootApp = window.location.pathname === '/human-eval'
     ? LiveSimulationDemoApp
     : App;
 
+document.body.classList.toggle('human-eval-route', window.location.pathname === '/human-eval');
 document.body.classList.toggle('recording-frontend-demo', recordingMode === 'frontend-demo');
 document.body.classList.toggle('recording-live-simulation', recordingMode === 'live-simulation');
 
