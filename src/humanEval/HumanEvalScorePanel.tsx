@@ -1,0 +1,147 @@
+import type { HumanEvalMetricScore, HumanEvalRatingPayload, HumanEvalStageScore } from '../services/humanEvalApi';
+
+type Props = {
+  activeStage: string;
+  rating: HumanEvalRatingPayload;
+  raterId: string;
+  onRaterIdChange: (value: string) => void;
+  onRatingChange: (rating: HumanEvalRatingPayload) => void;
+  onSave: (status: 'draft' | 'submitted') => void;
+  saving: boolean;
+};
+
+const SCORABLE_STAGES = ['LC', 'DRAFT', 'CI', 'APPEAL_DRAFT', 'CIA'];
+const ROLE_METRICS = [
+  ['client_stance_authenticity', '当事人立场与动机真实性'],
+  ['client_role_distinguishability', '当事人角色区分度'],
+  ['lawyer_stance_authenticity', '律师立场与动机真实性'],
+  ['lawyer_role_distinguishability', '律师角色区分度'],
+  ['judge_stance_authenticity', '法官立场与动机真实性'],
+  ['judge_role_distinguishability', '法官角色区分度'],
+] as const;
+
+function emptyMetric(): HumanEvalMetricScore {
+  return { score: 0, reason: '' };
+}
+
+function validateMetric(metric: HumanEvalMetricScore): boolean {
+  const score = metric.score;
+  return Number.isInteger(score) && !(score < 0 || score > 10) && Boolean(metric.reason.trim());
+}
+
+function updateStageMetric(
+  rating: HumanEvalRatingPayload,
+  stage: string,
+  metric: keyof HumanEvalStageScore,
+  value: HumanEvalMetricScore,
+): HumanEvalRatingPayload {
+  return {
+    ...rating,
+    stage_scores: {
+      ...rating.stage_scores,
+      [stage]: {
+        procedural_compliance: rating.stage_scores[stage]?.procedural_compliance || emptyMetric(),
+        process_coherence: rating.stage_scores[stage]?.process_coherence || emptyMetric(),
+        [metric]: value,
+      },
+    },
+  };
+}
+
+export function HumanEvalScorePanel({
+  activeStage,
+  rating,
+  raterId,
+  onRaterIdChange,
+  onRatingChange,
+  onSave,
+  saving,
+}: Props) {
+  const stageIsScorable = SCORABLE_STAGES.includes(activeStage);
+  const stageScore = rating.stage_scores[activeStage];
+  const allStageMetricsValid = SCORABLE_STAGES.every((stage) => {
+    const score = rating.stage_scores[stage];
+    return score && validateMetric(score.procedural_compliance) && validateMetric(score.process_coherence);
+  });
+  const allRoleMetricsValid = ROLE_METRICS.every(([metric]) => validateMetric(rating.role_scores[metric] || emptyMetric()));
+  const canSubmit = Boolean(raterId.trim()) && allStageMetricsValid && allRoleMetricsValid;
+
+  return (
+    <aside className="human-eval-score-panel" aria-label="人工评测评分表">
+      <label className="human-eval-rater-field">
+        评审编号
+        <input value={raterId} onChange={(event) => onRaterIdChange(event.target.value)} placeholder="rater_01" />
+      </label>
+
+      {stageIsScorable ? (
+        <section>
+          <div className="panel-kicker">当前阶段评分</div>
+          <h3>{activeStage}</h3>
+          {(['procedural_compliance', 'process_coherence'] as const).map((metric) => {
+            const value = stageScore?.[metric] || emptyMetric();
+            return (
+              <div className="human-eval-score-card" key={metric}>
+                <strong>{metric === 'procedural_compliance' ? '程序合规性' : '流程衔接合理性'}</strong>
+                <input
+                  max={10}
+                  min={0}
+                  type="number"
+                  value={value.score}
+                  onChange={(event) => onRatingChange(updateStageMetric(rating, activeStage, metric, { ...value, score: Number(event.target.value) }))}
+                />
+                <textarea
+                  value={value.reason}
+                  onChange={(event) => onRatingChange(updateStageMetric(rating, activeStage, metric, { ...value, reason: event.target.value }))}
+                  placeholder="填写简短理由"
+                />
+              </div>
+            );
+          })}
+        </section>
+      ) : (
+        <section className="human-eval-display-only-stage">SD 只展示上诉决策过渡信息，不需要评分。</section>
+      )}
+
+      <section>
+        <div className="panel-kicker">全案角色一致性</div>
+        {ROLE_METRICS.map(([metric, label]) => {
+          const value = rating.role_scores[metric] || emptyMetric();
+          return (
+            <div className="human-eval-score-card compact" key={metric}>
+              <strong>{label}</strong>
+              <input
+                max={10}
+                min={0}
+                type="number"
+                value={value.score}
+                onChange={(event) => onRatingChange({
+                  ...rating,
+                  role_scores: {
+                    ...rating.role_scores,
+                    [metric]: { ...value, score: Number(event.target.value) },
+                  },
+                })}
+              />
+              <textarea
+                value={value.reason}
+                onChange={(event) => onRatingChange({
+                  ...rating,
+                  role_scores: {
+                    ...rating.role_scores,
+                    [metric]: { ...value, reason: event.target.value },
+                  },
+                })}
+                placeholder="填写简短理由"
+              />
+            </div>
+          );
+        })}
+      </section>
+
+      <div className="human-eval-score-actions">
+        <button disabled={saving || !raterId.trim()} onClick={() => onSave('draft')} type="button">保存草稿</button>
+        <button disabled={saving || !canSubmit} onClick={() => onSave('submitted')} type="button">提交问卷</button>
+      </div>
+    </aside>
+  );
+}

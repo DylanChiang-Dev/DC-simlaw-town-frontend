@@ -8,6 +8,7 @@ type Props = {
   loading: boolean;
   onRefresh: () => Promise<void>;
   onSelect: (caseId: string) => void;
+  onOpenHumanEval: () => void;
   onStart: (caseId?: string) => Promise<void>;
   selectedCaseId: string;
 };
@@ -19,6 +20,7 @@ export function CasePicker({
   loading,
   onRefresh,
   onSelect,
+  onOpenHumanEval,
   onStart,
   selectedCaseId,
 }: Props) {
@@ -57,6 +59,9 @@ export function CasePicker({
         <div className="case-picker-actions">
           <button className="secondary-action" disabled={disabled || loading} onClick={() => void onRefresh()} type="button">
             刷新案件
+          </button>
+          <button className="secondary-action human-eval-entry-action" disabled={disabled || loading} onClick={onOpenHumanEval} type="button">
+            人工评测
           </button>
           <button
             className="primary-action"

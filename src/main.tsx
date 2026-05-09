@@ -1,13 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { App } from './App';
+import { HumanEvalApp } from './humanEval/HumanEvalApp';
 import { FrontendDemoApp } from './recording/FrontendDemoApp';
 import { LiveSimulationDemoApp } from './recording/LiveSimulationDemoApp';
 import './styles.css';
 
 const searchParams = new URLSearchParams(window.location.search);
 const recordingMode = searchParams.get('recording');
-const RootApp = recordingMode === 'frontend-demo'
+const RootApp = window.location.pathname === '/human-eval'
+  ? HumanEvalApp
+  : recordingMode === 'frontend-demo'
   ? FrontendDemoApp
   : recordingMode === 'live-simulation'
     ? LiveSimulationDemoApp

@@ -1,6 +1,6 @@
 {
   "name": "simlaw-town-frontend-v2",
-  "version": "2.1.75",
+  "version": "2.1.76",
   "private": true,
   "type": "module",
   "scripts": {
@@ -27,6 +27,7 @@
     "test:unified-task-dialog": "node tests/player-lawyer-unified-task-dialog.test.mjs",
     "test:recording-live-simulation": "node tests/recording-live-simulation.test.mjs",
     "test:onboarding-guide": "node tests/onboarding-guide.test.mjs",
+    "test:human-eval": "node tests/human-eval-entry.test.mjs && node tests/human-eval-contract.test.mjs",
     "preview": "vite preview --host 0.0.0.0 --port 4174"
   },
   "dependencies": {

@@ -494,6 +494,9 @@ function AppShell({ auth }: AppShellProps) {
           loading={runtime.loading}
           onRefresh={runtime.refresh}
           onSelect={runtime.selectCase}
+          onOpenHumanEval={() => {
+            window.location.assign('/human-eval');
+          }}
           onStart={handleStartSelectedCase}
           selectedCaseId={runtime.selectedCaseId}
         />
