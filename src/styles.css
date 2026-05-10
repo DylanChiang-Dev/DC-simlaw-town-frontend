@@ -238,14 +238,57 @@
   margin: 8px 0 0;
 }
 
-.human-eval-documents pre {
-  background: #1f2320;
+.human-eval-documents {
+  margin-top: 18px;
+}
+
+.human-eval-documents h4 {
+  color: #3b2a1d;
+  font-size: 15px;
+  margin: 0 0 10px;
+}
+
+.human-eval-document-paper {
+  background: #fffdf8;
+  border: 1px solid #e8d8ba;
+  border-left: 4px solid #8a5a22;
   border-radius: 8px;
-  color: #f5efe6;
-  max-height: 260px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84);
+  color: #2d1f17;
+  display: grid;
+  gap: 10px;
+  max-height: 360px;
   overflow: auto;
-  padding: 12px;
-  white-space: pre-wrap;
+  padding: 18px 20px;
+}
+
+.human-eval-document-paper + .human-eval-document-paper {
+  margin-top: 12px;
+}
+
+.human-eval-document-paper h5 {
+  color: #2a1a12;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.45;
+  margin: 0 0 2px;
+  text-align: center;
+}
+
+.human-eval-document-paper p {
+  color: #34251a;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  font-size: 15px;
+  line-height: 1.9;
+  margin: 0;
+  overflow-wrap: anywhere;
+  text-align: justify;
+}
+
+.human-eval-document-paper .document-decision-line {
+  color: #4b2b16;
+  font-weight: 800;
 }
 
 .human-eval-score-card {

@@ -29,6 +29,9 @@ assert.match(authGate, /if \(ensureWorkspace\) \{[\s\S]*await ensureSandbox\(\);
 assert.match(app, /<AuthGate ensureWorkspace=\{false\}>/, 'Human eval should authenticate without bootstrapping the formal sandbox workspace.');
 assert.match(app, /setLoading\(false\);[\s\S]*return;/, 'Human eval should not stay in an empty loading state when auth is unavailable.');
 assert.match(reader, /SD[\s\S]*只展示不评分|只展示不评分[\s\S]*SD/, 'Reader should label SD as display-only.');
+assert.match(reader, /formatLegalDocumentText/, 'Reader should format long legal documents for reading.');
+assert.match(reader, /human-eval-document-paper/, 'Reader should render stage outputs as document reading paper.');
+assert.doesNotMatch(reader, /<pre key=\{index\}>/, 'Reader should not render human-eval stage documents as raw pre blocks.');
 assert.match(caseList, /我的评测任务/, 'Case list should default to the assigned task wording.');
 assert.match(caseList, /查看全部案件/, 'Case list should expose the full-list toggle.');
 assert.match(caseList, /回到我的任务/, 'Case list should expose a way back to assigned cases.');
@@ -42,4 +45,5 @@ assert.match(styles, /body\.human-eval-route\s*\{[\s\S]*overflow:\s*auto/, 'huma
 assert.doesNotMatch(humanEvalPageRule, /color-scheme:\s*light/, 'human eval page should not force page-level color-scheme.');
 assert.match(styles, /\.human-eval-case-item\s*\{[\s\S]*color:\s*#2d1f17/, 'human eval case items should define readable text color.');
 assert.match(styles, /\.human-eval-stage-tabs button\s*\{[\s\S]*color:\s*#5f4634/, 'human eval stage tabs should define readable inactive text color.');
+assert.match(styles, /\.human-eval-document-paper\s*\{[\s\S]*background:\s*#fffdf8/, 'human eval documents should use a readable paper surface.');
 assert.match(styles, /\.human-eval-score-card input,[\s\S]*color-scheme:\s*light[\s\S]*-webkit-text-fill-color:\s*#2d1f17/, 'human eval score fields should override dark global form rendering.');
