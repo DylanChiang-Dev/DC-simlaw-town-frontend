@@ -1,20 +1,38 @@
-import type { HumanEvalCaseSummary } from '../services/humanEvalApi';
+import { useMemo, useState } from 'react';
+import type { HumanEvalAssignment, HumanEvalCaseSummary } from '../services/humanEvalApi';
 
 type Props = {
-  cases: HumanEvalCaseSummary[];
+  assignedCases: HumanEvalCaseSummary[];
+  allCases: HumanEvalCaseSummary[];
+  assignment: HumanEvalAssignment | null;
   selectedCaseId: number | null;
   onSelect: (caseId: number) => void;
 };
 
-export function HumanEvalCaseList({ cases, selectedCaseId, onSelect }: Props) {
+export function HumanEvalCaseList({ assignedCases, allCases, assignment, selectedCaseId, onSelect }: Props) {
+  const [showAllCases, setShowAllCases] = useState(false);
+  const visibleCases = showAllCases ? allCases : assignedCases;
+  const progressText = useMemo(() => {
+    if (!assignment) return '正在生成评测任务';
+    return `本批 ${assignment.submitted_count}/${assignment.total_count} 已提交`;
+  }, [assignment]);
+
   return (
     <aside className="human-eval-case-list" aria-label="人工评测案件列表">
       <div className="panel-kicker">Human Evaluation</div>
-      <h2>人工评测</h2>
-      <p>选择一个案件，阅读完整流程并填写评分。</p>
-      <div className="human-eval-case-count">{cases.length} 个完整案件</div>
+      <h2>{showAllCases ? '全部评测案件' : '我的评测任务'}</h2>
+      <p>{showAllCases ? '完整案件列表仅用于补充查看或手动兜底。' : '系统已为你分配本轮需要完成的 10 个案件。'}</p>
+      <div className="human-eval-assignment-summary">
+        <span>{showAllCases ? `${allCases.length} 个完整案件` : progressText}</span>
+        <button onClick={() => setShowAllCases((value) => !value)} type="button">
+          {showAllCases ? '回到我的任务' : '查看全部案件'}
+        </button>
+      </div>
+      {!showAllCases && assignment?.completed && (
+        <div className="human-eval-assignment-complete">本批已完成，刷新后将领取下一批案件。</div>
+      )}
       <div className="human-eval-case-list-scroll">
-        {cases.map((item) => (
+        {visibleCases.map((item) => (
           <button
             className={`human-eval-case-item ${item.case_id === selectedCaseId ? 'active' : ''}`}
             key={item.case_id}

@@ -102,6 +102,41 @@
   color: #725236;
 }
 
+.human-eval-assignment-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 12px 0;
+  color: #5f4634;
+  font-size: 13px;
+}
+
+.human-eval-assignment-summary button {
+  border: 1px solid rgba(138, 92, 49, 0.35);
+  border-radius: 6px;
+  background: #fff8eb;
+  color: #5f4634;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 7px 10px;
+}
+
+.human-eval-assignment-summary button:hover {
+  background: #f5dfb9;
+}
+
+.human-eval-assignment-complete {
+  border: 1px solid rgba(61, 122, 86, 0.25);
+  border-radius: 6px;
+  background: #edf8f0;
+  color: #27583a;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+}
+
 .human-eval-case-list-scroll,
 .human-eval-message-list {
   display: grid;

@@ -27,9 +27,25 @@ export type HumanEvalCaseSummary = {
   rating_submitted_at?: string | null;
 };
 
+export type HumanEvalAssignment = {
+  batch_size: number;
+  assigned_case_ids: number[];
+  submitted_count: number;
+  total_count: number;
+  completed: boolean;
+  batch_number: number;
+};
+
+export type HumanEvalCasesPayload = {
+  assigned_cases: HumanEvalCaseSummary[];
+  all_cases: HumanEvalCaseSummary[];
+  cases?: HumanEvalCaseSummary[];
+  assignment: HumanEvalAssignment;
+};
+
 export async function fetchHumanEvalCases() {
   const response = await authenticatedFetch('/api/human-eval/cases');
-  return await readJsonResponse<{ cases: HumanEvalCaseSummary[] }>(response);
+  return await readJsonResponse<HumanEvalCasesPayload>(response);
 }
 
 export async function fetchHumanEvalCase(caseId: number) {

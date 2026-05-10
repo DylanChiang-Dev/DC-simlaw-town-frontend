@@ -7,6 +7,7 @@ import {
   fetchHumanEvalRating,
   fetchHumanEvalSchema,
   saveHumanEvalRating,
+  type HumanEvalAssignment,
   type HumanEvalCaseSummary,
   type HumanEvalRatingPayload,
 } from '../services/humanEvalApi';
@@ -25,7 +26,9 @@ function createEmptyRating(raterId: string): HumanEvalRatingPayload {
 
 function HumanEvalShell({ auth }: { auth: AuthGateState }) {
   const defaultRaterId = auth.user?.email || auth.user?.id || 'rater_01';
-  const [cases, setCases] = useState<HumanEvalCaseSummary[]>([]);
+  const [assignedCases, setAssignedCases] = useState<HumanEvalCaseSummary[]>([]);
+  const [allCases, setAllCases] = useState<HumanEvalCaseSummary[]>([]);
+  const [assignment, setAssignment] = useState<HumanEvalAssignment | null>(null);
   const [selectedCaseId, setSelectedCaseId] = useState<number | null>(null);
   const [caseData, setCaseData] = useState<unknown>(null);
   const [activeStage, setActiveStage] = useState('LC');
@@ -45,8 +48,11 @@ function HumanEvalShell({ auth }: { auth: AuthGateState }) {
     Promise.all([fetchHumanEvalCases(), fetchHumanEvalSchema()])
       .then(([casePayload]) => {
         if (cancelled) return;
-        setCases(casePayload.cases);
-        setSelectedCaseId(casePayload.cases[0]?.case_id || null);
+        const nextAllCases = casePayload.all_cases || casePayload.cases || [];
+        setAssignedCases(casePayload.assigned_cases);
+        setAllCases(nextAllCases);
+        setAssignment(casePayload.assignment);
+        setSelectedCaseId(casePayload.assigned_cases[0]?.case_id || nextAllCases[0]?.case_id || null);
       })
       .catch((err) => setError(err instanceof Error ? err.message : '人工评测材料加载失败'))
       .finally(() => setLoading(false));
@@ -83,7 +89,9 @@ function HumanEvalShell({ auth }: { auth: AuthGateState }) {
     try {
       await saveHumanEvalRating(selectedCaseId, { ...ratingWithRater, status });
       const refreshed = await fetchHumanEvalCases();
-      setCases(refreshed.cases);
+      setAssignedCases(refreshed.assigned_cases);
+      setAllCases(refreshed.all_cases || refreshed.cases || []);
+      setAssignment(refreshed.assignment);
     } catch (err) {
       setError(err instanceof Error ? err.message : '评分保存失败');
     } finally {
@@ -103,7 +111,13 @@ function HumanEvalShell({ auth }: { auth: AuthGateState }) {
       </div>
       {error && <div className="human-eval-error" role="alert">{error}</div>}
       <div className="human-eval-workbench">
-        <HumanEvalCaseList cases={cases} selectedCaseId={selectedCaseId} onSelect={setSelectedCaseId} />
+        <HumanEvalCaseList
+          assignedCases={assignedCases}
+          allCases={allCases}
+          assignment={assignment}
+          selectedCaseId={selectedCaseId}
+          onSelect={setSelectedCaseId}
+        />
         <HumanEvalCaseReader caseData={caseData as never} activeStage={activeStage} onStageSelect={setActiveStage} />
         <HumanEvalScorePanel
           activeStage={activeStage}
