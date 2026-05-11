@@ -48,7 +48,7 @@ export function CommandHud({
   return (
     <header className="command-hud">
       <div className="hud-brand">
-        <div className="eyebrow">SimAilaw Town v2</div>
+        <div className="eyebrow">Legal World v2</div>
         <h1>法律全流程仿真</h1>
       </div>
       <div className="hud-status-strip" aria-label="运行状态">

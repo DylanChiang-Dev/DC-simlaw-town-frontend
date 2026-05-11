@@ -71,7 +71,7 @@ export function LoginPanel({ onAuthenticated }: Props) {
 
   return (
     <main className="auth-shell">
-      <section className="auth-stage" aria-label="登录 SimAilaw Town">
+      <section className="auth-stage" aria-label="登录 Legal World">
         <div className="auth-cg-scene">
           <img className="auth-background" src="/art/vn/bg-login-law-office-v3.png" alt="法律全流程仿真工作台" />
           <div aria-hidden="true" className="auth-cg-light-sweep" />
@@ -97,7 +97,7 @@ export function LoginPanel({ onAuthenticated }: Props) {
         </div>
         <div className="auth-vignette" />
         <form className="login-panel" onSubmit={handleSubmit}>
-          <div className="panel-kicker">SimAilaw Town</div>
+          <div className="panel-kicker">Legal World</div>
           <h1>进入法律全流程仿真</h1>
           <p>登录后进入案件工作区。你将以当前案件角色参与咨询、文书起草、庭审与上诉，案件进度、用户任务、智能助手协作和文书结果会实时同步。</p>
           <div className="login-mode-switch" aria-label="登录或注册">

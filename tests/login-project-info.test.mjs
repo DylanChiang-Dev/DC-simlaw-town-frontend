@@ -24,14 +24,32 @@ assert.match(
 
 assert.match(
   projectInfoSource,
-  /PROJECT_INFO_TITLE\s*=\s*'关于 SimAilaw Town'/,
-  'Project info title should match the legacy login page.',
+  /PROJECT_INFO_TITLE\s*=\s*'关于 Legal World'/,
+  'Project info title should use the Legal World product name.',
 );
 
 assert.match(
   projectInfoSource,
   /PROJECT_INFO_COPY[\s\S]*咨询、文书起草、庭审推进[\s\S]*PROJECT_CONTACT_EMAIL/,
   'Project info copy should carry over the legacy introduction and interpolate the contact email.',
+);
+
+assert.match(
+  projectInfoSource,
+  /PROJECT_INFO_COPY[\s\S]*Legal World 是一个面向法律场景的模拟项目/,
+  'Project info copy should introduce the renamed Legal World product.',
+);
+
+assert.match(
+  loginPanelSource,
+  /aria-label="登录 Legal World"/,
+  'LoginPanel should expose the renamed product in the login stage aria-label.',
+);
+
+assert.match(
+  loginPanelSource,
+  /<div className="panel-kicker">Legal World<\/div>/,
+  'LoginPanel should render the renamed product kicker.',
 );
 
 assert.match(

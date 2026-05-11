@@ -96,7 +96,7 @@ export function AuthGate({ children, ensureWorkspace = true }: Props) {
     return (
       <main className="auth-shell">
         <section className="auth-loading">
-          <div className="panel-kicker">SimAilaw Town</div>
+          <div className="panel-kicker">Legal World</div>
           <h1>正在恢复案件工作区</h1>
           <p>正在校验登录状态并连接案件工作区。</p>
         </section>

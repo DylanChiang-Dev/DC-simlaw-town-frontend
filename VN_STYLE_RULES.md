@@ -1,4 +1,4 @@
-# SimAilaw Town Frontend V2 VN Style Rules
+# Legal World Frontend V2 VN Style Rules
 
 `frontend-v2` 是法律全生命周期仿真的正式交互前端，不继承旧 `frontend/` 的地图、寻路、HUD 和大 CSS 结构。
 
