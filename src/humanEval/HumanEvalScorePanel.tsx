@@ -20,13 +20,27 @@ const ROLE_METRICS = [
   ['judge_role_distinguishability', '法官角色区分度'],
 ] as const;
 
+const SCORE_OPTIONS = [
+  [0, '0 未打分'],
+  [1, '1'],
+  [2, '2'],
+  [3, '3'],
+  [4, '4'],
+  [5, '5'],
+  [6, '6'],
+  [7, '7'],
+  [8, '8'],
+  [9, '9'],
+  [10, '10'],
+] as const;
+
 function emptyMetric(): HumanEvalMetricScore {
   return { score: 0, reason: '' };
 }
 
 function validateMetric(metric: HumanEvalMetricScore): boolean {
   const score = metric.score;
-  return Number.isInteger(score) && !(score < 0 || score > 10) && Boolean(metric.reason.trim());
+  return Number.isInteger(score) && score > 0 && score <= 10 && Boolean(metric.reason.trim());
 }
 
 function updateStageMetric(
@@ -82,13 +96,14 @@ export function HumanEvalScorePanel({
             return (
               <div className="human-eval-score-card" key={metric}>
                 <strong>{metric === 'procedural_compliance' ? '程序合规性' : '流程衔接合理性'}</strong>
-                <input
-                  max={10}
-                  min={0}
-                  type="number"
+                <select
                   value={value.score}
                   onChange={(event) => onRatingChange(updateStageMetric(rating, activeStage, metric, { ...value, score: Number(event.target.value) }))}
-                />
+                >
+                  {SCORE_OPTIONS.map(([score, label]) => (
+                    <option key={score} value={score}>{label}</option>
+                  ))}
+                </select>
                 <textarea
                   value={value.reason}
                   onChange={(event) => onRatingChange(updateStageMetric(rating, activeStage, metric, { ...value, reason: event.target.value }))}
@@ -109,10 +124,7 @@ export function HumanEvalScorePanel({
           return (
             <div className="human-eval-score-card compact" key={metric}>
               <strong>{label}</strong>
-              <input
-                max={10}
-                min={0}
-                type="number"
+              <select
                 value={value.score}
                 onChange={(event) => onRatingChange({
                   ...rating,
@@ -121,7 +133,11 @@ export function HumanEvalScorePanel({
                     [metric]: { ...value, score: Number(event.target.value) },
                   },
                 })}
-              />
+              >
+                {SCORE_OPTIONS.map(([score, label]) => (
+                  <option key={score} value={score}>{label}</option>
+                ))}
+              </select>
               <textarea
                 value={value.reason}
                 onChange={(event) => onRatingChange({

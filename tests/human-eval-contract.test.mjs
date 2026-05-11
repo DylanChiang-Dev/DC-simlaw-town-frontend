@@ -38,7 +38,11 @@ assert.match(caseList, /回到我的任务/, 'Case list should expose a way back
 assert.match(scorePanel, /procedural_compliance/, 'Score panel should render procedural_compliance.');
 assert.match(scorePanel, /process_coherence/, 'Score panel should render process_coherence.');
 assert.match(scorePanel, /client_stance_authenticity/, 'Score panel should include role consistency metrics.');
-assert.match(scorePanel, /score < 0 \|\| score > 10/, 'Score panel should validate 0-10 scores.');
+assert.match(scorePanel, /<select[\s\S]*value=\{value\.score\}/, 'Score panel should render score controls as fixed dropdowns.');
+assert.match(scorePanel, /0 未打分/, 'Score dropdown should expose 0 as the unscored state.');
+assert.match(scorePanel, /SCORE_OPTIONS\.map/, 'Score dropdown should render from the shared fixed score options.');
+assert.doesNotMatch(scorePanel, /type="number"/, 'Score panel should not expose free numeric score inputs.');
+assert.match(scorePanel, /score > 0 && score <= 10/, 'Score panel should require submitted metrics to use 1-10 scores.');
 assert.match(scorePanel, /reason\.trim\(\)/, 'Score panel should require non-empty reasons.');
 assert.match(styles, /\.human-eval-workbench/, 'styles should define human eval workbench layout.');
 assert.match(styles, /body\.human-eval-route\s*\{[\s\S]*overflow:\s*auto/, 'human eval route should escape the main app fixed viewport overflow.');
@@ -46,4 +50,4 @@ assert.doesNotMatch(humanEvalPageRule, /color-scheme:\s*light/, 'human eval page
 assert.match(styles, /\.human-eval-case-item\s*\{[\s\S]*color:\s*#2d1f17/, 'human eval case items should define readable text color.');
 assert.match(styles, /\.human-eval-stage-tabs button\s*\{[\s\S]*color:\s*#5f4634/, 'human eval stage tabs should define readable inactive text color.');
 assert.match(styles, /\.human-eval-document-paper\s*\{[\s\S]*background:\s*#fffdf8/, 'human eval documents should use a readable paper surface.');
-assert.match(styles, /\.human-eval-score-card input,[\s\S]*color-scheme:\s*light[\s\S]*-webkit-text-fill-color:\s*#2d1f17/, 'human eval score fields should override dark global form rendering.');
+assert.match(styles, /\.human-eval-score-card select,[\s\S]*color-scheme:\s*light[\s\S]*-webkit-text-fill-color:\s*#2d1f17/, 'human eval score fields should override dark global form rendering.');

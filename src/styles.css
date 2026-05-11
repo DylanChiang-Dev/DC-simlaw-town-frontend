@@ -303,6 +303,7 @@
   padding-top: 14px;
 }
 
+.human-eval-score-card select,
 .human-eval-score-card input,
 .human-eval-score-card textarea,
 .human-eval-rater-field input {
@@ -318,6 +319,7 @@
   -webkit-text-fill-color: #2d1f17;
 }
 
+.human-eval-score-card select:focus,
 .human-eval-score-card input:focus,
 .human-eval-score-card textarea:focus,
 .human-eval-rater-field input:focus {
