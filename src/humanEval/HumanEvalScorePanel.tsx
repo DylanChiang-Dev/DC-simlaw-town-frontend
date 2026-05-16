@@ -34,6 +34,8 @@ const SCORE_OPTIONS = [
   [10, '10'],
 ] as const;
 
+const MAX_VISIBLE_SUBMIT_BLOCKERS = 6;
+
 function emptyMetric(): HumanEvalMetricScore {
   return { score: 0, reason: '' };
 }
@@ -41,6 +43,47 @@ function emptyMetric(): HumanEvalMetricScore {
 function validateMetric(metric: HumanEvalMetricScore): boolean {
   const score = metric.score;
   return Number.isInteger(score) && score > 0 && score <= 10 && Boolean(metric.reason.trim());
+}
+
+function getMetricIssues(metric: HumanEvalMetricScore): string[] {
+  const issues: string[] = [];
+  const score = metric.score;
+  if (!Number.isInteger(score) || score <= 0 || score > 10) {
+    issues.push('未打分');
+  }
+  if (!metric.reason.trim()) {
+    issues.push('缺少理由');
+  }
+  return issues;
+}
+
+function buildSubmitBlockers(rating: HumanEvalRatingPayload, raterId: string): string[] {
+  const blockers: string[] = [];
+  if (!raterId.trim()) {
+    blockers.push('评审编号：未填写');
+  }
+
+  SCORABLE_STAGES.forEach((stage) => {
+    const score = rating.stage_scores[stage];
+    ([
+      ['procedural_compliance', '程序合规性'],
+      ['process_coherence', '流程衔接合理性'],
+    ] as const).forEach(([metric, label]) => {
+      const issues = getMetricIssues(score?.[metric] || emptyMetric());
+      if (issues.length > 0) {
+        blockers.push(`${stage}-${label}：${issues.join(' / ')}`);
+      }
+    });
+  });
+
+  ROLE_METRICS.forEach(([metric, label]) => {
+    const issues = getMetricIssues(rating.role_scores[metric] || emptyMetric());
+    if (issues.length > 0) {
+      blockers.push(`${label}：${issues.join(' / ')}`);
+    }
+  });
+
+  return blockers;
 }
 
 function updateStageMetric(
@@ -78,7 +121,10 @@ export function HumanEvalScorePanel({
     return score && validateMetric(score.procedural_compliance) && validateMetric(score.process_coherence);
   });
   const allRoleMetricsValid = ROLE_METRICS.every(([metric]) => validateMetric(rating.role_scores[metric] || emptyMetric()));
-  const canSubmit = Boolean(raterId.trim()) && allStageMetricsValid && allRoleMetricsValid;
+  const submitBlockers = buildSubmitBlockers(rating, raterId);
+  const visibleSubmitBlockers = submitBlockers.slice(0, MAX_VISIBLE_SUBMIT_BLOCKERS);
+  const hiddenSubmitBlockerCount = submitBlockers.length - visibleSubmitBlockers.length;
+  const canSubmit = Boolean(raterId.trim()) && allStageMetricsValid && allRoleMetricsValid && submitBlockers.length === 0;
 
   return (
     <aside className="human-eval-score-panel" aria-label="人工评测评分表">
@@ -153,6 +199,20 @@ export function HumanEvalScorePanel({
           );
         })}
       </section>
+
+      {submitBlockers.length > 0 && (
+        <div className="human-eval-submit-hint" aria-live="polite">
+          <strong>还有评分项未完成，填写全部分数和理由后才能提交问卷。</strong>
+          <ul>
+            {visibleSubmitBlockers.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+          {hiddenSubmitBlockerCount > 0 && (
+            <p>还有 {hiddenSubmitBlockerCount} 项未显示，请继续补全各阶段评分和角色评分。</p>
+          )}
+        </div>
+      )}
 
       <div className="human-eval-score-actions">
         <button disabled={saving || !raterId.trim()} onClick={() => onSave('draft')} type="button">保存草稿</button>

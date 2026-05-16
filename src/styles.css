@@ -337,6 +337,37 @@
   min-height: 70px;
 }
 
+.human-eval-submit-hint {
+  margin-top: 16px;
+  border: 1px solid #e2c48d;
+  border-radius: 8px;
+  background: #fff8e8;
+  color: #4b3218;
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.human-eval-submit-hint strong {
+  display: block;
+  color: #3c2a16;
+  margin-bottom: 8px;
+}
+
+.human-eval-submit-hint ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.human-eval-submit-hint li + li {
+  margin-top: 4px;
+}
+
+.human-eval-submit-hint p {
+  margin: 8px 0 0;
+  color: #6a4c25;
+}
+
 .human-eval-score-actions {
   display: flex;
   justify-content: space-between;

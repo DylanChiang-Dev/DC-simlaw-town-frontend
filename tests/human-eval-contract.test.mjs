@@ -44,6 +44,11 @@ assert.match(scorePanel, /SCORE_OPTIONS\.map/, 'Score dropdown should render fro
 assert.doesNotMatch(scorePanel, /type="number"/, 'Score panel should not expose free numeric score inputs.');
 assert.match(scorePanel, /score > 0 && score <= 10/, 'Score panel should require submitted metrics to use 1-10 scores.');
 assert.match(scorePanel, /reason\.trim\(\)/, 'Score panel should require non-empty reasons.');
+assert.match(scorePanel, /还有评分项未完成，填写全部分数和理由后才能提交问卷。/, 'Score panel should explain why incomplete ratings cannot be submitted.');
+assert.match(scorePanel, /buildSubmitBlockers/, 'Score panel should compute concrete missing fields before disabling submit.');
+assert.match(scorePanel, /未打分/, 'Score panel should list missing score blockers.');
+assert.match(scorePanel, /缺少理由/, 'Score panel should list missing reason blockers.');
+assert.match(scorePanel, /aria-live="polite"/, 'Score panel completion hints should be politely announced.');
 assert.match(styles, /\.human-eval-workbench/, 'styles should define human eval workbench layout.');
 assert.match(styles, /body\.human-eval-route\s*\{[\s\S]*overflow:\s*auto/, 'human eval route should escape the main app fixed viewport overflow.');
 assert.doesNotMatch(humanEvalPageRule, /color-scheme:\s*light/, 'human eval page should not force page-level color-scheme.');
@@ -51,3 +56,4 @@ assert.match(styles, /\.human-eval-case-item\s*\{[\s\S]*color:\s*#2d1f17/, 'huma
 assert.match(styles, /\.human-eval-stage-tabs button\s*\{[\s\S]*color:\s*#5f4634/, 'human eval stage tabs should define readable inactive text color.');
 assert.match(styles, /\.human-eval-document-paper\s*\{[\s\S]*background:\s*#fffdf8/, 'human eval documents should use a readable paper surface.');
 assert.match(styles, /\.human-eval-score-card select,[\s\S]*color-scheme:\s*light[\s\S]*-webkit-text-fill-color:\s*#2d1f17/, 'human eval score fields should override dark global form rendering.');
+assert.match(styles, /\.human-eval-submit-hint\s*\{[\s\S]*background:\s*#fff8e8/, 'human eval incomplete-submit hint should use a light inline notice.');
