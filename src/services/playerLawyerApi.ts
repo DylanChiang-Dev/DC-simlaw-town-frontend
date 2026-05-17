@@ -29,6 +29,13 @@ type PlayerLawyerRequestResponse = {
   submitted_at?: string | null;
 };
 
+type PlayerLawyerRuntimeResponse = {
+  player_mode?: string;
+  enabled?: boolean;
+  pending?: PlayerLawyerRequestResponse[];
+  count?: number;
+};
+
 type PlayerLawyerSkillResponse = {
   skill_id?: string;
   document_type?: string;
@@ -160,6 +167,22 @@ export async function fetchPendingPlayerLawyerRequests(caseId?: string): Promise
   const response = await authenticatedFetch(`/api/sandbox/player-lawyer/pending${query}`, { method: 'GET' });
   const payload = await readJsonResponse<{ pending?: PlayerLawyerRequestResponse[] }>(response);
   return Array.isArray(payload.pending) ? payload.pending.map(mapRequest) : [];
+}
+
+export async function fetchPlayerLawyerRuntime(caseId?: string): Promise<{
+  status: PlayerLawyerStatus;
+  pending: PlayerLawyerRequest[];
+}> {
+  const query = caseId ? `?case_id=${encodeURIComponent(caseId)}` : '';
+  const response = await authenticatedFetch(`/api/sandbox/player-lawyer/runtime${query}`, { method: 'GET' });
+  const payload = await readJsonResponse<PlayerLawyerRuntimeResponse>(response);
+  return {
+    status: {
+      playerMode: String(payload.player_mode || '').trim(),
+      enabled: Boolean(payload.enabled),
+    },
+    pending: Array.isArray(payload.pending) ? payload.pending.map(mapRequest) : [],
+  };
 }
 
 export async function submitPlayerLawyerResponse(input: PlayerLawyerTextSubmitInput): Promise<PlayerLawyerRequest> {

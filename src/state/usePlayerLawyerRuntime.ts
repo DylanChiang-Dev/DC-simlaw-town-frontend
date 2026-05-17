@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  fetchPendingPlayerLawyerRequests,
-  fetchPlayerLawyerStatus,
+  fetchPlayerLawyerRuntime,
   polishPlayerLawyerResponse,
   submitPlayerLawyerResponse,
 } from '../services/playerLawyerApi';
@@ -14,7 +13,8 @@ import type {
   PlayerLawyerTextSubmitInput,
 } from '../services/types';
 
-const POLL_INTERVAL_MS = 10000;
+const BASE_POLL_INTERVAL_MS = 45000;
+const MAX_POLL_INTERVAL_MS = 120000;
 const PLAYER_MODE_NEGOTIATING_MESSAGE = 'Player-lawyer mode is not enabled';
 
 type PlayerLawyerPayload = {
@@ -38,24 +38,25 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
   const [refreshLoading, setRefreshLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [status, setStatus] = useState<PlayerLawyerStatus | null>(null);
+  const pollIntervalMsRef = useRef(BASE_POLL_INTERVAL_MS);
 
   const refresh = useCallback(async () => {
     if (!enabled) return;
     setRefreshLoading(true);
     setError('');
     try {
-      const [nextStatus, pending] = await Promise.all([
-        fetchPlayerLawyerStatus(),
-        fetchPendingPlayerLawyerRequests(caseId),
-      ]);
-      setStatus(nextStatus);
+      const runtime = await fetchPlayerLawyerRuntime(caseId);
+      setStatus(runtime.status);
+      const pending = runtime.pending;
       setActiveRequest(pending[pending.length - 1] || null);
+      pollIntervalMsRef.current = BASE_POLL_INTERVAL_MS;
     } catch (err) {
       setActiveRequest(null);
       if (isPlayerLawyerModeNegotiatingError(err)) {
         setError('');
       } else {
         setError(err instanceof Error ? err.message : '读取用户任务失败');
+        pollIntervalMsRef.current = Math.min(pollIntervalMsRef.current * 2, MAX_POLL_INTERVAL_MS);
       }
     } finally {
       setRefreshLoading(false);
@@ -67,12 +68,32 @@ export function usePlayerLawyerRuntime(enabled: boolean, caseId?: string): Playe
       setActiveRequest(null);
       setError('');
       setStatus(null);
+      pollIntervalMsRef.current = BASE_POLL_INTERVAL_MS;
       return;
     }
 
     void refresh();
-    const timer = window.setInterval(() => void refresh(), POLL_INTERVAL_MS);
-    return () => window.clearInterval(timer);
+    let timer: number | undefined;
+
+    const schedulePoll = () => {
+      if (timer) window.clearTimeout(timer);
+      if (document.visibilityState === 'hidden') return;
+      timer = window.setTimeout(() => void refresh().finally(schedulePoll), pollIntervalMsRef.current);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void refresh();
+      }
+      schedulePoll();
+    };
+
+    schedulePoll();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      if (timer) window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [enabled, refresh]);
 
   useEffect(() => {
