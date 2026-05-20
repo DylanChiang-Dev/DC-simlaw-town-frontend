@@ -432,6 +432,17 @@ body.human-eval-route #root {
   min-height: 100vh;
 }
 
+body.demo-route {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(233, 188, 114, 0.2), transparent 24%),
+    radial-gradient(circle at 88% 10%, rgba(151, 168, 120, 0.16), transparent 24%),
+    linear-gradient(135deg, #1f1711 0%, #0d0b09 100%);
+}
+
+body.demo-route #root {
+  min-height: 100vh;
+}
+
 button {
   font: inherit;
 }
@@ -453,6 +464,69 @@ button {
 
 .recording-live-simulation .app-shell {
   padding: 10px 12px;
+}
+
+.demo-app-shell {
+  background: rgba(20, 13, 10, 0.28);
+}
+
+.demo-run-strip {
+  flex: 0 0 auto;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: minmax(260px, 0.34fr) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid rgba(233, 188, 114, 0.28);
+  background: linear-gradient(90deg, rgba(46, 30, 22, 0.92), rgba(30, 34, 25, 0.86));
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+}
+
+.demo-run-strip div:first-child {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.demo-run-strip span {
+  color: #dbe7a8;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.demo-run-strip strong {
+  overflow: hidden;
+  color: #fff4df;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.demo-run-strip b {
+  color: #f4d6a4;
+  font-size: 12px;
+}
+
+.demo-run-strip p {
+  min-width: 0;
+  margin: 0;
+  color: #e5cfb4;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.demo-run-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.demo-run-actions .primary-action,
+.demo-run-actions .secondary-action {
+  white-space: nowrap;
 }
 
 .frontend-recording-demo .command-hud {
@@ -4282,6 +4356,16 @@ h1 {
     align-items: stretch;
   }
 
+  .demo-run-strip {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .demo-run-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
   .user-task-recovery-banner div {
     display: grid;
     gap: 4px;
@@ -4357,6 +4441,11 @@ h1 {
 
   .case-card-preview {
     max-height: 148px;
+  }
+
+  .demo-run-actions {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
   .case-picker-actions {

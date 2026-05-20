@@ -14,6 +14,7 @@ import { TaskWorkbenchShell } from "./TaskWorkbenchShell";
 
 type Props = {
   caseId: string;
+  offlineSummary?: CaseClosingSummary | null;
   onClose: () => void;
   open: boolean;
 };
@@ -25,7 +26,7 @@ const DEFAULT_DIMENSIONS = [
   "表达与职业沟通",
 ];
 
-export function CaseClosingSummaryDialog({ caseId, onClose, open }: Props) {
+export function CaseClosingSummaryDialog({ caseId, offlineSummary = null, onClose, open }: Props) {
   const [summary, setSummary] = useState<CaseClosingSummary | null>(null);
   const [evaluation, setEvaluation] = useState<CaseClosingEvaluation | null>(
     null,
@@ -39,10 +40,18 @@ export function CaseClosingSummaryDialog({ caseId, onClose, open }: Props) {
 
   useEffect(() => {
     if (!open || !caseId) return;
+    if (offlineSummary) {
+      setSummary(offlineSummary);
+      setEvaluation(offlineSummary.evaluation);
+      setError("");
+      setEvaluationError("");
+      setLoading(false);
+      return;
+    }
     void loadSummaryAndEvaluation();
     // Load once when the dialog opens for a case.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [caseId, open]);
+  }, [caseId, offlineSummary, open]);
 
   async function loadSummaryAndEvaluation(): Promise<void> {
     setLoading(true);
@@ -140,9 +149,12 @@ export function CaseClosingSummaryDialog({ caseId, onClose, open }: Props) {
                 <button
                   className="secondary-action"
                   type="button"
-                  onClick={() => void downloadCaseDocument(item)}
+                  onClick={() => {
+                    if (offlineSummary) return;
+                    void downloadCaseDocument(item);
+                  }}
                 >
-                  下载
+                  {offlineSummary ? "已预生成" : "下载"}
                 </button>
               </article>
             ))}
@@ -205,11 +217,11 @@ export function CaseClosingSummaryDialog({ caseId, onClose, open }: Props) {
       ) : null}
       <button
         className="secondary-action"
-        disabled={reportLoading || loading || !summary}
+        disabled={Boolean(offlineSummary) || reportLoading || loading || !summary}
         onClick={() => void handleDownloadReport()}
         type="button"
       >
-        {reportLoading ? "导出中" : "导出复盘 Markdown"}
+        {offlineSummary ? "离线演示复盘" : reportLoading ? "导出中" : "导出复盘 Markdown"}
       </button>
       <button className="primary-action" type="button" onClick={onClose}>
         关闭

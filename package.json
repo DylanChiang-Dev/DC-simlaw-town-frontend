@@ -1,6 +1,6 @@
 {
   "name": "simlaw-town-frontend-v2",
-  "version": "2.1.83",
+  "version": "2.1.84",
   "private": true,
   "type": "module",
   "scripts": {
@@ -23,6 +23,7 @@
     "test:reset-state": "node tests/player-lawyer-reset-state.test.mjs",
     "test:dialogue-sequence": "node tests/player-lawyer-dialogue-sequence.test.mjs",
     "test:closing-summary": "node tests/player-lawyer-closing-summary.test.mjs",
+    "test:demo": "node tests/demo-route.test.mjs",
     "test:stage-transcript": "node tests/dialogue-stage-transcript.test.mjs",
     "test:unified-task-dialog": "node tests/player-lawyer-unified-task-dialog.test.mjs",
     "test:recording-live-simulation": "node tests/recording-live-simulation.test.mjs",

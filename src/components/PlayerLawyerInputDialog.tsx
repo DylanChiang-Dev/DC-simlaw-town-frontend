@@ -150,7 +150,9 @@ const DOCUMENT_STAGES = new Set(Object.keys(DOCUMENT_FOLLOWUP_HINTS_BY_STAGE));
 
 type Props = {
   documentSkill?: PlayerLawyerSkill | null;
+  initialDocumentMode?: DocumentMode;
   initialFollowupHistory?: DocumentFollowupPair[];
+  initialMessage?: string;
   loading: boolean;
   onClose: () => void;
   onFollowupDocument: (input: {
@@ -185,7 +187,9 @@ type DocumentMode = "followup" | "drafting";
 
 export function PlayerLawyerInputDialog({
   documentSkill,
+  initialDocumentMode,
   initialFollowupHistory = [],
+  initialMessage = "",
   loading,
   onClose,
   onFollowupDocument,
@@ -212,9 +216,10 @@ export function PlayerLawyerInputDialog({
     setPolishedMessage("");
     setPolishError("");
     setFollowupQuestion("");
-    setDocumentMode("followup");
+    setMessage(initialMessage);
+    setDocumentMode(initialDocumentMode || "followup");
     setFollowupHistory(initialFollowupHistory);
-  }, [request?.requestId]);
+  }, [initialDocumentMode, initialMessage, request?.requestId]);
 
   if (!request) return null;
 
