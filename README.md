@@ -4,6 +4,8 @@
 
 面向法律仿真场景的交互式前端应用，采用视觉小说（Visual Novel）风格，支持玩家以律师身份主动参与案件全流程。
 
+![主界面：视觉小说风格法律仿真](docs/screenshots/01-live-simulation.png)
+
 ## 技术栈
 
 **Vite + TypeScript + React 18**，纯前端项目，需配合后端服务运行。
@@ -111,6 +113,8 @@ src/
     └── buildInfo.ts               # 构建信息（自动生成）
 ```
 
+![系统交互流程](docs/screenshots/06-generated-interaction-flow.png)
+
 ## 核心贡献与创新
 
 ### 1. 视觉小说交互范式
@@ -132,6 +136,8 @@ src/
 ### 5. 文书工作台（Document Workbench）
 
 内嵌法律文书起草与查阅工作台，支持在对话流程中弹窗处理专业文档，保持沉浸感的同时提供专业工具支持。
+
+![庭审工作台](docs/screenshots/04-court-workbench.png)
 
 ### 6. 多案件系统 + 人类评估框架
 
